@@ -19,8 +19,9 @@ menu_modes {
     ubyte mode
 
     sub draw_menu_type(str tmp1) {
-        ;void strings.copy("?" * 78,main.g_tmp_str_buffer1)
         helpers.print_strXY(1,txt.height() - 4," " * 78,clr.MENU_NORMAL,false)
+        helpers.print_strXY(1,txt.height() - 3," " * 78,clr.MENU_NORMAL,false)
+        helpers.print_strXY(1,txt.height() - 2," " * 78,clr.MENU_NORMAL,false)
         helpers.print_strXY(1,txt.height() - 4,tmp1,clr.MENU_NORMAL,false)
         helpers.print_strXY(1,txt.height() - 3,iso:"COMMANDS",clr.MENU_NORMAL,false)
     }
