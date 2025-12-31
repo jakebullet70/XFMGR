@@ -1,0 +1,6 @@
+*.SYM
+LOCAL.BAT
+*.BAK
+*.TMP
+*.OLD
+/sdcard
