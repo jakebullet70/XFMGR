@@ -53,15 +53,6 @@ menu_modes {
 
 }
 
-clr {
-    ;--- default colors
-    const ubyte TXT_NORMAL = $b1  ; 
-    const ubyte TXT_BRIGHT = $b1  ; 
-    const ubyte MENU_NORMAL = $b1  ;
-    const ubyte MENU_BRIGHT = $b7  ; 
-    const ubyte BOXES = $be ;
-}
-
 main {
     str g_tmp_str_buffer1 = "?" * 80
     str g_tmp_str_buffer2 = "?" * 255
@@ -109,6 +100,15 @@ main {
 
 }
 
+
+clr {
+    ;--- default colors
+    const ubyte TXT_NORMAL = $b1  ; 
+    const ubyte TXT_BRIGHT = $b1  ; 
+    const ubyte MENU_NORMAL = $b1  ;
+    const ubyte MENU_BRIGHT = $b7  ; 
+    const ubyte BOXES = $be ;
+}
 
 ;--- misc functions
 helpers {
@@ -163,7 +163,8 @@ helpers {
             chr_tright = '┤'
         }
     }
-sub draw_main_scrn(){
+
+    sub draw_main_scrn() {
         ;vtui.set_stride(2) ;--- disables color attributes in calls like border/fill_box etc.
         vtui.clr_scr(' ', clr.TXT_NORMAL)
         draw_box(0,0,txt.width(), txt.height(), clr.BOXES)
@@ -171,7 +172,7 @@ sub draw_main_scrn(){
         draw_vert_line(0,2,80)
         draw_vert_line(0,4,80)
         print_strXY(1 ,1,iso:"XFMGR V0.1.0",clr.TXT_NORMAL,false)
-        print_strXY(62,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
+        print_strXY(63,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
         ;vtui.set_stride(1) ;--- back to normal
     }
 
@@ -181,10 +182,8 @@ sub draw_main_scrn(){
         plot_charXY(col,row,chr_tleft,clr.BOXES)
         plot_charXY(width-1,row,chr_tright,clr.BOXES)
     }
- 
 
 }
-
 
 ;--- VTUI library interface
 vtui $1000 {
