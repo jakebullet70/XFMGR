@@ -19,7 +19,7 @@ main {
     sub start() {
         ; some configuration, optional
         fileselector.configure_settings(8, 3, 2)
-        fileselector.configure_appearance(10, 10, 12, $b3, $d0)
+        fileselector.configure_appearance(10, 10, 12, $b3, $d0,false)
 
         ; show all files, using just the * wildcard
         ^^ubyte chosen = fileselector.select("*")
@@ -53,6 +53,7 @@ fileselector {
     ubyte buffer_rambank = 1    ; default hiram bank to use for the data buffers
     ubyte show_what = 3         ; dirs and files
     ubyte chr_topleft, chr_topright, chr_botleft, chr_botright, chr_horiz_top, chr_horiz_other, chr_vert, chr_jointleft, chr_jointright
+    bool draw_box_info = false
 
     ubyte num_visible_files
     ^^ubyte name_ptr
@@ -68,12 +69,13 @@ fileselector {
         set_characters(false)
     }
 
-    sub configure_appearance(ubyte column, ubyte row, ubyte max_entries, ubyte normal, ubyte selected) {
+    sub configure_appearance(ubyte column, ubyte row, ubyte max_entries, ubyte normal, ubyte selected, bool draw_box) {
         dialog_topx = column
         dialog_topy = row
         max_lines = max_entries
         colors_normal = normal
         colors_selected = selected
+        draw_box_info = draw_box
     }
 
     sub select(str pattern) -> str {
@@ -94,32 +96,34 @@ fileselector {
             return 0
 
         bool iso_mode = cx16.get_charset()==1
-        set_characters(iso_mode)
-        txt.color2(colors_normal & 15, colors_normal>>4)
-        background(0, 3)
-
-        txt.plot(dialog_topx, dialog_topy)
-        txt.chrout(chr_topleft)
-        linepart(true)
-        txt.chrout(chr_topright)
-        txt.nl()
-        txt.column(dialog_topx)
-        txt.chrout(chr_vert)
-        txt.print(" drive ")
-        txt.print_ub(diskio.drivenumber)
-        txt.print(": '")
-        txt.print(name_ptr)
-        txt.chrout('\'')
-        txt.column(dialog_topx+31)
-        txt.chrout(chr_vert)
-        txt.nl()
-        txt.column(dialog_topx)
-        txt.chrout(chr_vert)
-        txt.print("   scanning directory...      ")
-        txt.chrout(chr_vert)
-        txt.nl()
-        txt.column(dialog_topx)
-        footerline()
+        if draw_box_info {
+            set_characters(iso_mode) 
+            txt.color2(colors_normal & 15, colors_normal>>4)
+            background(0, 3)
+            txt.plot(dialog_topx, dialog_topy)
+            txt.chrout(chr_topleft)
+            linepart(true)
+            txt.chrout(chr_topright)
+            txt.nl()
+            txt.column(dialog_topx)
+            txt.chrout(chr_vert)
+            txt.print(" drive ")
+            txt.print_ub(diskio.drivenumber)
+            txt.print(": '")
+            txt.print(name_ptr)
+            txt.chrout('\'')
+            txt.column(dialog_topx+31)
+            txt.chrout(chr_vert)
+            txt.nl()
+            txt.column(dialog_topx)
+            txt.chrout(chr_vert)
+            txt.print("   scanning directory...      ")
+            txt.chrout(chr_vert)
+            txt.nl()
+            txt.column(dialog_topx)
+            footerline()
+            }
+        
 
         ubyte num_files = get_names(pattern, filenamesbuffer, filenamesbuf_size)    ; use Hiram bank to store the files
         ubyte selected_line
@@ -131,52 +135,59 @@ fileselector {
         sorting.shellsort_pointers(filename_ptrs_start, num_files)
         num_visible_files = min(max_lines, num_files)
 
-        ; initial display
         background(5, 3 + num_visible_files -1)
         txt.plot(dialog_topx+2, dialog_topy+2)
-        txt.print("select ")
-        if show_what & 1 == 1
-            txt.print("file")
-        else
-            txt.print("directory")
-        txt.print(": (")
-        txt.print_ub(num_files)
-        txt.print(" total)")
-        txt.column(dialog_topx+31)
-        txt.chrout(chr_vert)
-        txt.nl()
-        txt.column(dialog_topx)
-        txt.chrout(chr_vert)
-        txt.print(" esc/stop to abort            ")
-        txt.chrout(chr_vert)
-        txt.nl()
-        txt.column(dialog_topx)
-        txt.chrout(chr_jointleft)
-        linepart(false)
-        txt.chrout(chr_jointright)
-        txt.nl()
-        print_scroll_indicator(false, true)
+        if draw_box_info {
+            ; initial display   
+            txt.print("select ")
+            if show_what & 1 == 1
+                txt.print("file")
+            else
+                txt.print("directory")
+            txt.print(": (")
+            txt.print_ub(num_files)
+            txt.print(" total)")
+            txt.column(dialog_topx+31)
+            txt.chrout(chr_vert)
+            txt.nl()
+            txt.column(dialog_topx)
+            txt.chrout(chr_vert)
+            txt.print(" esc/stop to abort            ")
+            txt.chrout(chr_vert)
+            txt.nl()
+            txt.column(dialog_topx)
+            txt.chrout(chr_jointleft)
+            linepart(false)
+            txt.chrout(chr_jointright)
+            txt.nl()
+            print_scroll_indicator(false, true)
+        } else {
+            repeat 4 txt.nl()
+        }
+        
         if num_files>0 {
             for selected_line in 0 to num_visible_files-1 {
-                txt.column(dialog_topx)
-                txt.chrout(chr_vert)
+                txt.column(dialog_topx+1)
+                ;txt.column(dialog_topx)
+                ;txt.chrout(chr_vert)
                 txt.spc()
                 print_filename(peekw(filename_ptrs_start+selected_line*$0002))
                 txt.column(dialog_topx+31)
-                txt.chrout(chr_vert)
+                ;txt.chrout(chr_vert)
                 txt.nl()
             }
         } else {
-            txt.column(dialog_topx)
-            txt.chrout(chr_vert)
+            txt.column(dialog_topx+1)
+            ;txt.column(dialog_topx)
+            ;txt.chrout(chr_vert)
             txt.print(" no matches.")
             txt.column(dialog_topx+31)
-            txt.chrout(chr_vert)
+            ;txt.chrout(chr_vert)
             txt.nl()
         }
         print_scroll_indicator(false, false)
         txt.column(dialog_topx)
-        footerline()
+        ;footerline()
         selected_line = 0
         select_line(0)
         print_up_and_down()
@@ -345,7 +356,7 @@ fileselector {
 
         sub print_scroll_indicator(bool visible, bool up) {
             txt.plot(dialog_topx, dialog_topy + (if up  5  else  6+num_visible_files))
-            txt.chrout(chr_vert)
+            ;txt.chrout(chr_vert)
             txt.column(dialog_topx+24)
             if visible
                 if up
@@ -355,21 +366,21 @@ fileselector {
             else
                 txt.print("      ")
             txt.spc()
-            txt.chrout(chr_vert)
+            ;txt.chrout(chr_vert)
             txt.nl()
         }
 
         sub footerline() {
-            txt.chrout(chr_botleft)
-            linepart(false)
-            txt.chrout(chr_botright)
+            ; txt.chrout(chr_botleft)
+            ; linepart(false)
+            ; txt.chrout(chr_botright)
         }
 
         sub linepart(bool top) {
-            cx16.r0L = chr_horiz_other
-            if top
-                cx16.r0L = chr_horiz_top
-            repeat 30 txt.chrout(cx16.r0L)
+            ; cx16.r0L = chr_horiz_other
+            ; if top
+            ;     cx16.r0L = chr_horiz_top
+            ; repeat 30 txt.chrout(cx16.r0L)
         }
 
         sub select_line(ubyte line) {
@@ -438,6 +449,14 @@ fileselector {
 
         if list_ok {
             while diskio.lf_next_entry() {
+              
+                str tmp9=" "
+                void strings.copy(diskio.list_filename, tmp9)
+                bool is_hidden = strings.startswith(tmp9,".")
+                if is_hidden 
+                    continue
+
+
                 bool is_dir = diskio.list_filetype=="dir"
                 if is_dir and show_what & 2 == 0
                     continue
