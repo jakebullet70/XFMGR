@@ -5,3 +5,4 @@ LOCAL.BAT
 *.OLD
 /sdcard
 stree.vice-mon-list
+stree.asm
