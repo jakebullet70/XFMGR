@@ -8,3 +8,6 @@ stree.vice-mon-list
 stree.asm
 dump.bin
 dump-1.bin
+stree.asm
+stree.vice-mon-list
+*.vice-mon-list
