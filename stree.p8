@@ -8,9 +8,6 @@
 %option no_sysinit
 %zeropage basicsafe
 
-; simple test program for the "VTUI" text user interface library
-; see:  https://github.com/JimmyDansbo/VTUIlib
-
 menu_modes {
     const ubyte DIR  = 0
     const ubyte ALT  = 1
@@ -56,25 +53,24 @@ menu_modes {
 main {
     str g_tmp_str_buffer1 = "?" * 80
     str g_tmp_str_buffer2 = "?" * 255
+    ubyte i,j = 0
 
     sub start() {
 
-        vtui.initialize()
-        vtui.screen_set(0)              ; 80x60
+        cx16.set_screen_mode(0)
+        txt.color2(clr.TXT_NORMAL & 15, clr.TXT_NORMAL>>4)
+        txt.clear_screen()        
         
         txt.cp437()                     ;--- enable ISO character set 
         txt.lowercase()
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
-        
         helpers.draw_main_scrn()
-
-        ;helpers.print_strXY(32,10,sc:"Hello, world! vtui from Prog8!", clr.TXT_NORMAL, true)
-        ;helpers.print_strXY(32,15,iso:"Hello, world! vtui from Prog8!", clr.TXT_BRIGHT, false)
-        ;helpers.print_strXY(32,18,cp437:"Hello, world! vtui from Prog8!", clr.TXT_BRIGHT, false)
 
         menu_modes.mode = menu_modes.DIR ;--- default for the moment
         menu_modes.draw()
 
+        dir_cache.init()
+        files_folders.read(8)
 
 
 
@@ -101,6 +97,218 @@ main {
 }
 
 
+files_folders {
+
+    bool disk_error = false
+    ubyte total_dir, total_files = 0
+    alias tmp_str = main.g_tmp_str_buffer2 
+    const bool DIR_ENTRY = true
+    const bool FILE_ENTRY = false
+    
+    sub read(ubyte drv) { 
+        diskio.drivenumber = drv
+
+        ;--- list directories first
+        if diskio.lf_start_list_dirs(0) {
+            while diskio.lf_next_entry() {    
+                void strings.copy(diskio.list_filename, tmp_str)
+                void strings.lower(tmp_str)    
+                dir_cache.add(tmp_str,DIR_ENTRY,false,0)
+                total_dir++   
+            }
+        } else {
+            disk_error = true
+        }
+        diskio.lf_end_list()
+
+        ;--- then list files
+        if diskio.lf_start_list_files(0) and not disk_error {
+            while diskio.lf_next_entry() {
+                void strings.copy(diskio.list_filename, tmp_str)
+                void strings.lower(tmp_str)    
+                dir_cache.add(tmp_str,FILE_ENTRY,false,0)
+                total_files++       
+            }
+        } else {
+            disk_error = true
+        }
+        diskio.lf_end_list()
+
+        if disk_error {
+
+        }
+    }
+
+}
+
+
+; -----------------------------------
+; --- Linked list holding the Dir
+; -----------------------------------
+
+dir_cache {
+    struct Entry {
+        ^^Entry next          ; Next entry in the list
+        ^^Entry prev          ; Previous entry in the list
+        ^^Entry hash_next     ; Next entry in the hash bucket
+        str name              ; Name (key)
+        bool is_dir
+        bool is_tagged
+        uword blocks
+    }
+
+    const ubyte HASH_TABLE_SIZE = 199
+    ^^Entry[HASH_TABLE_SIZE] hash_table    ; Hash table for fast lookups
+    ^^Entry head = 0                       ; Head of the doubly linked list
+    ^^Entry tail = 0                       ; Tail of the doubly linked list
+    uword count = 0                        ; Number of entries
+
+    sub init() {
+        ; Initialize hash table buckets to null
+        sys.memsetw(hash_table, HASH_TABLE_SIZE, 0)
+    }
+
+    
+    sub add(str name, bool is_dir, bool tagged, uword blocks) {
+        ;--- Create new entry
+
+        ^^Entry new_record = arena.alloc(sizeof(Entry))
+
+        ^^ubyte name_copy = arena.alloc(strings.length(name) + 1)
+        void strings.copy(name, name_copy)
+
+        new_record.name = name_copy
+        new_record.is_dir = is_dir
+        new_record.is_tagged = tagged
+        new_record.blocks = blocks
+        new_record.next = 0
+        new_record.prev = 0
+        new_record.hash_next = 0
+
+        ; Add to the end of the doubly linked list
+        if head == 0 {
+            ; First entry
+            head = new_record
+            tail = new_record
+        } else {
+            ; Add to the end
+            tail.next = new_record
+            new_record.prev = tail
+            tail = new_record
+        }
+
+        ; Add to hash table
+        ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
+        new_record.hash_next = hash_table[bucket]
+        hash_table[bucket] = new_record
+
+        count++
+    }
+
+
+    sub find(str name) -> ^^Entry {
+        ; Find entry using hash table for O(1) average case
+
+         ;ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
+         ;^^Entry current = hash_table[bucket]
+
+        ^^Entry current = head
+
+        while current != 0 {
+            if strings.compare(current.name, name) == 0
+                return current
+            ;current = current.hash_next
+            current = current.next
+        }
+
+        return 0  ; Not found
+    }
+
+    sub remove(str name) -> bool {
+        ; Find the entry
+        ^^Entry to_remove = find(name)
+        if to_remove == 0
+            return false  ; Not found
+
+        ; Remove from doubly linked list
+        if to_remove.prev != 0
+            to_remove.prev.next = to_remove.next
+        else
+            head = to_remove.next  ; Was the head
+
+        if to_remove.next != 0
+            to_remove.next.prev = to_remove.prev
+        else
+            tail = to_remove.prev  ; Was the tail
+
+        ; Remove from hash table
+        ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
+        if hash_table[bucket] == to_remove {
+            hash_table[bucket] = to_remove.hash_next
+        } else {
+            ^^Entry current = hash_table[bucket]
+            while current.hash_next != 0 {
+                if current.hash_next == to_remove {
+                    current.hash_next = to_remove.hash_next
+                    break
+                }
+                current = current.hash_next
+            }
+        }
+
+        count--
+        return true
+    }
+
+    ; sub print_forward() {
+    ;     ^^Entry current = head
+    ;     while current != 0 {
+    ;         txt.print("- ")
+    ;         txt.print(current.name)
+    ;         txt.print(" (dir:")
+    ;         txt.print_bool(current.is_dir)
+    ;         txt.print(", ")
+    ;         txt.print(" (tagged:")
+    ;         txt.print_bool(current.is_tagged)
+    ;         txt.print(")\n")
+    ;         current = current.next
+    ;     }
+    ;     txt.print("Total entries: ")
+    ;     txt.print_uw(count)
+    ;     txt.print("\n")
+    ; }
+
+    ; sub print_backward() {
+    ;     ^^Entry current = tail
+    ;     while current != 0 {
+    ;         txt.print("- ")
+    ;         txt.print(current.name)
+    ;         txt.print(" (dir:")
+    ;         txt.print_bool(current.is_dir)
+    ;         txt.print(", ")
+    ;         txt.print(" (is_tagged:")
+    ;         txt.print_bool(current.is_tagged)
+    ;         txt.print(")\n")
+    ;         current = current.prev
+    ;     }
+    ;     txt.print("Total entries: ")
+    ;     txt.print_uw(count)
+    ;     txt.print("\n")
+    ; }
+}
+
+arena {
+    ; Simple arena allocator
+    uword buffer = memory("arena", 8000, 0)
+    uword next = buffer
+
+    sub alloc(ubyte size) -> uword {
+        defer next += size
+        return next
+    }
+}
+
+
 clr {
     ;--- default colors
     const ubyte TXT_NORMAL = $b1  ; 
@@ -112,31 +320,45 @@ clr {
 
 ;--- misc functions
 helpers {
-    ubyte chr_topleft, chr_topright, chr_botleft, chr_botright, chr_horiz, chr_vert, chr_tleft, chr_tright, chr_tup, chr_tdown
+    ubyte chr_topleft, chr_topright, chr_botleft, chr_botright
+    ubyte chr_tleft, chr_tright, chr_tup, chr_tdown, chr_horiz, chr_vert
 
     sub print_strXY(ubyte col, ubyte row, str txtstring, ubyte colors, bool convertchars) {
-        vtui.gotoxy(col,row)
-        vtui.print_str2(txtstring, colors, convertchars)
+        txt.plot(col,row)
+        txt.color2(colors & 15, colors>>4)
+        txt.print_lit(txtstring)
     }
 
     sub plot_charXY(ubyte col, ubyte row, ubyte char, ubyte colors) {
-        vtui.gotoxy(col,row)
-        vtui.plot_char(char, colors)
+        txt.setcc2(col,row,char,colors)
+        ;txt.plot(col,row)
+        ;txt.color2(colors & 15, colors>>4)
+        ;txt.chrout_lit(char)
     }  
 
     sub draw_box(ubyte col, ubyte row, ubyte width, ubyte height, ubyte colors) {
-        ;https://github.com/JimmyDansbo/VTUIlib?tab=readme-ov-file#function-name-border
-        const ubyte boxMode = 6 ; 0-5 paints PETSCII box chars 
-        cx16.r3L = chr_topright
-        cx16.r3H = chr_topleft
-        cx16.r4L = chr_botright
-        cx16.r4H = chr_botleft
-        cx16.r5L = chr_horiz
-        cx16.r5H = cx16.r5L
-        cx16.r6L = chr_vert
-        cx16.r6H = cx16.r6L
-        vtui.gotoxy(col,row)
-        vtui.border(boxMode, width, height, colors)
+
+        pokew(903,65) ;--- change scrn height so no scroll      
+        alias i = main.i
+        draw_vert_line(col,row,width)
+        txt.plot(col,row)
+        txt.chrout_lit(chr_topleft)
+        txt.plot(col+width-1,row)
+        txt.chrout_lit(chr_topright)
+
+        for i in 1 to height - 2 {
+             txt.plot(col,row+i)
+             txt.chrout_lit(chr_vert)
+             txt.plot(col+width-1,row+i)
+             txt.chrout_lit(chr_vert)
+        }
+        
+        draw_vert_line(col,row+height-1,width)
+        txt.plot(col,row+height-1)
+        txt.chrout_lit(chr_botleft)
+        txt.plot(col+width-1,row+height-1)
+        txt.chrout_lit(chr_botright)
+        pokew(903,txt.height())   ;--- restore screen height    
     }
 
     sub set_characters(bool iso_chars) {
@@ -166,69 +388,30 @@ helpers {
 
     sub draw_main_scrn() {
         ;vtui.set_stride(2) ;--- disables color attributes in calls like border/fill_box etc.
-        vtui.clr_scr(' ', clr.TXT_NORMAL)
+        ;vtui.clr_scr(' ', clr.TXT_NORMAL)
+        txt.clear_screen()
         draw_box(0,0,txt.width(), txt.height(), clr.BOXES)
         draw_vert_line(0,txt.height() - 5,80)
         draw_vert_line(0,2,80)
         draw_vert_line(0,4,80)
         print_strXY(1 ,1,iso:"XFMGR V0.1.0",clr.TXT_NORMAL,false)
         print_strXY(63,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
-        ;vtui.set_stride(1) ;--- back to normal
+        
+
+        ;draw_box(10,10,40, 35, clr.BOXES)
+
     }
 
     sub draw_vert_line(ubyte col,ubyte row, ubyte width){
-        vtui.gotoxy(col,row)
-        vtui.hline(chr_horiz,width,clr.BOXES)
+        txt.plot(col,row)
+        ;vtui.hline(chr_horiz,width,clr.BOXES)
+        txt.color2(clr.BOXES & 15, clr.BOXES>>4)
+        repeat width {txt.chrout_lit(chr_horiz)}
         plot_charXY(col,row,chr_tleft,clr.BOXES)
-        plot_charXY(width-1,row,chr_tright,clr.BOXES)
+        plot_charXY(col+width-1,row,chr_tright,clr.BOXES)
     }
 
 }
 
-;--- VTUI library interface
-vtui $1000 {
 
-    %option no_symbol_prefixing
-    %asmbinary "VTUI1.2.BIN", 2     ; skip the 2 dummy load address bytes
 
-    ; NOTE: base address $1000 here must be the same as the block's memory address, for obvious reasons!
-    ; The routines below are for VTUI 1.0
-    const uword vtjmp = $1002
-    extsub vtjmp - 2   =  initialize() clobbers(A, X, Y)
-    extsub vtjmp + 0*3 =  screen_set(ubyte mode @A) clobbers(A, X, Y)
-    extsub vtjmp + 1*3  =  set_bank(bool bank1 @Pc) clobbers(A)
-    extsub vtjmp + 2*3  =  set_stride(ubyte stride @A) clobbers(A)
-    extsub vtjmp + 3*3  =  set_decr(bool incrdecr @Pc) clobbers(A)
-    extsub vtjmp + 4*3  =  clr_scr(ubyte char @A, ubyte colors @X) clobbers(Y)
-    extsub vtjmp + 5*3  =  gotoxy(ubyte column @A, ubyte row @Y)
-    extsub vtjmp + 6*3  =  plot_char(ubyte char @A, ubyte colors @X)
-    extsub vtjmp + 7*3  =  scan_char() -> ubyte @A, ubyte @X
-    extsub vtjmp + 8*3  =  hline(ubyte char @A, ubyte length @Y, ubyte colors @X) clobbers(A)
-    extsub vtjmp + 9*3  =  vline(ubyte char @A, ubyte height @Y, ubyte colors @X) clobbers(A)
-    extsub vtjmp + 10*3 =  print_str(str txtstring @R0, ubyte length @Y, ubyte colors @X, ubyte convertchars @A) clobbers(A, Y)
-    extsub vtjmp + 11*3 =  fill_box(ubyte char @A, ubyte width @R1, ubyte height @R2, ubyte colors @X) clobbers(A, Y)
-    extsub vtjmp + 12*3 =  pet2scr(ubyte char @A) -> ubyte @A
-    extsub vtjmp + 13*3 =  scr2pet(ubyte char @A) -> ubyte @A
-    extsub vtjmp + 14*3 =  border(ubyte mode @A, ubyte width @R1, ubyte height @R2, ubyte colors @X) clobbers(Y)       ; NOTE: mode 6 means 'custom' characters taken from r3 - r6
-    extsub vtjmp + 15*3 =  save_rect(ubyte ramtype @A, bool vbank1 @Pc, uword address @R0, ubyte width @R1, ubyte height @R2) clobbers(A, X, Y)
-    extsub vtjmp + 16*3 =  rest_rect(ubyte ramtype @A, bool vbank1 @Pc, uword address @R0, ubyte width @R1, ubyte height @R2) clobbers(A, X, Y)
-    extsub vtjmp + 17*3 =  input_str(uword buffer @R0, ubyte buflen @Y, ubyte colors @X) clobbers (A) -> ubyte @Y     ; Y=length of input
-    extsub vtjmp + 18*3 =  get_bank() clobbers (A) -> bool @Pc
-    extsub vtjmp + 19*3 =  get_stride() -> ubyte @A
-    extsub vtjmp + 20*3 =  get_decr() clobbers (A) -> bool @Pc
-
-    ; -- helper function to do string length counting for you internally, and turn the convertchars flag into a boolean again
-    asmsub print_str2(str txtstring @R0, ubyte colors @X, bool convertchars @Pc) clobbers(A, Y) {
-        %asm {{
-            lda  #0
-            bcs  +
-            lda  #$80
-+           pha
-            lda  cx16.r0
-            ldy  cx16.r0+1
-            jsr  prog8_lib.strlen
-            pla
-            jmp  print_str
-        }}
-    }
-}
