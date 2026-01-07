@@ -1,5 +1,4 @@
 %import diskio
-;%import sys
 %import textio
 %import strings
 %import namesorting
@@ -16,25 +15,61 @@
 
 
 main {
+    ^^ubyte chosen
     sub start() {
         ; some configuration, optional
-        fileselector.configure_settings(8, 3, 2)
-        fileselector.configure_appearance(10, 10, 12, $b3, $d0,false)
+        ;fileselector.configure_settings(8, 3, 2)
+        ;fileselector.configure_appearance(10, 10, 12, $b3, $d0)
 
         ; show all files, using just the * wildcard
-        ^^ubyte chosen = fileselector.select("*")
+        str diskname1 = "?"*32
+        void strings.copy(diskio.diskname(),diskname1)
+        str orginal_dir = "?"*60 
+        void strings.copy(diskio.curdir(),orginal_dir)
+        
+        ;diskio.chdir("/docs/")
+        chosen = fill_me("*")
 
-        txt.nl()
-        txt.nl()
+        repeat 2 txt.nl()
+        ;txt.nl()
+
+
+
         if chosen!=0 {
-            txt.print("chosen: ")
-            txt.print(chosen)
-            txt.nl()
+            
+            if strings.startswith(chosen,"/") {
+                txt.print(chosen)
+                str yy = "?"*32
+                void strings.copy(chosen,yy)
+                diskio.chdir(yy)
+                chosen = fill_me("*")
+                ;txt.print("1chosen: ")
+                ;txt.print(chosen)
+                ;txt.nl()
+            } else {
+                txt.print("chosen: ")
+                txt.print(chosen)
+                txt.nl()
+            }
+
+
         } else {
+        
             txt.print("nothing chosen or error!\n")
             txt.print(diskio.status())
+            diskio.chdir(orginal_dir)
         }
+        return
     }
+
+    
+    sub fill_me(str cdir) -> ^^ubyte {
+        fileselector.configure_settings(8, 3, 2)
+        fileselector.configure_appearance(10, 10, 12, $b3, $d0)
+        chosen = fileselector.select(cdir)
+        return chosen
+    }
+
 }
 
 
@@ -66,16 +101,15 @@ fileselector {
         show_what = show_types
         if_z
             show_what = 3
-        set_characters(false)
+        ;set_characters(false)
     }
 
-    sub configure_appearance(ubyte column, ubyte row, ubyte max_entries, ubyte normal, ubyte selected, bool draw_box) {
+    sub configure_appearance(ubyte column, ubyte row, ubyte max_entries, ubyte normal, ubyte selected) {
         dialog_topx = column
         dialog_topy = row
         max_lines = max_entries
         colors_normal = normal
         colors_selected = selected
-        draw_box_info = draw_box
     }
 
     sub select(str pattern) -> str {
@@ -96,34 +130,7 @@ fileselector {
             return 0
 
         bool iso_mode = cx16.get_charset()==1
-        if draw_box_info {
-            set_characters(iso_mode) 
-            txt.color2(colors_normal & 15, colors_normal>>4)
-            background(0, 3)
-            txt.plot(dialog_topx, dialog_topy)
-            txt.chrout(chr_topleft)
-            linepart(true)
-            txt.chrout(chr_topright)
-            txt.nl()
-            txt.column(dialog_topx)
-            txt.chrout(chr_vert)
-            txt.print(" drive ")
-            txt.print_ub(diskio.drivenumber)
-            txt.print(": '")
-            txt.print(name_ptr)
-            txt.chrout('\'')
-            txt.column(dialog_topx+31)
-            txt.chrout(chr_vert)
-            txt.nl()
-            txt.column(dialog_topx)
-            txt.chrout(chr_vert)
-            txt.print("   scanning directory...      ")
-            txt.chrout(chr_vert)
-            txt.nl()
-            txt.column(dialog_topx)
-            footerline()
-            }
-        
+        ;     txt.print_ub(diskio.drivenumber)
 
         ubyte num_files = get_names(pattern, filenamesbuffer, filenamesbuf_size)    ; use Hiram bank to store the files
         ubyte selected_line
@@ -137,33 +144,7 @@ fileselector {
 
         background(5, 3 + num_visible_files -1)
         txt.plot(dialog_topx+2, dialog_topy+2)
-        if draw_box_info {
-            ; initial display   
-            txt.print("select ")
-            if show_what & 1 == 1
-                txt.print("file")
-            else
-                txt.print("directory")
-            txt.print(": (")
-            txt.print_ub(num_files)
-            txt.print(" total)")
-            txt.column(dialog_topx+31)
-            txt.chrout(chr_vert)
-            txt.nl()
-            txt.column(dialog_topx)
-            txt.chrout(chr_vert)
-            txt.print(" esc/stop to abort            ")
-            txt.chrout(chr_vert)
-            txt.nl()
-            txt.column(dialog_topx)
-            txt.chrout(chr_jointleft)
-            linepart(false)
-            txt.chrout(chr_jointright)
-            txt.nl()
-            print_scroll_indicator(false, true)
-        } else {
-            repeat 4 txt.nl()
-        }
+        repeat 4 txt.nl()
         
         if num_files>0 {
             for selected_line in 0 to num_visible_files-1 {
@@ -370,19 +351,6 @@ fileselector {
             txt.nl()
         }
 
-        sub footerline() {
-            ; txt.chrout(chr_botleft)
-            ; linepart(false)
-            ; txt.chrout(chr_botright)
-        }
-
-        sub linepart(bool top) {
-            ; cx16.r0L = chr_horiz_other
-            ; if top
-            ;     cx16.r0L = chr_horiz_top
-            ; repeat 30 txt.chrout(cx16.r0L)
-        }
-
         sub select_line(ubyte line) {
             line_color(line, colors_selected)
         }
@@ -397,31 +365,6 @@ fileselector {
             for charpos in dialog_topx+1 to dialog_topx+30 {
                 txt.setclr(charpos, cx16.r1L, colors)
             }
-        }
-    }
-
-    sub set_characters(bool iso_chars) {
-        if iso_chars {
-            ; iso characters that kinda draw a pleasant box
-            chr_topleft = iso:'í'
-            chr_topright = iso:'ì'
-            chr_botleft = iso:'`'
-            chr_botright = iso:'\''
-            chr_jointleft = chr_jointright = iso:'÷'
-            chr_vert = iso:'|'
-            chr_horiz_top = iso:'¯'
-            chr_horiz_other = iso:'-'
-        } else {
-            ; PETSCII box symbols
-            chr_topleft = '┌'
-            chr_topright = '┐'
-            chr_botleft = '└'
-            chr_botright = '┘'
-            chr_horiz_top = '─'
-            chr_horiz_other = '─'
-            chr_vert = '│'
-            chr_jointleft = '├'
-            chr_jointright = '┤'
         }
     }
 
@@ -452,10 +395,9 @@ fileselector {
               
                 str tmp9=" "
                 void strings.copy(diskio.list_filename, tmp9)
-                bool is_hidden = strings.startswith(tmp9,".")
-                if is_hidden 
+                ;--- we do not want anything that starts with a . Thats a hidden file
+                if strings.startswith(tmp9,".")
                     continue
-
 
                 bool is_dir = diskio.list_filetype=="dir"
                 if is_dir and show_what & 2 == 0
