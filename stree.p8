@@ -23,37 +23,23 @@ menu_modes {
         helpers.print_strXY(1,txt.height() - 3,iso:"COMMANDS",clr.MENU_NORMAL,false)
     }
 
-    sub draw(){
+    sub draw() {
     ;''sub print_strXY(ubyte col, ubyte row, str txtstring, ubyte colors, bool convertchars) {'    
         when mode {
-            DIR ->  { 
-                ;void strings.copy("DIR1",main.g_tmp_str_buffer1)
-                draw_menu_type(iso:"DIR")
-            } 
-            FILE -> { 
-                draw_menu_type(iso:"FILE")
-
-            } 
-            ALT ->  { 
-                draw_menu_type(iso:"ALT")
-                
-            } 
-            CTRL -> { 
-                draw_menu_type(iso:"CTRL")
-            } 
-
+            DIR ->  { draw_menu_type(iso:"DIR") } 
+            FILE -> { draw_menu_type(iso:"FILE")} 
+            ALT ->  { draw_menu_type(iso:"ALT") } 
+            CTRL -> { draw_menu_type(iso:"CTRL")} 
         }
-
-
-
     }
-
 }
 
 main {
+    ;--- tmp vars to be used wherever
     str g_tmp_str_buffer1 = "?" * 80
     str g_tmp_str_buffer2 = "?" * 255
     ubyte i,j = 0
+    bool bool_tmp = false
 
     sub start() {
 
@@ -70,15 +56,15 @@ main {
         menu_modes.draw()
 
         dir_cache.init()
-        files_folders.read(8)
-
-
+        void files_folders.read(8)
+        txt.plot(4,4)
+        dir_cache.print_forward()
 
     ;--- main character input loop       
     char_loop:
         ubyte char
         void, char = cbm.GETIN()
-        if char==0
+        if char == 0
             goto char_loop
 
         when char {
@@ -90,6 +76,9 @@ main {
 
     end_me:
         txt.uppercase()
+        txt.color2(0,3)
+        ;txt.color2(colors & 15, colors>>4)
+        txt.print("BYE!")
         return
 
     }
@@ -104,8 +93,9 @@ files_folders {
     alias tmp_str = main.g_tmp_str_buffer2 
     const bool DIR_ENTRY = true
     const bool FILE_ENTRY = false
+    const bool NOT_TAGGED = false
     
-    sub read(ubyte drv) { 
+    sub read(ubyte drv) -> bool { 
         diskio.drivenumber = drv
 
         ;--- list directories first
@@ -113,7 +103,7 @@ files_folders {
             while diskio.lf_next_entry() {    
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
-                dir_cache.add(tmp_str,DIR_ENTRY,false,0)
+                dir_cache.add(tmp_str,DIR_ENTRY,NOT_TAGGED,0)
                 total_dir++   
             }
         } else {
@@ -126,7 +116,7 @@ files_folders {
             while diskio.lf_next_entry() {
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
-                dir_cache.add(tmp_str,FILE_ENTRY,false,0)
+                dir_cache.add(tmp_str,FILE_ENTRY,NOT_TAGGED,diskio.list_blocks)
                 total_files++       
             }
         } else {
@@ -134,9 +124,7 @@ files_folders {
         }
         diskio.lf_end_list()
 
-        if disk_error {
-
-        }
+        return disk_error
     }
 
 }
@@ -157,15 +145,15 @@ dir_cache {
         uword blocks
     }
 
-    const ubyte HASH_TABLE_SIZE = 199
-    ^^Entry[HASH_TABLE_SIZE] hash_table    ; Hash table for fast lookups
+    ;const ubyte HASH_TABLE_SIZE = 199
+    ;^^Entry[HASH_TABLE_SIZE] hash_table    ; Hash table for fast lookups
     ^^Entry head = 0                       ; Head of the doubly linked list
     ^^Entry tail = 0                       ; Tail of the doubly linked list
     uword count = 0                        ; Number of entries
 
     sub init() {
         ; Initialize hash table buckets to null
-        sys.memsetw(hash_table, HASH_TABLE_SIZE, 0)
+        ;sys.memsetw(hash_table, HASH_TABLE_SIZE, 0)
     }
 
     
@@ -197,10 +185,10 @@ dir_cache {
             tail = new_record
         }
 
-        ; Add to hash table
-        ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
-        new_record.hash_next = hash_table[bucket]
-        hash_table[bucket] = new_record
+        ; ; Add to hash table
+        ; ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
+        ; new_record.hash_next = hash_table[bucket]
+        ; hash_table[bucket] = new_record
 
         count++
     }
@@ -241,42 +229,42 @@ dir_cache {
         else
             tail = to_remove.prev  ; Was the tail
 
-        ; Remove from hash table
-        ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
-        if hash_table[bucket] == to_remove {
-            hash_table[bucket] = to_remove.hash_next
-        } else {
-            ^^Entry current = hash_table[bucket]
-            while current.hash_next != 0 {
-                if current.hash_next == to_remove {
-                    current.hash_next = to_remove.hash_next
-                    break
-                }
-                current = current.hash_next
-            }
-        }
+        ; ; Remove from hash table
+        ; ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
+        ; if hash_table[bucket] == to_remove {
+        ;     hash_table[bucket] = to_remove.hash_next
+        ; } else {
+        ;     ^^Entry current = hash_table[bucket]
+        ;     while current.hash_next != 0 {
+        ;         if current.hash_next == to_remove {
+        ;             current.hash_next = to_remove.hash_next
+        ;             break
+        ;         }
+        ;         current = current.hash_next
+        ;     }
+        ;}
 
         count--
         return true
     }
 
-    ; sub print_forward() {
-    ;     ^^Entry current = head
-    ;     while current != 0 {
-    ;         txt.print("- ")
-    ;         txt.print(current.name)
-    ;         txt.print(" (dir:")
-    ;         txt.print_bool(current.is_dir)
-    ;         txt.print(", ")
-    ;         txt.print(" (tagged:")
-    ;         txt.print_bool(current.is_tagged)
-    ;         txt.print(")\n")
-    ;         current = current.next
-    ;     }
-    ;     txt.print("Total entries: ")
-    ;     txt.print_uw(count)
-    ;     txt.print("\n")
-    ; }
+    sub print_forward() {
+        ^^Entry current = head
+        while current != 0 {
+            txt.print("- ")
+            txt.print(current.name)
+            txt.print(" (dir:")
+            txt.print_bool(current.is_dir)
+            txt.print(", ")
+            txt.print(" (tagged:")
+            txt.print_bool(current.is_tagged)
+            txt.print(")\n")
+            current = current.next
+        }
+        txt.print("Total entries: ")
+        txt.print_uw(count)
+        txt.print("\n")
+    }
 
     ; sub print_backward() {
     ;     ^^Entry current = tail
@@ -308,6 +296,9 @@ arena {
     }
 }
 
+; -----------------------------------
+; --- Misc stuff
+; -----------------------------------
 
 clr {
     ;--- default colors
@@ -331,15 +322,15 @@ helpers {
 
     sub plot_charXY(ubyte col, ubyte row, ubyte char, ubyte colors) {
         txt.setcc2(col,row,char,colors)
-        ;txt.plot(col,row)
-        ;txt.color2(colors & 15, colors>>4)
-        ;txt.chrout_lit(char)
     }  
 
     sub draw_box(ubyte col, ubyte row, ubyte width, ubyte height, ubyte colors) {
 
-        pokew(903,65) ;--- change scrn height so no scroll      
-        alias i = main.i
+        alias i = main.i        ;--- re-use vars
+        alias rows = main.j     ;--- re-use vars
+        rows = txt.height()
+        pokew(903,65) ;--- change scrn height so no scroll  
+
         draw_vert_line(col,row,width)
         txt.plot(col,row)
         txt.chrout_lit(chr_topleft)
@@ -358,7 +349,7 @@ helpers {
         txt.chrout_lit(chr_botleft)
         txt.plot(col+width-1,row+height-1)
         txt.chrout_lit(chr_botright)
-        pokew(903,txt.height())   ;--- restore screen height    
+        pokew(903,rows)   ;--- restore screen height    
     }
 
     sub set_characters(bool iso_chars) {
@@ -387,8 +378,6 @@ helpers {
     }
 
     sub draw_main_scrn() {
-        ;vtui.set_stride(2) ;--- disables color attributes in calls like border/fill_box etc.
-        ;vtui.clr_scr(' ', clr.TXT_NORMAL)
         txt.clear_screen()
         draw_box(0,0,txt.width(), txt.height(), clr.BOXES)
         draw_vert_line(0,txt.height() - 5,80)
@@ -396,15 +385,10 @@ helpers {
         draw_vert_line(0,4,80)
         print_strXY(1 ,1,iso:"XFMGR V0.1.0",clr.TXT_NORMAL,false)
         print_strXY(63,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
-        
-
-        ;draw_box(10,10,40, 35, clr.BOXES)
-
-    }
+}
 
     sub draw_vert_line(ubyte col,ubyte row, ubyte width){
         txt.plot(col,row)
-        ;vtui.hline(chr_horiz,width,clr.BOXES)
         txt.color2(clr.BOXES & 15, clr.BOXES>>4)
         repeat width {txt.chrout_lit(chr_horiz)}
         plot_charXY(col,row,chr_tleft,clr.BOXES)
