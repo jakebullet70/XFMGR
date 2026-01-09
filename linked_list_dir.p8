@@ -12,20 +12,34 @@ dir_cache {
         bool is_dir
         bool is_tagged
         uword blocks
+        ubyte rec_num
     }
 
-    ;const ubyte HASH_TABLE_SIZE = 199
-    ;^^Entry[HASH_TABLE_SIZE] hash_table    ; Hash table for fast lookups
     ^^Entry head = 0                       ; Head of the doubly linked list
     ^^Entry tail = 0                       ; Tail of the doubly linked list
-    uword count = 0                        ; Number of entries
+    ubyte count = 0                        ; Number of entries
+
+    ubyte selected = 0
+    ubyte page_height = txt.height() - 11
+    const ubyte FILE_NAME_SIZE = 40
+    const bool DIR_ENTRY = true
+    const bool FILE_ENTRY = false
+    const bool NOT_TAGGED = false
+    const ubyte LEFT_COL = 2
+    const ubyte TOP_ROW = 6
+
+    const ubyte MOVE_UP    = 1
+    const ubyte MOVE_DN    = 2
+    const ubyte MOVE_PG_UP = 3
+    const ubyte MOVE_PG_DN = 4
+    ubyte up_down_mode = MOVE_UP
+    
 
     sub init() {
         ; Initialize hash table buckets to null
         ;sys.memsetw(hash_table, HASH_TABLE_SIZE, 0)
     }
 
-    
     sub add(str name, bool is_dir, bool tagged, uword blocks) {
         ;--- Create new entry
 
@@ -41,6 +55,7 @@ dir_cache {
         new_record.next = 0
         new_record.prev = 0
         new_record.hash_next = 0
+        new_record.rec_num = count + 1
 
         ; Add to the end of the doubly linked list
         if head == 0 {
@@ -54,23 +69,12 @@ dir_cache {
             tail = new_record
         }
 
-        ; ; Add to hash table
-        ; ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
-        ; new_record.hash_next = hash_table[bucket]
-        ; hash_table[bucket] = new_record
-
         count++
     }
 
 
     sub find(str name) -> ^^Entry {
-        ; Find entry using hash table for O(1) average case
-
-         ;ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
-         ;^^Entry current = hash_table[bucket]
-
         ^^Entry current = head
-
         while current != 0 {
             if strings.compare(current.name, name) == 0
                 return current
@@ -80,6 +84,7 @@ dir_cache {
 
         return 0  ; Not found
     }
+
 
     sub remove(str name) -> bool {
         ; Find the entry
@@ -98,24 +103,106 @@ dir_cache {
         else
             tail = to_remove.prev  ; Was the tail
 
-        ; ; Remove from hash table
-        ; ubyte bucket = strings.hash(name) % HASH_TABLE_SIZE
-        ; if hash_table[bucket] == to_remove {
-        ;     hash_table[bucket] = to_remove.hash_next
-        ; } else {
-        ;     ^^Entry current = hash_table[bucket]
-        ;     while current.hash_next != 0 {
-        ;         if current.hash_next == to_remove {
-        ;             current.hash_next = to_remove.hash_next
-        ;             break
-        ;         }
-        ;         current = current.hash_next
-        ;     }
-        ;}
-
         count--
         return true
     }
+
+
+    sub draw_files_2_scrn() {
+        alias i = main.i
+        alias filename = main.g_tmp_str_buffer3
+        alias tmp_str  = main.g_tmp_str_buffer1
+
+        txt.color2(clr.TXT_NORMAL & 15, clr.TXT_NORMAL>>4)
+
+        ;--- clear panel/page
+        void strings.copy(" "*FILE_NAME_SIZE,tmp_str)
+        for i in 0 to page_height - 1  {
+            helpers.print_strXY2(LEFT_COL,TOP_ROW+i,tmp_str) 
+        }
+
+        ;--- print page
+        ^^Entry current = head
+        for i in 0 to page_height - 1  {
+            void strings.copy(pretty_line(current.name,current.is_tagged),filename)
+            helpers.print_strXY2(LEFT_COL,TOP_ROW+i,filename)
+            current = current.next
+            if i == count-1 { break }
+        }
+
+        highlight_line(MOVE_DN)
+    }
+
+    sub pretty_line(str line, bool tagged) -> str {
+        ;--- make each file name pretty
+        alias pretty_str = main.g_tmp_str_buffer2 
+        alias tmp_str9   = main.g_tmp_str_buffer1 
+        if not tagged {
+            strings_ext.concat_strings(cp437:"* ",line,tmp_str9)
+        } else {
+            strings_ext.concat_strings(cp437:"  ",line,tmp_str9)
+        }
+         strings_ext.pad_right(tmp_str9, pretty_str, ' ', FILE_NAME_SIZE) 
+         return pretty_str
+    }
+
+    sub highlight_line(ubyte up_down) {
+        alias i = main.i
+        alias j = main.j
+        if count == 0 { return }
+        ;--- TODO HAVE TO ADD PAGE UP/DN 
+        when up_down {
+            MOVE_UP ->      { 
+                if selected == 1 { return }
+                highlight_line_unhighlight(selected+TOP_ROW-1)
+                selected--
+                highlight_line_highlight(selected+TOP_ROW-1)           
+            }
+            MOVE_DN ->      { 
+                highlight_line_unhighlight(selected+TOP_ROW-1)
+                selected++
+                highlight_line_highlight(selected+TOP_ROW-1)
+            }
+            MOVE_PG_UP ->   { }
+            MOVE_PG_DN ->   { }
+        }
+
+
+        
+    }
+
+    sub highlight_line_highlight(ubyte row) {
+        alias i = main.i
+        for i in LEFT_COL to FILE_NAME_SIZE + LEFT_COL {
+            txt.setclr(i,selected+TOP_ROW-1,clr.ROW_HILIGHT)
+        }
+    }
+    sub highlight_line_unhighlight(ubyte row) {
+        alias i = main.i
+        for i in LEFT_COL to FILE_NAME_SIZE + LEFT_COL {
+            txt.setclr(i,selected+TOP_ROW-1,clr.TXT_NORMAL)
+        }
+    }
+}
+
+arena {
+    ; Simple arena allocator
+    uword buffer = memory("arena", 8000, 0)
+    uword next = buffer
+
+    sub alloc(ubyte size) -> uword {
+        defer next += size
+        return next
+    }
+
+    sub free_all() {
+        ; cannot free individual allocations only the whole arena at once
+        ; UNTESTED!!!
+        next = buffer
+    }
+}
+
+
 
     ; sub print_forward() {
     ;     ^^Entry current = head
@@ -152,15 +239,5 @@ dir_cache {
     ;     txt.print_uw(count)
     ;     txt.print("\n")
     ; }
-}
 
-arena {
-    ; Simple arena allocator
-    uword buffer = memory("arena", 8000, 0)
-    uword next = buffer
-
-    sub alloc(ubyte size) -> uword {
-        defer next += size
-        return next
-    }
-}
+    

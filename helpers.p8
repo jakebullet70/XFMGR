@@ -8,6 +8,12 @@ helpers {
         txt.plot(col,row)
         txt.color2(colors & 15, colors>>4)
         txt.print_lit(txtstring)
+        ;--- convertchars NOT BEING USED    
+    }
+
+    sub print_strXY2(ubyte col, ubyte row, str txtstring) {
+        txt.plot(col,row)
+        txt.print_lit(txtstring)
     }
 
     sub plot_charXY(ubyte col, ubyte row, ubyte char, ubyte colors) {
