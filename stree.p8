@@ -19,7 +19,7 @@ clr {
     const ubyte TXT_BRIGHT = $b7  ; 
     const ubyte MENU_NORMAL = $b1  ;
     const ubyte MENU_BRIGHT = $b7  ; 
-    const ubyte ROW_HILIGHT = $1b
+    const ubyte ROW_HILIGHT = $1e
     const ubyte BOXES = $be ;
 }
 
