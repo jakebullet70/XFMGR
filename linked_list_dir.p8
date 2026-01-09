@@ -32,7 +32,7 @@ dir_cache {
     const ubyte MOVE_DN    = 2
     const ubyte MOVE_PG_UP = 3
     const ubyte MOVE_PG_DN = 4
-    ubyte up_down_mode = MOVE_UP
+    ;ubyte up_down_mode = MOVE_UP
     
 
     sub init() {
@@ -44,8 +44,7 @@ dir_cache {
         ;--- Create new entry
 
         ^^Entry new_record = arena.alloc(sizeof(Entry))
-
-        ^^ubyte name_copy = arena.alloc(strings.length(name) + 1)
+        ^^ubyte name_copy  = arena.alloc(strings.length(name) + 1)
         void strings.copy(name, name_copy)
 
         new_record.name = name_copy
@@ -57,13 +56,13 @@ dir_cache {
         new_record.hash_next = 0
         new_record.rec_num = count + 1
 
-        ; Add to the end of the doubly linked list
+        ;--- Add to the end of the doubly linked list
         if head == 0 {
-            ; First entry
+            ;--- First entry
             head = new_record
             tail = new_record
         } else {
-            ; Add to the end
+            ;--- Add to the end
             tail.next = new_record
             new_record.prev = tail
             tail = new_record
@@ -73,12 +72,24 @@ dir_cache {
     }
 
 
-    sub find(str name) -> ^^Entry {
+    ; sub find_by_filename(str name) -> ^^Entry {
+    ;     ^^Entry current = head
+    ;     while current != 0 {
+    ;         if strings.compare(current.name, name) == 0
+    ;             return current
+    ;         ;current = current.hash_next
+    ;         current = current.next
+    ;     }
+
+    ;     return 0  ; Not found
+    ; }
+
+    sub find_by_recnum(ubyte rec_num) -> ^^Entry {
         ^^Entry current = head
         while current != 0 {
-            if strings.compare(current.name, name) == 0
+            if current.rec_num == rec_num {
                 return current
-            ;current = current.hash_next
+            }
             current = current.next
         }
 
@@ -86,26 +97,27 @@ dir_cache {
     }
 
 
-    sub remove(str name) -> bool {
-        ; Find the entry
-        ^^Entry to_remove = find(name)
-        if to_remove == 0
-            return false  ; Not found
 
-        ; Remove from doubly linked list
-        if to_remove.prev != 0
-            to_remove.prev.next = to_remove.next
-        else
-            head = to_remove.next  ; Was the head
+    ; sub remove(str name) -> bool {
+    ;     ; Find the entry
+    ;     ^^Entry to_remove = find(name)
+    ;     if to_remove == 0
+    ;         return false  ; Not found
 
-        if to_remove.next != 0
-            to_remove.next.prev = to_remove.prev
-        else
-            tail = to_remove.prev  ; Was the tail
+    ;     ; Remove from doubly linked list
+    ;     if to_remove.prev != 0
+    ;         to_remove.prev.next = to_remove.next
+    ;     else
+    ;         head = to_remove.next  ; Was the head
 
-        count--
-        return true
-    }
+    ;     if to_remove.next != 0
+    ;         to_remove.next.prev = to_remove.prev
+    ;     else
+    ;         tail = to_remove.prev  ; Was the tail
+
+    ;     count--
+    ;     return true
+    ; }
 
 
     sub draw_files_2_scrn() {
@@ -137,20 +149,20 @@ dir_cache {
         ;--- make each file name pretty
         alias pretty_str = main.g_tmp_str_buffer2 
         alias tmp_str9   = main.g_tmp_str_buffer1 
-        if not tagged {
-            strings_ext.concat_strings(cp437:"* ",line,tmp_str9)
+        if tagged {
+            strings_ext.concat_strings(cp437:"*",line,tmp_str9)
         } else {
-            strings_ext.concat_strings(cp437:"  ",line,tmp_str9)
+            strings_ext.concat_strings(cp437:" ",line,tmp_str9)
         }
          strings_ext.pad_right(tmp_str9, pretty_str, ' ', FILE_NAME_SIZE) 
          return pretty_str
     }
 
     sub highlight_line(ubyte up_down) {
-        alias i = main.i
-        alias j = main.j
+        ;alias i = main.i
+        ;alias j = main.j
         if count == 0 { return }
-        ;--- TODO HAVE TO ADD PAGE UP/DN 
+        ;--- TODO --->  HAVE TO ADD PAGE UP/DN 
         when up_down {
             MOVE_UP ->      { 
                 if selected == 1 { return }
