@@ -30,7 +30,7 @@ main {
     str g_tmp_str_buffer1 = "?" * 255
     str g_tmp_str_buffer2 = "?" * 255
     str g_tmp_str_buffer3 = "?" * 255
-    ubyte i,j = 0
+    ubyte i,j,x,y = 0
     bool bool_tmp = false
 
     sub start() {
@@ -62,8 +62,8 @@ main {
 
         when char {
             27  -> { goto end_me }  ; ESC key to end program
-            17  -> { dir_cache.highlight_line(dir_cache.MOVE_DN) }
-            145 -> { dir_cache.highlight_line(dir_cache.MOVE_UP) }
+            17  -> { dir_cache.key_down() }
+            145 -> { dir_cache.key_up() }
 
         }
 

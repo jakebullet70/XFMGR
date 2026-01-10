@@ -12,7 +12,7 @@ files_folders {
         diskio.drivenumber = drv
         ;reset_mem()
         arena.free_all()
-        dir_cache.count = 0        
+        dir_cache.num_files = 0        
 
         ;--- list directories first
         if diskio.lf_start_list_dirs(0) {
@@ -41,7 +41,7 @@ files_folders {
             disk_error = true
         }
         diskio.lf_end_list()
-
+      
         return disk_error
     }
 
