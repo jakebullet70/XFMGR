@@ -8,6 +8,7 @@
 %import linked_list_dir
 %import strings_ext
 %import draw_menus
+%import debug
 ;---
 ;%encoding "petscii"
 %option no_sysinit
@@ -45,6 +46,9 @@ main {
 
         menus.mode = menus.DIR ;--- default for the moment
         menus.draw()
+
+        debug.init(0)
+        debug.say("debug inited!")
 
         dir_cache.init()
         void files_folders.read(8)      ;--- read files into dir_cache
