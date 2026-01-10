@@ -7,6 +7,7 @@
 %import files_folders
 %import linked_list_dir
 %import strings_ext
+%import draw_menus
 ;---
 ;%encoding "petscii"
 %option no_sysinit
@@ -21,32 +22,6 @@ clr {
     const ubyte MENU_BRIGHT = $b7  ; 
     const ubyte ROW_HILIGHT = $1e
     const ubyte BOXES = $be ;
-}
-
-menu_modes {
-    const ubyte DIR  = 0
-    const ubyte ALT  = 1
-    const ubyte FILE = 2
-    const ubyte CTRL = 3
-    ubyte mode
-
-    sub draw_menu_type(str tmp1) {
-        helpers.print_strXY(1,txt.height() - 4," " * 78,clr.MENU_NORMAL,false)
-        helpers.print_strXY(1,txt.height() - 3," " * 78,clr.MENU_NORMAL,false)
-        helpers.print_strXY(1,txt.height() - 2," " * 78,clr.MENU_NORMAL,false)
-        helpers.print_strXY(1,txt.height() - 4,tmp1,clr.MENU_NORMAL,false)
-        helpers.print_strXY(1,txt.height() - 3,cp437:"COMMANDS",clr.MENU_NORMAL,false)
-    }
-
-    sub draw() {
-        when mode 
-        {
-            DIR ->  { draw_menu_type(cp437:"DIR") } 
-            FILE -> { draw_menu_type(cp437:"FILE")} 
-            ALT ->  { draw_menu_type(cp437:"ALT") } 
-            CTRL -> { draw_menu_type(cp437:"CTRL")} 
-        }
-    }
 }
 
 main {
@@ -68,8 +43,8 @@ main {
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
-        menu_modes.mode = menu_modes.DIR ;--- default for the moment
-        menu_modes.draw()
+        menus.mode = menus.DIR ;--- default for the moment
+        menus.draw()
 
         dir_cache.init()
         void files_folders.read(8)      ;--- read files into dir_cache
@@ -79,8 +54,7 @@ main {
     char_loop:
         ubyte char
         void, char = cbm.GETIN()
-        if char == 0
-            goto char_loop
+        if char == 0 { goto char_loop }
 
         when char {
             27  -> { goto end_me }  ; ESC key to end program

@@ -20,7 +20,9 @@ dir_cache {
     ubyte count = 0                        ; Number of entries
 
     ubyte selected = 0
-    ubyte page_height = txt.height() - 11
+    ubyte top_index 
+    ubyte page_height = 15 ;txt.height() - 11
+
     const ubyte FILE_NAME_SIZE = 40
     const bool DIR_ENTRY = true
     const bool FILE_ENTRY = false
@@ -32,13 +34,9 @@ dir_cache {
     const ubyte MOVE_DN    = 2
     const ubyte MOVE_PG_UP = 3
     const ubyte MOVE_PG_DN = 4
-    ;ubyte up_down_mode = MOVE_UP
     
 
-    sub init() {
-        ; Initialize hash table buckets to null
-        ;sys.memsetw(hash_table, HASH_TABLE_SIZE, 0)
-    }
+    sub init() { }
 
     sub add(str name, bool is_dir, bool tagged, uword blocks) {
         ;--- Create new entry
@@ -72,18 +70,6 @@ dir_cache {
     }
 
 
-    ; sub find_by_filename(str name) -> ^^Entry {
-    ;     ^^Entry current = head
-    ;     while current != 0 {
-    ;         if strings.compare(current.name, name) == 0
-    ;             return current
-    ;         ;current = current.hash_next
-    ;         current = current.next
-    ;     }
-
-    ;     return 0  ; Not found
-    ; }
-
     sub find_by_recnum(ubyte rec_num) -> ^^Entry {
         ^^Entry current = head
         while current != 0 {
@@ -96,28 +82,6 @@ dir_cache {
         return 0  ; Not found
     }
 
-
-
-    ; sub remove(str name) -> bool {
-    ;     ; Find the entry
-    ;     ^^Entry to_remove = find(name)
-    ;     if to_remove == 0
-    ;         return false  ; Not found
-
-    ;     ; Remove from doubly linked list
-    ;     if to_remove.prev != 0
-    ;         to_remove.prev.next = to_remove.next
-    ;     else
-    ;         head = to_remove.next  ; Was the head
-
-    ;     if to_remove.next != 0
-    ;         to_remove.next.prev = to_remove.prev
-    ;     else
-    ;         tail = to_remove.prev  ; Was the tail
-
-    ;     count--
-    ;     return true
-    ; }
 
 
     sub draw_files_2_scrn() {
@@ -146,7 +110,7 @@ dir_cache {
     }
 
     sub pretty_line(str line, bool tagged) -> str {
-        ;--- make each file name pretty
+        ;--- make file name pretty
         alias pretty_str = main.g_tmp_str_buffer2 
         alias tmp_str9   = main.g_tmp_str_buffer1 
         if tagged {
@@ -159,8 +123,6 @@ dir_cache {
     }
 
     sub highlight_line(ubyte up_down) {
-        ;alias i = main.i
-        ;alias j = main.j
         if count == 0 { return }
         ;--- TODO --->  HAVE TO ADD PAGE UP/DN 
         when up_down {
@@ -178,8 +140,6 @@ dir_cache {
             MOVE_PG_UP ->   { }
             MOVE_PG_DN ->   { }
         }
-
-
         
     }
 
@@ -195,6 +155,36 @@ dir_cache {
             txt.setclr(i,selected+TOP_ROW-1,clr.TXT_NORMAL)
         }
     }
+
+    sub scroll_txt_up(ubyte col, ubyte row, ubyte width, ubyte height, ubyte fillchar) {
+        alias y = main.i
+        alias x = main.j
+        for y in row to row+height-2 {
+            for x in col to col+width-1 {
+                txt.setchr(x,y, txt.getchr(x, y+1))
+            }
+        }
+        y = row+height-1
+        for x in col to col+width-1 {
+            txt.setchr(x,y, fillchar)
+        }
+    }
+
+    sub scroll_txt_down(ubyte col, ubyte row, ubyte width, ubyte height, ubyte fillchar) {
+        alias y = main.i
+        alias x = main.j
+        for y in row+height-1 downto row+1 {
+            for x in col to col+width-1 {
+                txt.setchr(x,y, txt.getchr(x, y-1))
+            }
+        }
+        for x in col to col+width-1 {
+            txt.setchr(x,row, fillchar)
+        }
+    }
+
+
+
 }
 
 arena {
@@ -253,3 +243,38 @@ arena {
     ; }
 
     
+
+    ; sub find_by_filename(str name) -> ^^Entry {
+    ;     ^^Entry current = head
+    ;     while current != 0 {
+    ;         if strings.compare(current.name, name) == 0
+    ;             return current
+    ;         ;current = current.hash_next
+    ;         current = current.next
+    ;     }
+
+    ;     return 0  ; Not found
+    ; }
+
+    
+
+    ; sub remove(str name) -> bool {
+    ;     ; Find the entry
+    ;     ^^Entry to_remove = find(name)
+    ;     if to_remove == 0
+    ;         return false  ; Not found
+
+    ;     ; Remove from doubly linked list
+    ;     if to_remove.prev != 0
+    ;         to_remove.prev.next = to_remove.next
+    ;     else
+    ;         head = to_remove.next  ; Was the head
+
+    ;     if to_remove.next != 0
+    ;         to_remove.next.prev = to_remove.prev
+    ;     else
+    ;         tail = to_remove.prev  ; Was the tail
+
+    ;     count--
+    ;     return true
+    ; }
