@@ -25,6 +25,29 @@ debug {
         row = yrow
     }
 
+      ;--- NEEDS REFACTOR!!!!  WRITTEN BY AI
+    ; Concatenates two strings together
+    ; str1: first string (passed by value)
+    ; str2: second string (passed by value)
+    ; target: pointer to target buffer (must be pre-allocated, large enough for both strings + null)
+    sub concat_strings(str str1, str str2, uword target) {
+        ubyte len1 = strings.length(str1)
+        
+        ; Copy first string
+        void strings.copy(str1, target)
+        
+        ; Copy second string after the first
+        void strings.copy(str2, target + len1)
+    }
+
+
+    sub say2(str msg, ubyte num) {
+        str tmp = "?"*40
+        concat_strings(msg,conv.str_ub(num),tmp)
+        say(tmp)
+    }
+
+
     sub say(str msg) {
         txt.plot(col,row)
         txt.print(" "*40)
