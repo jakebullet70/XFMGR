@@ -25,25 +25,44 @@ dir_cache {
     const bool NOT_TAGGED = false
     const ubyte LEFT_COL = 2
     const ubyte TOP_ROW = 6
-    const ubyte MOVE_UP    = 1
-    const ubyte MOVE_DN    = 2
-    const ubyte MOVE_PG_UP = 3
-    const ubyte MOVE_PG_DN = 4
-    const ubyte LAST_MOVE_UP = 1
-    const ubyte LAST_MOVE_DN = 2
-    ubyte LAST_MOVE = 0
-
+    
+    ;--- vars for movement
     ubyte top_index = 0
     ubyte selected_line,num_visible_files
-    ubyte max_lines = 15 ;txt.height() - 11
+    ubyte max_lines = txt.height() - 11
 
     ^^Entry current
 
     sub init() { }
 
+    sub key_page_down() {
+        debug.say("p-down-HAS-BUG")
+        ;--- BUG!  Scroll and do page up-dn
+        ; if num_files > 0 {
+        ;     ; next page of lines
+        ;     unselect_line(selected_line)
+        ;     if selected_line == max_lines - 1
+        ;         repeat max_lines scroll_list_forward()
+
+        ;     selected_line = num_visible_files - 1
+        ;     select_line(selected_line)
+        ;     print_up_and_down()
+        ; }
+    }
+
+    sub key_page_up() {
+        debug.say("p-up-HAS-BUG")
+        ;--- BUG!  Scroll and do page up-dn
+        ; line_color(selected_line, clr.TXT_NORMAL)
+        ; if selected_line==0
+        ;     repeat max_lines scroll_list_backward()
+
+        ; selected_line = 0
+        ; select_line(0)
+        ; print_up_and_down() 
+    }
+
     sub key_up() { 
-        ;if LAST_MOVE == LAST_MOVE_DN { current = current.next }
-        ;LAST_MOVE = LAST_MOVE_UP
         line_color(selected_line, clr.TXT_NORMAL)
         if selected_line > 0 {
             current = current.prev
@@ -55,7 +74,7 @@ dir_cache {
         line_color(selected_line, clr.ROW_HILIGHT)
         print_up_and_down()
         ;debug.say2("rec num:",current.rec_num)
-        debug.say2("top idx:",top_index)
+        ;debug.say2("top idx:",top_index)
     }
     
     
@@ -73,8 +92,6 @@ dir_cache {
     
     sub key_down() {
         if num_files > 0 {
-            ;if LAST_MOVE == LAST_MOVE_UP { current = current.prev }
-            ;LAST_MOVE = LAST_MOVE_DN
             line_color(selected_line, clr.TXT_NORMAL)
             if selected_line < num_visible_files - 1 {
                 selected_line++ 
@@ -87,12 +104,12 @@ dir_cache {
             print_up_and_down()
         }
         ;debug.say2("rec num:",current.rec_num)
-        debug.say2("top idx:",top_index)
+        ;debug.say2("top idx:",top_index)
     }
 
 
     sub scroll_list_forward() {
-        if top_index + max_lines < num_files - 1 {
+        if top_index + max_lines < num_files  {
             top_index++
             ; scroll the displayed list up 1
             scroll_txt_up(LEFT_COL,TOP_ROW,FILE_NAME_SIZE,max_lines,iso:' ')
@@ -194,7 +211,7 @@ dir_cache {
     }
 
     sub print_up_and_down() {
-
+        ;--- not sure what to do with this yet
     }
 
 
@@ -202,8 +219,8 @@ dir_cache {
     sub add(str name, bool is_dir, bool tagged, uword blocks) {
         ;--- Create new entry
 
-        ^^Entry new_record = arena.alloc(sizeof(Entry))
-        ^^ubyte name_copy  = arena.alloc(strings.length(name) + 1)
+        ^^Entry new_record = arena_files.alloc(sizeof(Entry))
+        ^^ubyte name_copy  = arena_files.alloc(strings.length(name) + 1)
         void strings.copy(name, name_copy)
 
         new_record.name = name_copy
@@ -233,9 +250,9 @@ dir_cache {
 
 }
 
-arena {
+arena_files {
     ; Simple arena allocator
-    uword buffer = memory("arena", 8000, 0)
+    uword buffer = memory("a_files", 8000, 0)
     uword next = buffer
 
     sub alloc(ubyte size) -> uword {
@@ -245,7 +262,7 @@ arena {
 
     sub free_all() {
         ; cannot free individual allocations only the whole arena at once
-        ; UNTESTED!!!
+        ; UNTESTED!!! - assuming this resets the pointer to the top
         next = buffer
     }
 }

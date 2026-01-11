@@ -10,8 +10,8 @@ files_folders {
     
     sub read(ubyte drv) -> bool { 
         diskio.drivenumber = drv
-        ;reset_mem()
-        arena.free_all()
+
+        arena_files.free_all()
         dir_cache.num_files = 0        
 
         ;--- list directories first

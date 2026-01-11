@@ -64,9 +64,11 @@ main {
             27  -> { goto end_me }  ; ESC key to end program
             17  -> { dir_cache.key_down() }
             145 -> { dir_cache.key_up() }
+            51  -> { dir_cache.key_page_down() }
+            57  -> { dir_cache.key_page_up() }
 
         }
-
+        ;debug.say2("key:",char)
         goto char_loop
 
     end_me:
