@@ -44,7 +44,7 @@ dir_cache {
     sub key_up() { 
         ;if LAST_MOVE == LAST_MOVE_DN { current = current.next }
         ;LAST_MOVE = LAST_MOVE_UP
-        unselect_line(selected_line)
+        line_color(selected_line, clr.TXT_NORMAL)
         if selected_line > 0 {
             current = current.prev
             selected_line--
@@ -52,9 +52,10 @@ dir_cache {
             scroll_list_backward()
         }
 
-        select_line(selected_line)
+        line_color(selected_line, clr.ROW_HILIGHT)
         print_up_and_down()
-        debug.say2("rec num:",current.rec_num)
+        ;debug.say2("rec num:",current.rec_num)
+        debug.say2("top idx:",top_index)
     }
     
     
@@ -66,12 +67,10 @@ dir_cache {
             ; print new name at the top of the list
             txt.plot(LEFT_COL, TOP_ROW)
             current = current.prev
-            print_filename(top_index + selected_line)
+            print_filename(selected_line)
         }
     }
     
-
-
     sub key_down() {
         if num_files > 0 {
             ;if LAST_MOVE == LAST_MOVE_UP { current = current.prev }
@@ -87,7 +86,8 @@ dir_cache {
             line_color(selected_line, clr.ROW_HILIGHT)
             print_up_and_down()
         }
-        debug.say2("rec num:",current.rec_num)
+        ;debug.say2("rec num:",current.rec_num)
+        debug.say2("top idx:",top_index)
     }
 
 
