@@ -5,7 +5,8 @@
 ;--- code modules
 %import helpers
 %import files_folders
-%import linked_list_dir
+%import linked_list_dirs
+%import linked_list_files
 %import strings_ext
 %import draw_menus
 %import debug
@@ -21,7 +22,7 @@ clr {
     const ubyte TXT_BRIGHT = $b7  ; 
     const ubyte MENU_NORMAL = $b1  ;
     const ubyte MENU_BRIGHT = $b7  ; 
-    const ubyte ROW_HILIGHT = $1e
+    const ubyte ROW_HILIGHT = $e1
     const ubyte BOXES = $be ;
 }
 
@@ -48,11 +49,15 @@ main {
         menus.draw()
 
         debug.init(0)
-        debug.say("debug inited!")
+        ;debug.say("debug inited!")
 
-        dir_cache.init()
-        void files_folders.read(8)      ;--- read files into dir_cache
-        dir_cache.draw_files_2_scrn()
+        files_cache.init()
+        dirs_cache.init()
+
+        ;void files_folders.read_dirs(8)      ;--- read files into files_cache
+        ;files_cache.draw_files_2_scrn()
+        void files_folders.read_files(8)      ;--- read files into files_cache
+        files_cache.draw_files_2_scrn()
 
     ;--- main character input loop       
     char_loop:
@@ -62,10 +67,10 @@ main {
 
         when char {
             27  -> { goto end_me }  ; ESC key to end program
-            17  -> { dir_cache.key_down() }
-            145 -> { dir_cache.key_up() }
-            51  -> { dir_cache.key_page_down() }
-            57  -> { dir_cache.key_page_up() }
+            17  -> { files_cache.key_down() }
+            145 -> { files_cache.key_up() }
+            51  -> { files_cache.key_page_down() }
+            57  -> { files_cache.key_page_up() }
 
         }
         ;debug.say2("key:",char)

@@ -3,6 +3,7 @@
 helpers {
     ubyte chr_topleft, chr_topright, chr_botleft, chr_botright
     ubyte chr_tleft, chr_tright, chr_tup, chr_tdown, chr_horiz, chr_vert
+    
 
     sub print_strXY(ubyte col, ubyte row, str txtstring, ubyte colors, bool convertchars) {
         txt.plot(col,row)
@@ -21,13 +22,12 @@ helpers {
     }  
 
     sub draw_box(ubyte col, ubyte row, ubyte width, ubyte height, ubyte colors) {
-
-        alias i = main.i        ;--- re-use vars
         alias rows = main.j     ;--- re-use vars
+        alias i    = main.i        ;--- re-use vars
         rows = txt.height()
         pokew(903,65) ;--- change scrn height so no scroll  
 
-        draw_vert_line(col,row,width)
+        draw_horiz_line(col,row,width)
         txt.plot(col,row)
         txt.chrout_lit(chr_topleft)
         txt.plot(col+width-1,row)
@@ -40,7 +40,7 @@ helpers {
              txt.chrout_lit(chr_vert)
         }
         
-        draw_vert_line(col,row+height-1,width)
+        draw_horiz_line(col,row+height-1,width)
         txt.plot(col,row+height-1)
         txt.chrout_lit(chr_botleft)
         txt.plot(col+width-1,row+height-1)
@@ -76,19 +76,34 @@ helpers {
     sub draw_main_scrn() {
         txt.clear_screen()
         draw_box(0,0,txt.width(), txt.height(), clr.BOXES)
-        draw_vert_line(0,txt.height() - 5,80)
-        draw_vert_line(0,2,80)
-        draw_vert_line(0,4,80)
+        draw_horiz_line(0,txt.height() - 5,txt.width())
+        draw_horiz_line(0,2,txt.width())
+        draw_horiz_line(0,4,txt.width())
+        draw_vert_line(30,4,txt.height()-5)
+        plot_charXY(30,4,chr_tdown,clr.BOXES)
+        plot_charXY(30,txt.height()-5,chr_tup,clr.BOXES)
+        
         print_strXY(1 ,1,iso:"XFMGR V0.1.0",clr.TXT_NORMAL,false)
         print_strXY(63,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
+        print_strXY(1 ,3,iso:"Folders",clr.TXT_NORMAL,false)
+        print_strXY(32,3,iso:"Files",clr.TXT_NORMAL,false)
 }
 
-    sub draw_vert_line(ubyte col,ubyte row, ubyte width){
+    sub draw_horiz_line(ubyte col,ubyte row, ubyte width){
         txt.plot(col,row)
         txt.color2(clr.BOXES & 15, clr.BOXES>>4)
         repeat width {txt.chrout_lit(chr_horiz)}
         plot_charXY(col,row,chr_tleft,clr.BOXES)
         plot_charXY(col+width-1,row,chr_tright,clr.BOXES)
     }
+
+    sub draw_vert_line(ubyte col,ubyte row, ubyte height){
+        alias i    = main.i        ;--- re-use vars
+        for i in 1 to height - 2 {
+             txt.plot(col,row+i)
+             txt.chrout_lit(chr_vert)
+        }
+    }
+
 
 }

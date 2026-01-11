@@ -3,7 +3,7 @@
 ; --- Linked list holding the Dir
 ; -----------------------------------
 
-dir_cache {
+files_cache {
     struct Entry {
         ^^Entry next          ; Next entry in the list
         ^^Entry prev          ; Previous entry in the list
@@ -23,7 +23,7 @@ dir_cache {
     const bool DIR_ENTRY = true
     const bool FILE_ENTRY = false
     const bool NOT_TAGGED = false
-    const ubyte LEFT_COL = 2
+    const ubyte LEFT_COL = 32
     const ubyte TOP_ROW = 6
     
     ;--- vars for movement
@@ -252,7 +252,7 @@ dir_cache {
 
 arena_files {
     ; Simple arena allocator
-    uword buffer = memory("a_files", 8000, 0)
+    uword buffer = memory("a_files", 6400, 0)
     uword next = buffer
 
     sub alloc(ubyte size) -> uword {
