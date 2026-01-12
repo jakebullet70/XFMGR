@@ -20,7 +20,7 @@ clr {
     ;--- default colors
     const ubyte TXT_NORMAL = $b1  ; 
     const ubyte TXT_BRIGHT = $b7  ; 
-    const ubyte MENU_NORMAL = $b1  ;
+    const ubyte MENU_NORMAL = $b3  ;
     const ubyte MENU_BRIGHT = $b7  ; 
     const ubyte ROW_HILIGHT = $e1
     const ubyte BOXES = $be ;
@@ -45,7 +45,7 @@ main {
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
-        menus.mode = menus.DIR ;--- default for the moment
+        menus.mode = menus.FILE ;--- default for the moment
         menus.draw()
 
         debug.init(0)
@@ -67,10 +67,32 @@ main {
 
         when char {
             27  -> { goto end_me }  ; ESC key to end program
-            17  -> { files_cache.key_down() }
-            145 -> { files_cache.key_up() }
-            51  -> { files_cache.key_page_down() }
-            57  -> { files_cache.key_page_up() }
+            17  -> { 
+                when menus.mode {
+                    ;menus.DIR ->  {  } 
+                    menus.FILE -> { files_cache.key_down() } 
+                } 
+            }
+            145 -> { 
+                when menus.mode {
+                    ;DIR ->  {  } 
+                    menus.FILE -> { files_cache.key_up() } 
+                }
+            }
+            51  -> { 
+                when menus.mode {
+                    ;DIR ->  {  } 
+                    menus.FILE -> { files_cache.key_page_down() } 
+                }
+            }    
+            57  -> {
+                when menus.mode {
+                    ;DIR ->  {  } 
+                    menus.FILE -> { files_cache.key_page_up() } 
+                }
+            } 
+        
+            'a' to 'z' -> { }
 
         }
         ;debug.say2("key:",char)

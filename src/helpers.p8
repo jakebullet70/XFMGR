@@ -85,7 +85,7 @@ helpers {
         
         print_strXY(1 ,1,iso:"XFMGR V0.1.0",clr.TXT_NORMAL,false)
         print_strXY(63,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
-        print_strXY(1 ,3,iso:"Folders",clr.TXT_NORMAL,false)
+        print_strXY(1 ,3,iso:"Path",clr.TXT_NORMAL,false)
         print_strXY(32,3,iso:"Files",clr.TXT_NORMAL,false)
 }
 
