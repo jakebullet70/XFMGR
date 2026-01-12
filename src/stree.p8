@@ -31,7 +31,7 @@ main {
     str g_tmp_str_buffer1 = "?" * 255
     str g_tmp_str_buffer2 = "?" * 255
     str g_tmp_str_buffer3 = "?" * 255
-    ubyte i,j,x,y = 0
+    ubyte @zp i,j,x,y = 0
     bool bool_tmp = false
 
     sub start() {
@@ -45,8 +45,8 @@ main {
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
-        menus.mode = menus.FILE ;--- default for the moment
-        menus.draw()
+        menus.mode = menus.DIR ;--- default for the moment
+        menus.draw(0)
 
         debug.init(0)
         ;debug.say("debug inited!")
@@ -61,10 +61,25 @@ main {
 
     ;--- main character input loop       
     char_loop:
-        ubyte char
-        void, char = cbm.GETIN()
-        if char == 0 { goto char_loop }
+        ubyte char,mkey
+        char = cbm.GETIN2()
+        mkey = cx16.kbdbuf_get_modifiers() 
+        if (menus.is_alt_dir_menu or menus.is_alt_file_menu or 
+            menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu) and mkey == 0 { menus.draw(0) }
+        ;debug.say2("mkey:",mkey)
+        if char == 0 and mkey == 0 { goto char_loop }
 
+
+        ;--- modifer keys
+        if mkey == menus.ALT_PRESSED or mkey == menus.CTRL_PRESSED {
+            if menus.is_alt_dir_menu or menus.is_alt_file_menu or menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu { 
+                goto char_loop ;--- menu is already shown
+            } 
+            menus.draw(mkey)
+        }
+    
+
+        ;--- key strokes
         when char {
             27  -> { goto end_me }  ; ESC key to end program
             17  -> { 
@@ -92,15 +107,13 @@ main {
                 }
             } 
         
-            'a' to 'z' -> { }
+;            'a' to 'z' -> { }
 
         }
         ;debug.say2("key:",char)
         goto char_loop
 
     end_me:
-        ;txt.color2(0,3)
-        ;txt.color2(colors & 15, colors>>4)
         txt.iso_off()
         txt.uppercase()
         txt.clear_screen()
