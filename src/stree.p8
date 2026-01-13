@@ -66,12 +66,12 @@ main {
         mkey = cx16.kbdbuf_get_modifiers() 
         if (menus.is_alt_dir_menu or menus.is_alt_file_menu or 
             menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu) and mkey == 0 { menus.draw(0) }
-        ;debug.say2("mkey:",mkey)
         if char == 0 and mkey == 0 { goto char_loop }
 
 
         ;--- modifer keys
         if mkey == menus.ALT_PRESSED or mkey == menus.CTRL_PRESSED {
+            ;debug.say2("mod is here:",mkey)
             if menus.is_alt_dir_menu or menus.is_alt_file_menu or menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu { 
                 goto char_loop ;--- menu is already shown
             } 
@@ -84,25 +84,25 @@ main {
             27  -> { goto end_me }  ; ESC key to end program
             17  -> { 
                 when menus.mode {
-                    ;menus.DIR ->  {  } 
+                    ;menus.DIR ->  { dirs_cache.key_down()  } 
                     menus.FILE -> { files_cache.key_down() } 
                 } 
             }
             145 -> { 
                 when menus.mode {
-                    ;DIR ->  {  } 
+                    ;DIR ->  { dirs_cache.key_up() } 
                     menus.FILE -> { files_cache.key_up() } 
                 }
             }
             51  -> { 
                 when menus.mode {
-                    ;DIR ->  {  } 
+                    ;DIR ->  { dirs_cache.key_page_down() } 
                     menus.FILE -> { files_cache.key_page_down() } 
                 }
             }    
             57  -> {
                 when menus.mode {
-                    ;DIR ->  {  } 
+                    ;DIR ->  { dirs_cache.key_page_up() } 
                     menus.FILE -> { files_cache.key_page_up() } 
                 }
             } 
