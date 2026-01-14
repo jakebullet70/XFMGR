@@ -216,19 +216,33 @@ main {
 
             ;--- check CTRL / ALT key and set flag
             when keynum { 
-                keys.EXT_CTRL_UP  -> { menus.CTRL_PRESSED = false }
-                keys.EXT_CTRL_DN  -> { menus.CTRL_PRESSED = true  }
-                keys.EXT_ALT_UP   -> { menus.ALT_PRESSED  = false }
-                keys.EXT_ALT_DN   -> { menus.ALT_PRESSED  = true  }
-            }
+                keys.EXT_CTRL_UP  -> { 
+                    menus.CTRL_PRESSED = false 
+                    ;return 0   
+                }
+                keys.EXT_CTRL_DN  -> { 
+                    menus.CTRL_PRESSED = true  
+                    ;return 0   
+                }
+                keys.EXT_ALT_UP   -> { 
+                    menus.ALT_PRESSED  = false 
+                    ;return 0   
+                }
+                keys.EXT_ALT_DN   -> { 
+                    menus.ALT_PRESSED  = true
+                    ;return 0   
+                }
+            }  ;--- return 0 eats the key
 
-            ;--- save the last 5 keycodes
+            ;--- save the last 5 keycodes because...
+            ;--- ALT-Q (or modifyer and key) is 4 bytes --> (ALT up and down) and (Q up and down)
+            ;--- 4 bytes! ;) and a 5th just for fun!
             if kb_ndx > 4 kb_ndx = 0
             last_keys[kb_ndx] = keynum
             kb_ndx++
 
             keycode_ext = keynum
-            return keynum ;--- is not returning ALT / CTRL codes
+            return keynum           ;--- is not returning ALT / CTRL codes
 
             ; txt.print_ubhex(keynum, true)
             ; txt.spc()
