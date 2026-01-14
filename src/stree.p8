@@ -8,10 +8,11 @@
 %import linked_list_dirs
 %import linked_list_files
 %import strings_ext
-%import draw_menus
+%import menus_keys
+%import key_const
 %import debug
 ;---
-;%encoding "petscii"
+;%encoding "cp437"
 %option no_sysinit
 %zeropage basicsafe
 
@@ -34,6 +35,11 @@ main {
     ubyte @zp i,j,x,y = 0
     bool bool_tmp = false
 
+    uword old_keyhdl                       ;--- custom KB handler var
+    ubyte keycode_ext, keycode,kb_ndx      ;--- key press vars
+    ubyte[5] last_keys
+    bool exit_out = false
+
     sub start() {
 
         cx16.set_screen_mode(0)
@@ -45,7 +51,7 @@ main {
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
-        menus.mode = menus.DIR ;--- default for the moment
+        menus.mode = menus.FILE ;--- default for the moment
         menus.draw(0)
 
         debug.init(0)
@@ -54,72 +60,192 @@ main {
         files_cache.init()
         dirs_cache.init()
 
-        ;void files_folders.read_dirs(8)      ;--- read files into files_cache
+        ;void files_folders.read_dirs(8)        ;--- read files into files_cache
         ;files_cache.draw_files_2_scrn()
-        void files_folders.read_files(8)      ;--- read files into files_cache
+        void files_folders.read_files(8)        ;--- read files into files_cache
         files_cache.draw_files_2_scrn()
 
-    ;--- main character input loop       
-    char_loop:
-        ubyte char,mkey
-        char = cbm.GETIN2()
-        mkey = cx16.kbdbuf_get_modifiers() 
-        if (menus.is_alt_dir_menu or menus.is_alt_file_menu or 
-            menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu) and mkey == 0 { menus.draw(0) }
-        if char == 0 and mkey == 0 { goto char_loop }
-
-
-        ;--- modifer keys
-        if mkey == menus.ALT_PRESSED or mkey == menus.CTRL_PRESSED {
-            ;debug.say2("mod is here:",mkey)
-            if menus.is_alt_dir_menu or menus.is_alt_file_menu or menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu { 
-                goto char_loop ;--- menu is already shown
-            } 
-            menus.draw(mkey)
-        }
-    
-
-        ;--- key strokes
-        when char {
-            27  -> { goto end_me }  ; ESC key to end program
-            17  -> { 
-                when menus.mode {
-                    ;menus.DIR ->  { dirs_cache.key_down()  } 
-                    menus.FILE -> { files_cache.key_down() } 
-                } 
-            }
-            145 -> { 
-                when menus.mode {
-                    ;DIR ->  { dirs_cache.key_up() } 
-                    menus.FILE -> { files_cache.key_up() } 
-                }
-            }
-            51  -> { 
-                when menus.mode {
-                    ;DIR ->  { dirs_cache.key_page_down() } 
-                    menus.FILE -> { files_cache.key_page_down() } 
-                }
-            }    
-            57  -> {
-                when menus.mode {
-                    ;DIR ->  { dirs_cache.key_page_up() } 
-                    menus.FILE -> { files_cache.key_page_up() } 
-                }
-            } 
-        
-;            'a' to 'z' -> { }
-
-        }
-        ;debug.say2("key:",char)
-        goto char_loop
-
-    end_me:
+        custom_keyboard_handler_on_off(true)    ;--- set custom KB handler ==> sub &kb_handler
+        ;---------------------------------------------
+        ;--- Main key loop!  
+        ;---------------------------------------------
+        main_key_loop()
+        ;---------------------------------------------
+        ;--- End, lets bail from here!
+        ;---------------------------------------------
+        custom_keyboard_handler_on_off(false)       ;--- restore old KB handler
         txt.iso_off()
         txt.uppercase()
         txt.clear_screen()
-        txt.print("BYE!")
+        txt.print("bye!")
         return
 
-    }
+        ;--- main character input loop       
+        sub main_key_loop() {
+        
+            repeat {
 
+                ;cx16.kbdbuf_clear()
+                ;keycode_ext = keycode = 0               ;--- reset key vars, keycode_ext var contains modifer key
+                void,keycode = cbm.GETIN()              ;--- custom KB handler points to ==> &kb_handler
+                ;keycode = cx16.kbdbuf_get()
+                if keycode == 0 and keycode_ext == 0 continue 
+                
+                ;--- what menu is visible? draw base menu
+                if (menus.is_alt_dir_menu or menus.is_alt_file_menu or menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu) and 
+                        (not menus.CTRL_PRESSED and not menus.ALT_PRESSED) { 
+                    menus.draw(0) ;--- draw non ALT / CTRL menu
+                    continue
+                }
+                
+                ;--- check modifer keys, draw ALT / CTRL menu or process a key
+                if menus.ALT_PRESSED or menus.CTRL_PRESSED {
+                    if menus.is_alt_dir_menu or menus.is_alt_file_menu or menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu { 
+                        if keycode != 0 or keycode_ext !=0 process_letter_keys()    ;--- process modifer + key 
+                        continue                                                    ;--- menu is already shown, back to grab keys
+                    } 
+                    menus.draw(keycode)                                             ;--- draw CTRL / ALT menus
+                }
+
+
+                if not menus.CTRL_PRESSED and not menus.ALT_PRESSED {
+                    ;--- key strokes - movement up / down / pgup / pgdn
+                    when keycode {
+                        27  -> { exit_out = true }  ; ESC key to end program
+
+                        keys.DN_ARROW_PRESSED  -> { 
+                            if menus.mode == menus.DIR { 
+                                ;dirs_cache.key_down()  
+                            } else {
+                                files_cache.key_down() 
+                            } 
+                            continue
+                        }
+                        keys.UP_ARROW_PRESSED -> {
+                            if menus.mode == menus.DIR { 
+                                ;dirs_cache.key_up()  
+                            } else {
+                                files_cache.key_up() 
+                            } 
+                            continue
+                        }
+                        keys.PAGE_DN_PRESSED  -> { 
+                            ; if menus.mode == menus.DIR { 
+                            ;     ;dirs_cache.key_up()  
+                            ; } else {
+                            ;     files_cache.key_up() 
+                            ; } 
+                            ; continue
+                        }    
+                        keys.PAGE_UP_PRESSED  -> {
+                            ; if menus.mode == menus.DIR { 
+                            ;     ;dirs_cache.key_up()  
+                            ; } else {
+                            ;     files_cache.key_up() 
+                            ; } 
+                            ;  continue
+                        } 
+                    }
+                }
+                
+                if keycode == 0 continue
+                process_letter_keys()           ;--- process keys
+                if exit_out break
+                continue                        ;--- start loop again
+            }
+            return
+        }
+
+
+
+        sub process_letter_keys() {
+            ;debug.say("jjjjjjjjjjjjjjjjjjjj")
+            if keycode == 0 return ;--- should never happen
+
+            
+            repeat { ;--- fake loop
+                
+                if menus.CTRL_PRESSED {                 ;--- CTRL key   
+                    
+                } else if menus.ALT_PRESSED {           ;--- ALT key
+
+                } else {                                ;--- key - no modifier
+                    if keys.Q_PRESSED in last_keys {
+                        exit_out = ask_exit() 
+                        break
+                    }
+                }
+            } ;--- end fake loop, everything fires the break statement
+
+
+            ;--- clear the kb stack and exit
+            for i in 0 to 4 { 
+                last_keys[i] = 0    
+            }
+            return
+        }
+
+        sub ask_exit() -> bool {
+            menus.clear_menu_area()
+            ;prompt_txt("Quit and return to x16")
+            sys.wait(30)
+            return true
+        }
+
+
+        sub custom_keyboard_handler_on_off(bool turn_on) {
+            if turn_on {
+                sys.set_irqd()
+                old_keyhdl = cx16.KEYHDL
+                cx16.KEYHDL = &kb_handler
+                sys.clear_irqd()  
+            } else {
+                sys.set_irqd()
+                cx16.KEYHDL = old_keyhdl
+                sys.clear_irqd()
+            }
+        }
+
+        sub kb_handler(ubyte keynum) -> ubyte {
+            ; NOTE: this handler routine expects the keynum in A and return value in A
+            ;       which is thankfully how prog8 translates this subroutine's calling convention.
+            ; NOTE: it may be better to store the keynum somewhere else and let the main program
+            ;       loop figure out what to do with it, rather than putting it all in the handler routine
+
+            ;debug.say2("keyhandler:",keynum)
+
+            ;--- check CTRL / ALT key and set flag
+            when keynum { 
+                keys.EXT_CTRL_UP  -> { menus.CTRL_PRESSED = false }
+                keys.EXT_CTRL_DN  -> { menus.CTRL_PRESSED = true  }
+                keys.EXT_ALT_UP   -> { menus.ALT_PRESSED  = false }
+                keys.EXT_ALT_DN   -> { menus.ALT_PRESSED  = true  }
+            }
+
+            ;--- save the last 5 keycodes
+            if kb_ndx > 4 kb_ndx = 0
+            last_keys[kb_ndx] = keynum
+            kb_ndx++
+
+            keycode_ext = keynum
+            return keynum ;--- is not returning ALT / CTRL codes
+
+            ; txt.print_ubhex(keynum, true)
+            ; txt.spc()
+            ; if keynum & $80 !=0
+            ;     txt.chrout('u')
+            ; else
+            ;     txt.chrout('d')
+            ; txt.nl()
+
+            ; if keynum==$6e {
+            ;     ; escape stops the program
+            ;     main.stop_program = true
+            ; }
+            ; ;--- By returning 0 (in A) we will eat this key event. 
+            ; ;--- Return the original keynum value to pass it through.
+            ; return 0        
+        }
+
+    }
 }
