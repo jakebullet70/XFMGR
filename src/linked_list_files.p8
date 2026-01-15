@@ -122,8 +122,8 @@ files_cache {
     }
     
     sub scroll_txt_down(ubyte col, ubyte row, ubyte width, ubyte height, ubyte fillchar) {
-        alias y = main.i
-        alias x = main.j
+        alias y = main.y
+        alias x = main.x
         for y in row+height-1 downto row+1 {
             for x in col to col+width-1 {
                 txt.setchr(x,y, txt.getchr(x, y-1))
