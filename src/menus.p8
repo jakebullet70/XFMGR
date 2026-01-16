@@ -4,21 +4,26 @@ menus {
     const ubyte FILE = 1
     ubyte mode ;= TODO rename var to view_mode
 
+    ;const str CR_ICON = cp437:"◄╛"
+
     bool CTRL_PRESSED, ALT_PRESSED = false
     bool is_ctrl_dir_menu,is_alt_dir_menu,is_ctrl_file_menu,is_alt_file_menu = false
+    bool is_dir_menu, is_file_menu, is_prompt = false
 
     
     sub highlight_menu_keys(ubyte[] cols,ubyte alen, ubyte row, ubyte ccolor) {
         alias i = main.i
         for i in 0 to alen {
-            txt.setclr(cols[i],row,ccolor) }
+            txt.setclr(cols[i],row,ccolor) 
+        }
     }
 
     sub clear_menu_area() {
         alias j = main.j
         txt.color2(clr.MENU_NORMAL & 15, clr.MENU_NORMAL>>4)
         for j in 4 downto 2 { 
-            helpers.print_strXY2(1,txt.height() - j," " * 78) }
+            helpers.print_strXY2(1,txt.height() - j," " * 78)
+        }
     }
 
     sub show_menu_header(str mtype,str DIRorFILE) {
@@ -34,15 +39,18 @@ menus {
         is_ctrl_dir_menu = is_alt_dir_menu = is_ctrl_file_menu = is_alt_file_menu  = false
     }
 
-    sub draw(ubyte modifer_key) {
+    sub draw() {
         ;debug.say2("modifer_key:",modifer_key)
         ;bool is_ctrl_dir_menu,is_alt_dir_menu,is_ctrl_file_menu,is_alt_file_menu = false
+        is_prompt = false
         when mode 
         {
             DIR ->  {
                 
                 if not ALT_PRESSED and not CTRL_PRESSED {
                     clear_modifier_flags()
+                    is_dir_menu = true
+                    is_file_menu = false
                     show_menu_header(cp437:"DIR",cp437:"File")
                     ;--- 1st line
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Avail  Delete  Filespec  Log  Make")
@@ -53,6 +61,7 @@ menus {
 
                 } else if ALT_PRESSED {
                     is_alt_dir_menu = true
+                    is_dir_menu = is_file_menu = false
                     show_menu_header(cp437:"ALT DIR",cp437:"File")
                     ;--- 1st line
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Edit  Graft  Log  Prune")
@@ -63,6 +72,7 @@ menus {
 
                 } else if CTRL_PRESSED {
                     is_ctrl_dir_menu = true
+                    is_dir_menu = is_file_menu = false
                     show_menu_header(cp437:"CTRL DIR",cp437:"File")
                     ;--- 1st line
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Log  Tag  Untag")
@@ -73,6 +83,8 @@ menus {
             FILE -> { 
                 if not ALT_PRESSED and not CTRL_PRESSED {
                     clear_modifier_flags()
+                    is_dir_menu = false
+                    is_file_menu = true
                     show_menu_header(cp437:"FILE",cp437:"Dir")
                     ;--- 1st line
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Copy  Delete  Edit  Filespec  Log  Move")
@@ -83,6 +95,7 @@ menus {
 
                 } else if ALT_PRESSED {
                     is_alt_file_menu = true
+                    is_dir_menu = is_file_menu = false
                     show_menu_header(cp437:"ALT FILE",cp437:"Dir")
                     ;--- 1st line
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Copy  Log  Move")
@@ -93,6 +106,7 @@ menus {
 
                 } else if CTRL_PRESSED {
                     is_ctrl_file_menu = true
+                    is_dir_menu = is_file_menu = false
                     show_menu_header(cp437:"CTRL FILE",cp437:"Dir")
                     ;--- 1st line
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Copy  Delete  Log  Move  New date  Print")
