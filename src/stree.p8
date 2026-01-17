@@ -18,7 +18,7 @@
 %zeropage basicsafe
 
 
-clr {
+theme {
     ;--- default colors
     const ubyte TXT_NORMAL = $b1  ; 
     const ubyte TXT_BRIGHT = $b7  ; 
@@ -53,7 +53,7 @@ main {
 
         void strings.copy(diskio.curdir(),start_dir)
         cx16.set_screen_mode(0)
-        txt.color2(clr.TXT_NORMAL & 15, clr.TXT_NORMAL>>4)
+        txt.color2(theme.TXT_NORMAL & 15, theme.TXT_NORMAL>>4)
         txt.clear_screen()        
         
         txt.cp437()                     ;--- enable ISO character set 

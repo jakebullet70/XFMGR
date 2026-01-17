@@ -53,7 +53,7 @@ files_cache {
     sub key_page_up() {
         debug.say("p-up-HAS-BUG")
         ;--- BUG!  Scroll and do page up-dn
-        ; line_color(selected_line, clr.TXT_NORMAL)
+        ; line_color(selected_line, theme.TXT_NORMAL)
         ; if selected_line==0
         ;     repeat max_lines scroll_list_backward()
 
@@ -63,7 +63,7 @@ files_cache {
     }
 
     sub key_up() { 
-        line_color(selected_line, clr.TXT_NORMAL)
+        line_color(selected_line, theme.TXT_NORMAL)
         if selected_line > 0 {
             current = current.prev
             selected_line--
@@ -71,7 +71,7 @@ files_cache {
             scroll_list_backward()
         }
 
-        line_color(selected_line, clr.ROW_HILIGHT)
+        line_color(selected_line, theme.ROW_HILIGHT)
         print_up_and_down()
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
@@ -92,7 +92,7 @@ files_cache {
     
     sub key_down() {
         if num_files > 0 {
-            line_color(selected_line, clr.TXT_NORMAL)
+            line_color(selected_line, theme.TXT_NORMAL)
             if selected_line < num_visible_files - 1 {
                 selected_line++ 
                 current = current.next
@@ -100,7 +100,7 @@ files_cache {
                 scroll_list_forward()
             }
                 
-            line_color(selected_line, clr.ROW_HILIGHT)
+            line_color(selected_line, theme.ROW_HILIGHT)
             print_up_and_down()
         }
         ;debug.say2("rec num:",current.rec_num)
@@ -153,7 +153,7 @@ files_cache {
         alias i = main.i
         alias str_clear = main.g_tmp_str_buffer1
 
-        txt.color2(clr.TXT_NORMAL & 15, clr.TXT_NORMAL>>4)
+        txt.color2(theme.TXT_NORMAL & 15, theme.TXT_NORMAL>>4)
         num_visible_files = min(max_lines, num_files)
 
         ;--- clear panel/page
@@ -170,7 +170,7 @@ files_cache {
         }
 
         current = head ;--- reset to top
-        line_color(0,clr.ROW_HILIGHT)
+        line_color(0,theme.ROW_HILIGHT)
         selected_line = 0
     }
 
@@ -195,11 +195,11 @@ files_cache {
     }
 
     sub select_line(ubyte line) {
-        line_color(line, clr.ROW_HILIGHT)
+        line_color(line, theme.ROW_HILIGHT)
     }
 
     sub unselect_line(ubyte line) {
-        line_color(line, clr.TXT_NORMAL)
+        line_color(line, theme.TXT_NORMAL)
     }
 
     sub line_color(ubyte line, ubyte colors) {
@@ -350,9 +350,9 @@ arena_files {
     ;     when movement {
     ;         MOVE_UP ->      { 
     ;             if pages_index == 1 and inner_index == 1 { return } ;--- top
-    ;             line_color(inner_index,clr.TXT_NORMAL)
+    ;             line_color(inner_index,theme.TXT_NORMAL)
     ;             inner_index--
-    ;             line_color(inner_index,clr.ROW_HILIGHT)
+    ;             line_color(inner_index,theme.ROW_HILIGHT)
     ;         }
     ;         MOVE_DN ->      {
     ;             if pages_index * inner_index == num_files { 
@@ -365,9 +365,9 @@ arena_files {
     ;                 pages_index++
     ;             } else {
     ;                 ;debug.say2("inner index",inner_index)
-    ;                 line_color(inner_index,clr.TXT_NORMAL)
+    ;                 line_color(inner_index,theme.TXT_NORMAL)
     ;                 inner_index++
-    ;                 line_color(inner_index,clr.ROW_HILIGHT)
+    ;                 line_color(inner_index,theme.ROW_HILIGHT)
     ;             }
                 
     ;         }

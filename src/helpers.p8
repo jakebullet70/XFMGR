@@ -75,26 +75,26 @@ helpers {
 
     sub draw_main_scrn() {
         txt.clear_screen()
-        draw_box(0,0,txt.width(), txt.height(), clr.BOXES)
+        draw_box(0,0,txt.width(), txt.height(), theme.BOXES)
         draw_horiz_line(0,txt.height() - 5,txt.width())
         draw_horiz_line(0,2,txt.width())
         draw_horiz_line(0,4,txt.width())
         draw_vert_line(30,4,txt.height()-5)
-        plot_charXY(30,4,chr_tdown,clr.BOXES)
-        plot_charXY(30,txt.height()-5,chr_tup,clr.BOXES)
+        plot_charXY(30,4,chr_tdown,theme.BOXES)
+        plot_charXY(30,txt.height()-5,chr_tup,theme.BOXES)
         
-        print_strXY(1 ,1,iso:"XFMGR V0.1.0",clr.TXT_NORMAL,false)
-        print_strXY(63,1,iso:"Dec 29 - 02:30PM",clr.TXT_NORMAL,false)
-        print_strXY(1 ,3,iso:"Path",clr.TXT_NORMAL,false)
-        print_strXY(32,3,iso:"Files",clr.TXT_NORMAL,false)
+        print_strXY(1 ,1,iso:"XFMGR V0.1.0",theme.TXT_NORMAL,false)
+        print_strXY(63,1,iso:"Dec 29 - 02:30PM",theme.TXT_NORMAL,false)
+        print_strXY(1 ,3,iso:"Path",theme.TXT_NORMAL,false)
+        print_strXY(32,3,iso:"Files",theme.TXT_NORMAL,false)
 }
 
     sub draw_horiz_line(ubyte col,ubyte row, ubyte width){
         txt.plot(col,row)
-        txt.color2(clr.BOXES & 15, clr.BOXES>>4)
+        txt.color2(theme.BOXES & 15, theme.BOXES>>4)
         repeat width {txt.chrout_lit(chr_horiz)}
-        plot_charXY(col,row,chr_tleft,clr.BOXES)
-        plot_charXY(col+width-1,row,chr_tright,clr.BOXES)
+        plot_charXY(col,row,chr_tleft,theme.BOXES)
+        plot_charXY(col+width-1,row,chr_tright,theme.BOXES)
     }
 
     sub draw_vert_line(ubyte col,ubyte row, ubyte height){
