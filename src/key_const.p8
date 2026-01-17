@@ -12,11 +12,14 @@ keys {
     const ubyte PAGE_DN_PRESSED = 51
     const ubyte PAGE_UP_PRESSED = 57
     ;--- editing -------------------------------
-    const ubyte LEFT_ARROW = $cf
-    const ubyte RIGHT_ARROW = $d9
+    const ubyte LEFT_ARROW = $4f
+    const ubyte RIGHT_ARROW = $59
     const ubyte DELETE = $cc
     const ubyte INSERT = $cb
     const ubyte BACKSPACE = $8f
+    const ubyte HOME = $5b
+    const ubyte END = $5d
+
     ;--- Up/Down hex codes ----------------------
     const ubyte Q_PRESSED = $11
     ;const ubyte Q_PRESSED = $91
