@@ -6,6 +6,8 @@ files_folders {
     const bool FILE_ENTRY = false
     const bool NOT_TAGGED = false
 
+    const ubyte FILE_MAX_LEN = 40
+
     sub read_folders(ubyte drv) -> bool {
         alias dir_error = main.bool_tmp
         diskio.drivenumber = drv
