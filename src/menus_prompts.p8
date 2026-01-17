@@ -11,14 +11,25 @@ prompts {
 
     ;txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
 
-    sub draw_icons(ubyte col_arrow,ubyte col_CR,ubyte row) {
-        if col_arrow != 0 helpers.print_strXY(col_arrow,row,UP_STR,clr.MENU_BRIGHT,false)
-        if col_CR != 0 helpers.print_strXY(col_CR,row,CR_STR,clr.MENU_BRIGHT,false)
-    }
-    
+    sub delete_file(bool tagged_files) -> bool {
+        ;--- if tagged_files=true then delete multi files
+        ;menus.clear_menu_area()
+        prompt_txt(cp437:"DELETE File:",cp437:"",cp437:"Delete this file?                   [N]o  Yes  ESC Cancel",1,28,3)
+        menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,clr.MENU_BRIGHT)
+        helpers.print_strXY(13,txt.height()-4,files_cache.current.name,clr.MENU_BRIGHT,false)  ;--- show fname
+        get_txt(1,29,3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
+        if input_str_ret_val == CANCEL_INPUT return false 
+        if not tagged_files {
+            diskio.delete(files_cache.current.name)
+        } else {
+
+        }
+        return true ;--- true tells caller to refresh screen
+    } 
 
     ;--- generic text input prompts text
     sub prompt_txt(str txt1, str txt2, str txt3,ubyte p_length,ubyte col,ubyte row) {
+        menus.clear_menu_area()
         menus.is_prompt = true                          ;--- we are in a prompt!!!
         void strings.copy("",input_str_ret_val)         ;--- clear out ret val
         txt.color2(clr.MENU_NORMAL & 15, clr.MENU_NORMAL>>4)
@@ -34,29 +45,6 @@ prompts {
     }
 
 
-    sub rename_file(bool tagged_files) {
-        ;--- if tagged_files=true then rename multi files
-        menus.clear_menu_area()
-        prompt_txt(cp437:"RENAME File:",
-                   cp437:"         To:",
-                   cp437:"Enter filename mask                                  History    Ok  ESC Cancel",
-                   files_folders.FILE_MAX_LEN,14,2)
-                        ; 12345678901234567890123456789012345678901234567890123456789012345678901234567890
-        menus.highlight_menu_keys([69,70,71],2,txt.height()-2,clr.MENU_BRIGHT)
-        draw_icons(53,63,txt.height()-2)
-        
-        void strings.copy(files_cache.current.name,input_str_ret_val)                   ;--- copy current fname to working str        
-        helpers.print_strXY(14,txt.height()-4,input_str_ret_val,clr.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,14,txt.height()-3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
-
-        if input_str_ret_val == CANCEL_INPUT return                                     ;--- cancel, bye!
-        
-        ;--- copy current select file into g_tmp_str_buffer1
-        ;void strings.copy(files_cache.current.name,main.g_tmp_str_buffer1)
-        ;debug.say(g_tmp_str_buffer1)
-        return
-    }
-    
     sub get_txt(ubyte p_length,ubyte col,ubyte row,
             ubyte[] cancel_keys,ubyte cancel_keys_len,
             ubyte[] accept_keys,ubyte accept_keys_len,str text) {
@@ -79,7 +67,7 @@ prompts {
             void,keycode = cbm.GETIN()             
             if keycode == 0 continue 
 
-            debug.say2("gt-kcode:",main.keycode_ext)
+            ;debug.say2("gt-kcode:",main.keycode_ext)
             txt.plot(col+ndx,row)
             cx16.blink_enable(false)
 
@@ -142,13 +130,46 @@ prompts {
 
     
     sub ask_exit() -> bool {
-        menus.clear_menu_area()
+        ;menus.clear_menu_area()
         prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,clr.MENU_BRIGHT)
         get_txt(1,29,3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
-        ;return (if input_str_ret_val == CANCEL_INPUT then false else true)
         if input_str_ret_val == CANCEL_INPUT return false
         return true
+    }
+
+    
+    sub rename_file(bool tagged_files) -> bool {
+        ;--- if tagged_files=true then rename multi files
+        ;menus.clear_menu_area()
+        prompt_txt(cp437:"RENAME File:",
+                   cp437:"         To:",
+                   cp437:"Enter filename mask                                  History    Ok  ESC Cancel",
+                   files_folders.FILE_MAX_LEN,14,2)
+                        ; 12345678901234567890123456789012345678901234567890123456789012345678901234567890
+        menus.highlight_menu_keys([69,70,71],2,txt.height()-2,clr.MENU_BRIGHT)
+        draw_icons(53,63,txt.height()-2)
+        
+        void strings.copy(files_cache.current.name,input_str_ret_val)                   ;--- copy current fname to working str        
+        helpers.print_strXY(14,txt.height()-4,input_str_ret_val,clr.MENU_BRIGHT,false)  ;--- show fname
+        get_txt(1,14,txt.height()-3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
+
+        if input_str_ret_val == CANCEL_INPUT return false                               ;--- cancel, bye!
+        
+        if not tagged_files {   ;  TODO
+            ;diskio.rename(files_cache.current.name,input_str_ret_val)
+        } else {
+
+        }
+        return true ;--- true tells caller to refresh screen
+    }
+    
+
+    ;==============================================================================
+
+     sub draw_icons(ubyte col_arrow,ubyte col_CR,ubyte row) {
+        if col_arrow != 0 helpers.print_strXY(col_arrow,row,UP_STR,clr.MENU_BRIGHT,false)
+        if col_CR != 0 helpers.print_strXY(col_CR,row,CR_STR,clr.MENU_BRIGHT,false)
     }
 
     

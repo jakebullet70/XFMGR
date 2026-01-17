@@ -31,6 +31,11 @@ clr {
     const ubyte BOXES = $be ;
 }
 
+flags {
+    bool refresh_scrn = false
+    bool exit_out = false
+}
+
 main {
     ;--- tmp vars to be used wherever
     str g_tmp_str_buffer1 = "?" * 160
@@ -39,12 +44,11 @@ main {
     ubyte @zp i,j,x,y = 0
     bool bool_tmp = false
     str start_dir = "?" * 80
-
+    
     uword old_keyhdl                       ;--- custom KB handler var
     ubyte keycode_ext, keycode,kb_ndx      ;--- key press vars
     ubyte[5] last_keys
-    bool exit_out = false
-
+    
     sub start() {
 
         void strings.copy(diskio.curdir(),start_dir)
@@ -92,7 +96,6 @@ main {
     
     ;--- main character input loop       
     sub main_key_loop() {
-    
         repeat {
 
             if (not menus.CTRL_PRESSED and not menus.ALT_PRESSED) { 
@@ -172,11 +175,9 @@ main {
             
             if keycode == 0 continue
             process_letter_keys()           ;--- process keys
-            if exit_out break
+            if flags.exit_out break         ;--- break out of loop
             
-        } ;--- repeat
-
-        return
+        } ;--- repeat loop
     }
 
 
@@ -191,36 +192,41 @@ main {
               
             } else if menus.ALT_PRESSED {           ;--- ALT key
                 if keys.Q_PRESSED in last_keys { 
-                    exit_out = prompts.ask_exit()   ;--- quit
-                    break ;--- TODO, exits to the current dir, not the one it was started from
+                    flags.exit_out = prompts.ask_exit()   ;--- quit, TODO, exits to the current dir, not the one it was started from
                 }
-                
 
             } else {                                ;--- key - no modifier
                 ;debug.say2("process_letter_keys-else:",keycode_ext)
+                if keys.D_PRESSED in last_keys {    ;--- delete
+                    flags.refresh_scrn = prompts.delete_file(false)
+                    break
+                }
                 if keys.R_PRESSED in last_keys {    ;--- rename
-                    prompts.rename_file(false)
+                    flags.refresh_scrn = prompts.rename_file(false)
                     break
                 }      
                 if keys.Q_PRESSED in last_keys { 
-                    exit_out = prompts.ask_exit()   ;--- quit
+                    flags.exit_out = prompts.ask_exit()   ;--- quit
                     break
                 }      
                 if keys.C_PRESSED in last_keys {    ;--- copy
-                    ; ;--- copy current select file into g_tmp_str_buffer1
-                    ; void strings.copy(files_cache.current.name,main.g_tmp_str_buffer1)
-                    ; debug.say(g_tmp_str_buffer1)
-                    ; break
+                    break
                 }
-                break
-               
-                
             }
             break
         } ;--- end fake loop, everything fires the break statement
 
         ;debug.say("exit - process_letter_keys()")
         clear_kb()  
+
+        if flags.refresh_scrn {
+            if mode == menus.DIR {
+
+            } else {
+
+            }
+        }
+
         return
     }
 
