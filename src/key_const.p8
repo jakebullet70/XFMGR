@@ -22,11 +22,9 @@ keys {
 
     ;--- Up/Down hex codes ----------------------
     const ubyte Q_PRESSED = $11
-    ;const ubyte Q_PRESSED = $91
-    ;const ubyte C_PRESSED = $b0
     const ubyte C_PRESSED = $30
-    ;const ubyte R_PRESSED = $94
     const ubyte R_PRESSED = $14
+    const ubyte D_PRESSED = $21
 
 
 
