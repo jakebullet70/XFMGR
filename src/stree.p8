@@ -38,6 +38,7 @@ main {
     str g_tmp_str_buffer3 = "?" * 160
     ubyte @zp i,j,x,y = 0
     bool bool_tmp = false
+    str start_dir = "?" * 80
 
     uword old_keyhdl                       ;--- custom KB handler var
     ubyte keycode_ext, keycode,kb_ndx      ;--- key press vars
@@ -46,12 +47,13 @@ main {
 
     sub start() {
 
+        void strings.copy(diskio.curdir(),start_dir)
         cx16.set_screen_mode(0)
         txt.color2(clr.TXT_NORMAL & 15, clr.TXT_NORMAL>>4)
         txt.clear_screen()        
         
         txt.cp437()                     ;--- enable ISO character set 
-        txt.lowercase()
+        ;txt.lowercase()
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
@@ -79,7 +81,7 @@ main {
         ;---------------------------------------------
         custom_keyboard_handler_on_off(false)       ;--- restore old KB handler
         txt.iso_off()
-        txt.uppercase()
+        ;txt.uppercase()
         txt.clear_screen()
         txt.print("bye!")
         return
@@ -186,8 +188,13 @@ main {
         repeat { ;--- fake loop
             
             if menus.CTRL_PRESSED {                 ;--- CTRL key   
-                
+              
             } else if menus.ALT_PRESSED {           ;--- ALT key
+                if keys.Q_PRESSED in last_keys { 
+                    exit_out = prompts.ask_exit()   ;--- quit
+                    break ;--- TODO, exits to the current dir, not the one it was started from
+                }
+                
 
             } else {                                ;--- key - no modifier
                 ;debug.say2("process_letter_keys-else:",keycode_ext)
