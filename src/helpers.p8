@@ -106,4 +106,22 @@ helpers {
     }
 
 
+    sub run_file() {
+        ; CLS : LOCATE 10,1 : PRINT : PRINT "STARTING BASLOAD..."
+        ; PRINT "BASLOAD";CHR$(34) + FILE_TO_COMP$ + CHR$(34) + "{UP}{UP}";:
+        ; KBBUFFER_OUT = $FEC3 : A.REG = 780
+        ; POKE A.REG,13       : SYS KBBUFFER_OUT
+        ; POKE A.REG,ASC("R") : SYS KBBUFFER_OUT
+        ; POKE A.REG,ASC("U") : SYS KBBUFFER_OUT
+        ; POKE A.REG,ASC("N") : SYS KBBUFFER_OUT
+        ; POKE A.REG,ASC(":") : SYS KBBUFFER_OUT
+        ; POKE A.REG,13       : SYS KBBUFFER_OUT
+
+        ; txt.clear_screen()
+        ; txt.plot(0,10)
+        ; txt.ptint("load")
+        ; txt.print()
+        ; txt.print(flags.run_at_exit_str)
+    }
+
 }
