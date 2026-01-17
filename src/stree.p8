@@ -22,9 +22,10 @@ clr {
     ;--- default colors
     const ubyte TXT_NORMAL = $b1  ; 
     const ubyte TXT_BRIGHT = $b7  ; 
+
     const ubyte MENU_NORMAL = $b3  ;
     const ubyte MENU_BRIGHT = $b7  ;
-    const ubyte MENU_EDITOR = $7b  ;  reverse of MENU_BRIGHT
+    const ubyte MENU_EDITOR = $3b  ;  reverse of MENU_BRIGHT
 
     const ubyte ROW_HILIGHT = $e1
     const ubyte BOXES = $be ;
@@ -102,7 +103,6 @@ main {
                 if (not menus.CTRL_PRESSED and not menus.ALT_PRESSED) or 
                         (not menus.is_alt_dir_menu and not menus.is_alt_file_menu and 
                         not menus.is_ctrl_dir_menu and not menus.is_ctrl_file_menu) { 
-                    ;if is_dir_menu or is_file_menu continue
                     menus.draw() ;--- draw non ALT / CTRL menu
                     continue
                 }
@@ -171,8 +171,8 @@ main {
             if keycode == 0 continue
             process_letter_keys()           ;--- process keys
             if exit_out break
-            ;continue                        ;--- start loop again
-        }
+            
+        } ;--- repeat
 
         return
     }
@@ -180,8 +180,8 @@ main {
 
 
     sub process_letter_keys() {
-        if keycode == 0 return ;--- should never happen
-
+        if keycode_ext == 0 return ;--- should never happen
+        ;debug.say2("process_letter_keys():",keycode)
         
         repeat { ;--- fake loop
             
@@ -190,23 +190,30 @@ main {
             } else if menus.ALT_PRESSED {           ;--- ALT key
 
             } else {                                ;--- key - no modifier
-                if keys.Q_PRESSED in last_keys {
-                    exit_out = prompts.ask_exit() 
+                ;debug.say2("process_letter_keys-else:",keycode_ext)
+                if keys.R_PRESSED in last_keys {    ;--- rename
+                    prompts.rename_file(false)
                     break
-                }
-                if keys.C_PRESSED in last_keys {
-                    ;--- copy current select file into g_tmp_str_buffer1
-                    void strings.copy(files_cache.current.name,main.g_tmp_str_buffer1)
-                    debug.say(g_tmp_str_buffer1)
+                }      
+                if keys.Q_PRESSED in last_keys { 
+                    exit_out = prompts.ask_exit()   ;--- quit
                     break
+                }      
+                if keys.C_PRESSED in last_keys {    ;--- copy
+                    ; ;--- copy current select file into g_tmp_str_buffer1
+                    ; void strings.copy(files_cache.current.name,main.g_tmp_str_buffer1)
+                    ; debug.say(g_tmp_str_buffer1)
+                    ; break
                 }
+                break
+               
                 
             }
+            break
         } ;--- end fake loop, everything fires the break statement
 
-        ;debug.say("pppppppppppp")
-        ;--- clear the kb stack and exit
-        clear_kb()
+        ;debug.say("exit - process_letter_keys()")
+        clear_kb()  
         return
     }
 
@@ -266,7 +273,7 @@ main {
         ;--- save the last 5 keycodes because...
         ;--- ALT-Q (or modifyer and key) is 4 bytes --> (ALT up and down) and (Q up and down)
         ;--- 4 bytes! ;) and a 5th just for fun!
-        if kb_ndx > 5 kb_ndx = 0
+        if kb_ndx == 5 kb_ndx = 0
         last_keys[kb_ndx] = keynum
         kb_ndx++
 
