@@ -13,7 +13,7 @@ prompts {
 
     
     sub run_file() {
-        prompt_txt(cp437:"EXICUTE File:",cp437:"",
+        prompt_txt(cp437:"EXECUTE File:",cp437:"",
                    cp437:"                                                     History    Ok  ESC Cancel",0,14,2)
         menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
         draw_icons(53,63,txt.height()-2)
