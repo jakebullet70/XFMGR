@@ -112,7 +112,7 @@ helpers {
 
         ubyte x16edit_bank = cx16.search_x16edit()
         if x16edit_bank<255 {
-            sys.enable_caseswitch()     ; workaround for character set issue in X16Edit 0.7.1
+            sys.enable_caseswitch()     ; workaround for character set issue in X16Edit 0.7.1  TODO, needed now
             ubyte filename_length = 0
             if filename!=0
                 filename_length = strings.length(filename)
@@ -130,7 +130,6 @@ helpers {
         } else {
             ;err.print("error: no x16edit found in rom")
             ;sys.wait(180)
-            ;return false
         }
         main.custom_keyboard_handler_on_off(true)   ;--- is this needed  TODO
     }

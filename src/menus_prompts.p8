@@ -11,6 +11,7 @@ prompts {
 
     ;txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
 
+
     
     sub run_file() {
         prompt_txt(cp437:"EXECUTE File:",cp437:"",
@@ -20,7 +21,7 @@ prompts {
         
         ;void strings.copy(files_cache.current.name,input_str_ret_val)                  ;--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,14,txt.height()-3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
+        get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
 
         if input_str_ret_val == CANCEL_INPUT return                                     ;--- cancel, bye!
         
@@ -29,7 +30,7 @@ prompts {
     }
 
 
-    sub get_txt(ubyte p_length,ubyte col,ubyte row,
+    sub get_txt(ubyte p_length,ubyte col,ubyte adj_row,
             ubyte[] cancel_keys,ubyte cancel_keys_len,
             ubyte[] accept_keys,ubyte accept_keys_len,str text) {
 
@@ -42,9 +43,9 @@ prompts {
         break_out = false
         
 
-        if text != "" helpers.print_strXY(col,row,input_str_ret_val,theme.MENU_BRIGHT,false)
+        if text != "" helpers.print_strXY(col,txt.height()-adj_row,input_str_ret_val,theme.MENU_BRIGHT,false)
         txt.color2(theme.MENU_BRIGHT & 15, theme.MENU_BRIGHT>>4)
-        txt.plot(col,row)
+        txt.plot(col,txt.height()-adj_row)
         cx16.blink_enable(true)
         
         repeat {
@@ -52,7 +53,7 @@ prompts {
             if keycode == 0 continue 
 
             ;debug.say2("gt-kcode:",main.keycode_ext)
-            txt.plot(col+ndx,row)
+            txt.plot(col+ndx,txt.height()-adj_row)
             cx16.blink_enable(false)
 
             ;==============================================================
@@ -60,14 +61,14 @@ prompts {
                 if cancel_keys[j] == keycode {  
                     void strings.copy(CANCEL_INPUT,input_str_ret_val)
                     break_out = true
-                    break ;--- out of for loop
+                    break ;--- breaks out of FOR loop
                 }
             }
             for j in 0 to accept_keys_len {
                 if accept_keys[j] == keycode {
                     void strings.copy(conv.str_ub(accept_keys[j]),input_str_ret_val)
                     break_out = true
-                    break ;--- out of for loop
+                    break ;--- breaks out of FOR loop
                 }
             }
             ;==============================================================
@@ -84,21 +85,18 @@ prompts {
                 keys.END   -> { ndx = strings.length(input_str_ret_val) - 1 }
                 keys.HOME  -> { ndx = 0 }
                 keys.DELETE  -> { 
-                
                 }
                 keys.BACKSPACE -> {
-                
                 }
                 keys.INSERT -> {
-                
                 }
                 
             }
 
 
             restart_get_loop:
-                helpers.print_strXY(col,row,input_str_ret_val,theme.MENU_BRIGHT,false)
-                txt.plot(col+ndx,row)
+                helpers.print_strXY(col,txt.height()-adj_row,input_str_ret_val,theme.MENU_BRIGHT,false)
+                txt.plot(col+ndx,txt.height()-adj_row)
                 cx16.blink_enable(true)
                 main.clear_kb()
                 if break_out break
@@ -114,7 +112,6 @@ prompts {
 
     
     sub ask_exit() -> bool {
-        ;menus.clear_menu_area()
         prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
         get_txt(1,29,3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
@@ -125,7 +122,6 @@ prompts {
     
     sub rename_file(bool tagged_files) -> bool {
         ;--- if tagged_files=true then rename multi files
-        ;menus.clear_menu_area()
         prompt_txt(cp437:"RENAME File:",
                    cp437:"         To:",
                    cp437:"Enter filename mask                                  History    Ok  ESC Cancel",
@@ -136,7 +132,7 @@ prompts {
         
         void strings.copy(files_cache.current.name,input_str_ret_val)                   ;--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,14,txt.height()-3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
+        get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
 
         if input_str_ret_val == CANCEL_INPUT return false                               ;--- cancel, bye!
         
@@ -151,7 +147,6 @@ prompts {
     
     sub delete_file(bool tagged_files) -> bool {
         ;--- if tagged_files=true then delete multi files
-        ;menus.clear_menu_area()
         prompt_txt(cp437:"DELETE File:",cp437:"",cp437:"Delete this file?                   [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
         helpers.print_strXY(13,txt.height()-4,files_cache.current.name,theme.MENU_BRIGHT,false)  ;--- show fname
@@ -164,6 +159,14 @@ prompts {
         }
         return true ;--- true tells caller to refresh screen
     } 
+
+    
+    sub not_done_yet() -> bool {
+        prompt_txt(cp437:"WORING ON IT!",cp437:"",cp437:"Under construction: ------>                    ESC Cancel",1,28,3)
+        menus.highlight_menu_keys([48,49,50],2,txt.height()-2,theme.MENU_BRIGHT)
+        get_txt(1,29,2,[keys.ESC,keys.CR],1,[cp437:'Y'],0,"")
+        return false
+    }
     
 
     ;==============================================================================
