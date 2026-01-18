@@ -164,7 +164,7 @@ prompts {
 
     
     sub not_done_yet() -> bool {
-        prompt_txt(cp437:"WORKING ON IT!",cp437:"",cp437:"Under construction: ------>                    ESC Cancel",1,28,3)
+        prompt_txt(cp437:"WORKING ON IT!",cp437:"",cp437:"Under construction: ------:                    ESC Cancel",1,28,3)
         menus.highlight_menu_keys([48,49,50],2,txt.height()-2,theme.MENU_BRIGHT)
         get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:'Y'],0,"")
         return false
