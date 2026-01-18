@@ -106,6 +106,37 @@ helpers {
     }
 
 
+    sub edit_file(uword filename) {
+        ; activate rom based x16edit, see https://github.com/stefan-b-jakobsson/x16-edit/tree/master/docs
+        main.custom_keyboard_handler_on_off(false)
+
+        ubyte x16edit_bank = cx16.search_x16edit()
+        if x16edit_bank<255 {
+            sys.enable_caseswitch()     ; workaround for character set issue in X16Edit 0.7.1
+            ubyte filename_length = 0
+            if filename!=0
+                filename_length = strings.length(filename)
+            ubyte old_bank = cx16.getrombank()
+            cx16.rombank(x16edit_bank)
+            cx16.x16edit_loadfile_options(1, 255, filename,
+                mkword(%00000011, filename_length),         ; auto-indent and word-wrap enable
+                mkword(80, 4),          ; wrap and tabstop
+                mkword(theme.X16EDITOR_NORMAL, diskio.drivenumber),
+                mkword(theme.X16EDITOR_HEADER,theme.X16EDITOR_STATUS))
+                ;mkword(background_color<<4 | text_color, diskio.drivenumber),
+                ;mkword(0,0))
+            cx16.rombank(old_bank)
+            sys.disable_caseswitch()
+        } else {
+            ;err.print("error: no x16edit found in rom")
+            ;sys.wait(180)
+            ;return false
+        }
+        main.custom_keyboard_handler_on_off(true)
+    }
+
+
+
     sub run_file() {
         ; CLS : LOCATE 10,1 : PRINT : PRINT "STARTING BASLOAD..."
         ; PRINT "BASLOAD";CHR$(34) + FILE_TO_COMP$ + CHR$(34) + "{UP}{UP}";:
