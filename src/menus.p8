@@ -90,7 +90,7 @@ menus {
                     helpers.print_strXY2(12,txt.height()-4,cp437:"Copy  Delete  Edit  Filespec  Log  Move")
                     highlight_menu_keys([12,18,26,32,42,47],5,txt.height()-4,theme.MENU_BRIGHT)
                     ;--- line2 
-                    helpers.print_strXY2(12,txt.height()-3,cp437:"New date  Print  Rename  Tag  Untag  View  eXicute  Quit")
+                    helpers.print_strXY2(12,txt.height()-3,cp437:"New date  Print  Rename  Tag  Untag  View  eXecute  Quit")
                     highlight_menu_keys([12,22,29,37,42,49,56,64],7,txt.height()-3,theme.MENU_BRIGHT) 
 
                 } else if ALT_PRESSED {
