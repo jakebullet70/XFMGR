@@ -110,6 +110,9 @@ helpers {
         ; activate rom based x16edit, see https://github.com/stefan-b-jakobsson/x16-edit/tree/master/docs
         main.custom_keyboard_handler_on_off(false) ;--- is this needed  TODO
 
+        ;--- TODO,  x16editor can change folders so we need to chec when we return
+        ;---        that we are still in the same folder when we started
+
         ubyte x16edit_bank = cx16.search_x16edit()
         if x16edit_bank<255 {
             sys.enable_caseswitch()     ; workaround for character set issue in X16Edit 0.7.1  TODO, needed now
