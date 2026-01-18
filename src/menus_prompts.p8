@@ -8,6 +8,8 @@ prompts {
     str CANCEL_INPUT = "@"
     str CR_STR = cp437:"◄╛"
     str UP_STR = cp437:"↑"
+    const ubyte PROMPT_LINE_2 = 3
+    const ubyte PROMPT_LINE_3 = 2
 
     ;txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
 
@@ -21,7 +23,7 @@ prompts {
         
         ;void strings.copy(files_cache.current.name,input_str_ret_val)                  ;--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
+        get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
 
         if input_str_ret_val == CANCEL_INPUT return                                     ;--- cancel, bye!
         
@@ -114,7 +116,7 @@ prompts {
     sub ask_exit() -> bool {
         prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
-        get_txt(1,29,3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
+        get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
         if input_str_ret_val == CANCEL_INPUT return false
         return true
     }
@@ -150,7 +152,7 @@ prompts {
         prompt_txt(cp437:"DELETE File:",cp437:"",cp437:"Delete this file?                   [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
         helpers.print_strXY(13,txt.height()-4,files_cache.current.name,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,29,3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
+        get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
         if input_str_ret_val == CANCEL_INPUT return false 
         if not tagged_files {
             diskio.delete(files_cache.current.name)
@@ -162,9 +164,9 @@ prompts {
 
     
     sub not_done_yet() -> bool {
-        prompt_txt(cp437:"WORING ON IT!",cp437:"",cp437:"Under construction: ------>                    ESC Cancel",1,28,3)
+        prompt_txt(cp437:"WORKING ON IT!",cp437:"",cp437:"Under construction: ------>                    ESC Cancel",1,28,3)
         menus.highlight_menu_keys([48,49,50],2,txt.height()-2,theme.MENU_BRIGHT)
-        get_txt(1,29,2,[keys.ESC,keys.CR],1,[cp437:'Y'],0,"")
+        get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:'Y'],0,"")
         return false
     }
     
