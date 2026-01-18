@@ -27,6 +27,11 @@ keys {
     const ubyte D_PRESSED = $21
     const ubyte X_PRESSED = $af
 
+    const ubyte E_PRESSED = $13
+    const ubyte F_PRESSED = $22
+    const ubyte L_PRESSED = $27
+    const ubyte M_PRESSED = $34
+
 
 
 
