@@ -25,22 +25,20 @@ keys {
     const ubyte C_PRESSED = $30
     const ubyte R_PRESSED = $14
     const ubyte D_PRESSED = $21
-    const ubyte X_PRESSED = $af
+    const ubyte X_PRESSED = $2f
 
     const ubyte E_PRESSED = $13
     const ubyte F_PRESSED = $22
     const ubyte L_PRESSED = $27
     const ubyte M_PRESSED = $34
 
+    const ubyte V_PRESSED = $31
+    const ubyte U_PRESSED = $17
+    const ubyte T_PRESSED = $15
+    const ubyte P_PRESSED = $1A
+    const ubyte N_PRESSED = $33
 
 
-
-    ;const ubyte N_PRESSED = $b3
-    ;const ubyte N_PRESSED = $33
-    ;const ubyte Y_PRESSED = $96
-    ;const ubyte Y_PRESSED = $16
-    
-    
 
     const ubyte ESC = 27
     const ubyte CR = 13

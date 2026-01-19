@@ -11,6 +11,9 @@ process_keys {
     alias keycode_ext = main.keycode_ext
     alias keycode     = main.keycode
     alias last_keys   = main.last_keys
+    const bool TAGGED = true
+    const bool NOT_TAGGED = false
+
 
 
     sub letter_keys() {
@@ -44,24 +47,50 @@ process_keys {
                     break
                 }      
                 if keys.C_PRESSED in last_keys {            ;--- copy
-                    flags.refresh_scrn = prompts.not_done_yet()   
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                     break
                 }
-                if keys.E_PRESSED in last_keys {            ;--- edit txt
-                    ;flags.refresh_scrn = prompts.not_done_yet()   
-                    helpers.edit_file(iso:"TEST1.P8")
+                if keys.E_PRESSED in last_keys {             ;--- edit txt
+                    ;--- save scrn
+                    helpers.edit_file(files_cache.current.name)
+                    flags.refresh_scrn = true ;--- they could do a save as? (maybe file count - then compare?)
+                    ;--- restore scrn
                     break
                 }
                 if keys.F_PRESSED in last_keys {            ;--- filespec
-                    flags.refresh_scrn = prompts.not_done_yet()   
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                     break
                 }
-                 if keys.L_PRESSED in last_keys {            ;--- log
-                    flags.refresh_scrn = prompts.not_done_yet()   
+                if keys.L_PRESSED in last_keys {            ;--- log
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                     break
                 }
-                 if keys.M_PRESSED in last_keys {            ;--- move
-                    flags.refresh_scrn = prompts.not_done_yet()   
+                if keys.M_PRESSED in last_keys {            ;--- move
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    break
+                }
+                if keys.N_PRESSED in last_keys {            ;--- new date
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    break
+                }
+                if keys.P_PRESSED in last_keys {            ;--- print
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    break
+                }
+                if keys.T_PRESSED in last_keys {            ;--- tag
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    break
+                }
+                if keys.U_PRESSED in last_keys {            ;--- untag
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    break
+                }
+                if keys.V_PRESSED in last_keys {            ;--- view
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    break
+                }
+                if keys.X_PRESSED in last_keys {            ;--- execute
+                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                     break
                 }
 
