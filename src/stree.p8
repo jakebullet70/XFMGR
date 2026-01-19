@@ -51,12 +51,13 @@ main {
     str start_dir = "?" * 80
     
     uword old_keyhdl                       ;--- custom KB handler var
-    ubyte keycode_ext, keycode,kb_ndx      ;--- key press vars
+    ubyte keycode_ext,keycode,kb_ndx       ;--- key press vars
     ubyte[5] last_keys
+
     
     sub start() {
 
-        void strings.copy(diskio.curdir(),start_dir)
+        
         cx16.set_screen_mode(0)
         txt.color2(theme.TXT_NORMAL & 15, theme.TXT_NORMAL>>4)
         txt.clear_screen()        
@@ -66,6 +67,7 @@ main {
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
+        void strings.copy(diskio.curdir(),start_dir)  ;--- save starup folder
         menus.mode = menus.FILE ;--- default for the moment
         menus.draw()
 
@@ -75,8 +77,8 @@ main {
         files_cache.init()
         dirs_cache.init()
 
-        ;void files_folders.read_dirs(8)        ;--- read files into files_cache
-        ;files_cache.draw_files_2_scrn()
+        void files_folders.read_dirs(8)        ;--- read files into files_cache
+        dirs_cache.draw_dirs_2_scrn()
         void files_folders.read_files(8)        ;--- read files into files_cache
         files_cache.draw_files_2_scrn()
 
@@ -144,16 +146,20 @@ main {
                 when keycode {
                     keys.DN_ARROW_PRESSED  -> { 
                         if menus.mode == menus.DIR { 
-                            ;dirs_cache.key_down()  
+                            if dirs_cache.num_dirs == 0 continue
+                            dirs_cache.key_down()  
                         } else {
+                            if files_cache.num_files == 0 continue
                             files_cache.key_down() 
                         } 
                         continue
                     }
                     keys.UP_ARROW_PRESSED -> {
                         if menus.mode == menus.DIR { 
-                            ;dirs_cache.key_up()  
+                            if dirs_cache.num_dirs == 0 continue
+                            dirs_cache.key_up()  
                         } else {
+                            if files_cache.num_files == 0 continue
                             files_cache.key_up() 
                         } 
                         continue
@@ -162,6 +168,7 @@ main {
                         ; if menus.mode == menus.DIR { 
                         ;     ;dirs_cache.key_up()  
                         ; } else {
+                        ;     if files_cache.num_files == 0 continue
                         ;     files_cache.key_up() 
                         ; } 
                         ; continue
@@ -170,6 +177,7 @@ main {
                         ; if menus.mode == menus.DIR { 
                         ;     ;dirs_cache.key_up()  
                         ; } else {
+                        ;    if files_cache.num_files == 0 continue
                         ;     files_cache.key_up() 
                         ; } 
                         ;  continue
