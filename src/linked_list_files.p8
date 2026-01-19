@@ -29,7 +29,7 @@ files_cache {
     ;--- vars for movement
     ubyte top_index = 0
     ubyte selected_line,num_visible_files
-    ubyte max_lines = txt.height() - 11
+    ubyte max_lines = txt.height() - 12
 
     ^^Entry current
 
@@ -158,10 +158,14 @@ files_cache {
 
         ;--- clear panel/page
         void strings.copy(" "*FILE_NAME_SIZE,str_clear)
-        for i in 0 to num_visible_files - 1  {
+        for i in 0 to max_lines {
             helpers.print_strXY2(LEFT_COL,TOP_ROW + i,str_clear) 
         }
-        
+        if num_files == 0 {
+            helpers.print_strXY2(LEFT_COL,TOP_ROW + 1, iso:"No Files")
+            return
+        }
+
         ;^^Entry current = head
         current = head
         for i in 0 to num_visible_files - 1  {
@@ -240,9 +244,7 @@ files_cache {
             tail.next = new_record
             new_record.prev = tail
             tail = new_record
-        }
-
-        
+        }   
     }
 
 
