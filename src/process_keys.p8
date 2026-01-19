@@ -6,6 +6,7 @@
 ;---    also screen refresh when needed
 ;==============================================================================
 
+%import screen
 
 process_keys {
     alias keycode_ext = main.keycode_ext
@@ -52,8 +53,10 @@ process_keys {
                 }
                 if keys.E_PRESSED in last_keys {             ;--- edit txt
                     ;--- save scrn
+                    screen.store()
                     helpers.edit_file(files_cache.current.name)
                     flags.refresh_scrn = true ;--- they could do a save as? (maybe file count - then compare?)
+                    screen.restore()
                     ;--- restore scrn
                     break
                 }
