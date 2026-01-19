@@ -2,9 +2,6 @@ files_folders {
     ubyte total_dir, total_files = 0
     alias tmp_str  = main.g_tmp_str_buffer2 
     alias tmp_str0 = main.g_tmp_str_buffer3 
-    const bool DIR_ENTRY = true
-    const bool FILE_ENTRY = false
-    const bool NOT_TAGGED = false
 
     const ubyte FILE_MAX_LEN = 40
 
@@ -23,7 +20,7 @@ files_folders {
                 void strings.lower(tmp_str)    
                 strings_ext.concat_strings("[",tmp_str,tmp_str0)
                 strings_ext.concat_strings(tmp_str0,"]",tmp_str)
-                ;dirs_cache.add(tmp_str,DIR_ENTRY,NOT_TAGGED,0)
+                ;dirs_cache.add(tmp_str,0)
                 total_dir++   
             }
         } else {
@@ -48,7 +45,7 @@ files_folders {
             while diskio.lf_next_entry() {
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
-                files_cache.add(tmp_str,FILE_ENTRY,NOT_TAGGED,diskio.list_blocks)
+                files_cache.add(tmp_str,diskio.list_blocks)
                 total_files++       
             }
         } else {

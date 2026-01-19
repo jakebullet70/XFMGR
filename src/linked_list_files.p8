@@ -5,23 +5,20 @@
 
 files_cache {
     struct Entry {
-        ^^Entry next          ; Next entry in the list
-        ^^Entry prev          ; Previous entry in the list
-        str name              ; Name (key)
-        bool is_dir
+        ^^Entry next           ; Next entry in the list
+        ^^Entry prev           ; Previous entry in the list
+        str name               ; Name (key)
         bool is_tagged
-        uword blocks
+        uword blocks           ; store blocks or kb here?
         ubyte rec_num
     }
 
-    ^^Entry head = 0                       ; Head of the doubly linked list
-    ^^Entry tail = 0                       ; Tail of the doubly linked list
+    ^^Entry head = 0           ; Head of the doubly linked list
+    ^^Entry tail = 0           ; Tail of the doubly linked list
 
-    ubyte num_files = 0                        ; Number of entries
+    ubyte num_files = 0        ; Number of entries
 
     const ubyte FILE_NAME_SIZE = 40
-    const bool DIR_ENTRY = true
-    const bool FILE_ENTRY = false
     const bool NOT_TAGGED = false
     const ubyte LEFT_COL = 32
     const ubyte TOP_ROW = 6
@@ -216,7 +213,7 @@ files_cache {
 
 
 
-    sub add(str name, bool is_dir, bool tagged, uword blocks) {
+    sub add(str name, uword blocks) {
         ;--- Create new entry
 
         ^^Entry new_record = arena_files.alloc(sizeof(Entry))
@@ -224,8 +221,8 @@ files_cache {
         void strings.copy(name, name_copy)
 
         new_record.name = name_copy
-        new_record.is_dir = is_dir
-        new_record.is_tagged = tagged
+        ;new_record.is_dir = is_dir
+        new_record.is_tagged = false
         new_record.blocks = blocks
         new_record.next = 0
         new_record.prev = 0
