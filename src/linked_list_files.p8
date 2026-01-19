@@ -1,7 +1,10 @@
-
-; -----------------------------------
-; --- Linked list holding the Dir
-; -----------------------------------
+;==============================================================================
+;---   
+;---   Double linked list of files
+;---   
+;==============================================================================
+;---   
+;==============================================================================
 
 files_cache {
     struct Entry {
@@ -18,7 +21,7 @@ files_cache {
 
     ubyte num_files = 0        ; Number of entries
 
-    const ubyte FILE_NAME_SIZE = 40
+    alias FILE_NAME_SIZE = files_folders.FILE_MAX_LEN
     const bool NOT_TAGGED = false
     const ubyte LEFT_COL = 32
     const ubyte TOP_ROW = 6
@@ -220,27 +223,26 @@ files_cache {
         ^^ubyte name_copy  = arena_files.alloc(strings.length(name) + 1)
         void strings.copy(name, name_copy)
 
+        num_files++
+
         new_record.name = name_copy
-        ;new_record.is_dir = is_dir
         new_record.is_tagged = false
         new_record.blocks = blocks
         new_record.next = 0
         new_record.prev = 0
-        new_record.rec_num = num_files + 1
+        new_record.rec_num = num_files 
 
         ;--- Add to the end of the doubly linked list
-        if head == 0 {
-            ;--- First entry
+        if head == 0 { ;--- First entry
             head = new_record
             tail = new_record
-        } else {
-            ;--- Add to the end
+        } else {       ;--- Add to the end
             tail.next = new_record
             new_record.prev = tail
             tail = new_record
         }
 
-        num_files++
+        
     }
 
 
