@@ -5,13 +5,13 @@ files_folders {
 
     const ubyte FILE_MAX_LEN = 40
 
-    sub read_folders(ubyte drv) -> bool {
+    sub read_dirs(ubyte drv) -> bool {
         alias dir_error = main.bool_tmp
         diskio.drivenumber = drv
         dir_error = false
 
         arena_dirs.free_all()
-        dirs_cache.num_files = 0        
+        dirs_cache.num_dirs = 0        ;--- reset dir count
 
                 ;--- list directories first
         if diskio.lf_start_list_dirs(0) {
