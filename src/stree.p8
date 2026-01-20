@@ -159,8 +159,9 @@ main {
             if not menus.CTRL_PRESSED and not menus.ALT_PRESSED {
                 ;--- key strokes - movement up / down / pgup / pgdn
                 ;debug.say2("keycode:",keycode)
+                ;sys.wait(200)
                 when keycode {
-                    keys.CR -> { ;--- swap FILE / DIR focus
+                    keys.CR,keys.TAB -> { ;--- swap FILE / DIR focus
                         menus.mode = if menus.mode == menus.FILE then menus.DIR else menus.FILE
                         select_focus()
                     }
