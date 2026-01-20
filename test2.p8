@@ -1,36 +1,233 @@
-%import diskio
+
+%option no_sysinit
 %import textio
 %import strings
-
 %zeropage basicsafe
-%option no_sysinit
-
-; STANDALONE PROGRAM INCLUDING THE FILE SELECTOR CODE.
-
-; A "TUI" for an interactive file selector, that scrolls the selection list if it doesn't fit on the screen.
-; Returns the name of the selected file.  If it is a directory instead, the name will start and end with a slash '/'.
-; Works in PETSCII mode and in ISO mode as well (no case folding in ISO mode!)
-
-; TODO keyboard typing; jump to the first entry that starts with that character?  (but 'q' for quit stops working then, plus scrolling with pageup/down is already pretty fast)
-
 
 main {
+    ; Tree node structure with double links
+    struct TreeNode {
+        uword name_ptr          ; pointer to folder name string
+        ubyte depth             ; indentation level (0 = root)
+        bool is_expanded       ; 1 if expanded, 0 if collapsed
+        bool has_children      ; 1 if has children, 0 if leaf
+        ^^TreeNode prev         ; pointer to previous node
+        ^^TreeNode next         ; pointer to next node
+    }
+    
+    ^^TreeNode head = 0         ; first node in list
+    ^^TreeNode tail = 0         ; last node in list
+    ubyte node_count = 0
+    ubyte selected_index = 0
+    
+    ; Folder name storage
+    str root_name = "root"
+    str folder1 = "documents"
+    str folder2 = "pictures"
+    str folder3 = "work"
+    str folder4 = "personal"
+    str folder5 = "games"
+    str folder6 = "prog8"
+    str folder7 = "projects"
+    str folder8 = "music"
+    str folder9 = "videos"
     
     sub start() {
-        ubyte x = 1
+        ; Initialize sample tree structure
+        init_tree()
+        
+        ; Main loop
+        ubyte running = 1
+        draw_tree()
+        
         repeat {
-            txt.print("12345")    
-            txt.nl()
-            x++
-            if x > 10 break
+            ubyte key = cbm.GETIN2()
+            
+            when key {
+                145 -> {  ; cursor up
+                    if selected_index > 0 {
+                        selected_index--
+                        draw_tree()
+                    }
+                }
+                17 -> {   ; cursor down
+                    if selected_index < node_count - 1 {
+                        selected_index++
+                        draw_tree()
+                    }
+                }
+                13 -> {   ; return - toggle expand/collapse
+                    toggle_node_at_index(selected_index)
+                    draw_tree()
+                }
+                'q' -> {  ; quit
+                    running = 0
+                }
+            }
+            
+            if running == 0
+                break
         }
-
-        txt.print("end")
-
-
+        
+        txt.print("\n\ndone!")
+    }
+    
+    sub init_tree() {
+        ; Build a sample folder tree
+        ; Root
+        add_node(root_name, 0, true, true)
+        
+        ; Level 1
+        add_node(folder1, 1, true, true)
+        add_node(folder2, 1, false, true)
+        add_node(folder5, 1, true, true)
+        
+        ; Level 2 under documents
+        add_node(folder3, 2, false, false)
+        add_node(folder4, 2, false, false)
+        
+        ; Level 2 under games  
+        add_node(folder6, 2, false, true)
+        
+        ; Level 3 under prog8
+        add_node(folder7, 3, false, false)
+        
+        ; More level 1
+        add_node(folder8, 1, false, false)
+        add_node(folder9, 1, false, false)
+    }
+    
+    sub add_node(uword name, ubyte depth, bool expanded, bool has_children) {
+        ; Allocate a new node
+        ^^TreeNode new_node = memory("heap", 12, 0)  ; allocate space for TreeNode
+        
+        ; Initialize the node
+        new_node.name_ptr = name
+        new_node.depth = depth
+        new_node.is_expanded = expanded
+        new_node.has_children = has_children
+        new_node.next = 0
+        
+        ; Link into list
+        if head == 0 {
+            ; First node
+            head = new_node
+            tail = new_node
+            new_node.prev = 0
+        } else {
+            ; Append to tail
+            tail.next = new_node
+            new_node.prev = tail
+            tail = new_node
+        }
+        
+        node_count++
+    }
+    
+    sub get_node_at_index(ubyte index) -> ^^TreeNode {
+        ^^TreeNode current = head
+        ubyte i = 0
+        
+        while current != 0 {
+            if i == index
+                return current
+            current = current.next
+            i++
+        }
+        
+        return 0  ; not found
+    }
+    
+    sub toggle_node_at_index(ubyte index) {
+        ^^TreeNode node = get_node_at_index(index)
+        
+        if node != 0 and node.has_children {
+            if node.is_expanded {
+                node.is_expanded = false
+            } else {
+                node.is_expanded = true
+            }
+        }
+    }
+    
+    sub draw_tree() {
+        txt.clear_screen()
+        txt.print("folder tree control (linked list)\n")
+        txt.print("----------------------------------\n")
+        txt.print("up/down: navigate  enter: expand/collapse  q: quit\n\n")
+        
+        ^^TreeNode current = head
+        ubyte i = 0
+        
+        while current != 0 {
+            ; Check if node should be visible
+            bool visible = is_node_visible_ptr(current)
+            
+            if visible {
+                ; Highlight selected item
+                if i == selected_index {
+                    txt.print("> ")
+                } else {
+                    txt.print("  ")
+                }
+                
+                ; Draw indentation
+                ubyte j
+                ubyte depth = current.depth
+                for j in 0 to depth-1 {
+                    txt.print("  ")
+                }
+                
+                ; Draw expand/collapse indicator
+                if current.has_children {
+                    if current.is_expanded {
+                        txt.chrout('-')  ; expanded
+                    } else {
+                        txt.chrout('+')  ; collapsed
+                    }
+                } else {
+                    txt.chrout(' ')  ; leaf node
+                }
+                
+                txt.chrout(' ')
+                txt.print(current.name_ptr)
+                txt.nl()
+            }
+            
+            current = current.next
+            i++
+        }
+    }
+    
+    sub is_node_visible_ptr(^^TreeNode node) -> bool {
+        if node.depth == 0
+            return true  ; root is always visible
+        
+        ; Walk backwards through list to find parent
+        ^^TreeNode current = node.prev
+        ubyte target_depth = node.depth - 1
+        
+        while current != 0 {
+            if current.depth == target_depth {
+                ; Found parent
+                if current.is_expanded == false
+                    return false  ; parent collapsed
+                target_depth--
+                if target_depth == 0
+                    break
+            }
+            current = current.prev
+        }
+        
+        return true
     }
 }
 
+
+;===============================================================================================
+;===============================================================================================
+;===============================================================================================
+;===============================================================================================
 
 
 
@@ -100,7 +297,7 @@ main {
 ;     }
 
     
-;     sub fill_me(str cdir) -> ^^ubyte {
+;     sub fill_me(str cdir) . ^^ubyte {
 ;         fileselector.configure_settings(8, 3, 2)
 ;         fileselector.configure_appearance(10, 10, 12, $b3, $d0)
 ;         chosen = fileselector.select(cdir)
@@ -149,7 +346,7 @@ main {
 ;         colors_selected = selected
 ;     }
 
-;     sub select(str pattern) -> str {
+;     sub select(str pattern) . str {
 ;         str defaultpattern="*"
 ;         if pattern==0
 ;             pattern = &defaultpattern
@@ -159,7 +356,7 @@ main {
 ;         return cx16.r0
 ;     }
 
-;     sub internal_select(str pattern) -> str {
+;     sub internal_select(str pattern) . str {
 ;         num_visible_files = 0
 ;         diskio.list_filename[0] = 0
 ;         name_ptr = diskio.diskname()
@@ -237,15 +434,15 @@ main {
 
 
 ;             when key {
-;                 3, 27 -> return 0      ; STOP and ESC  aborts
-;                 '\n',' ' -> {
+;                 3, 27 . return 0      ; STOP and ESC  aborts
+;                 '\n',' ' . {
 ;                     if num_files>0 {
 ;                         void strings.copy(peekw(filename_ptrs_start + (top_index+selected_line)*$0002), &diskio.list_filename)
 ;                         return diskio.list_filename
 ;                     }
 ;                     return 0
 ;                 }
-;                 '[',130,157 -> {    ; PAGEUP, cursor left
+;                 '[',130,157 . {    ; PAGEUP, cursor left
 ;                     ; previous page of lines
 ;                     unselect_line(selected_line)
 ;                     if selected_line==0
@@ -254,7 +451,7 @@ main {
 ;                     select_line(0)
 ;                     print_up_and_down()
 ;                 }
-;                 ']',2,29 -> {      ; PAGEDOWN, cursor right
+;                 ']',2,29 . {      ; PAGEDOWN, cursor right
 ;                     if num_files>0 {
 ;                         ; next page of lines
 ;                         unselect_line(selected_line)
@@ -265,7 +462,7 @@ main {
 ;                         print_up_and_down()
 ;                     }
 ;                 }
-;                 17 -> {     ; down
+;                 17 . {     ; down
 ;                     if num_files>0 {
 ;                         unselect_line(selected_line)
 ;                         if selected_line<num_visible_files-1
@@ -276,7 +473,7 @@ main {
 ;                         print_up_and_down()
 ;                     }
 ;                 }
-;                 145 -> {    ; up
+;                 145 . {    ; up
 ;                     unselect_line(selected_line)
 ;                     if selected_line>0
 ;                         selected_line--
@@ -415,16 +612,16 @@ main {
 ;         }
 ;     }
 
-;     sub get_names(str pattern_ptr, uword filenames_buffer, uword filenames_buf_size) -> ubyte {
+;     sub get_names(str pattern_ptr, uword filenames_buffer, uword filenames_buf_size) . ubyte {
 ;         uword buffer_start = filenames_buffer
 ;         ubyte files_found = 0
 ;         filenames_buffer[0]=0
 ;         bool list_ok
 
 ;         when show_what {
-;             1 -> list_ok = diskio.lf_start_list_files(pattern_ptr)
-;             2 -> list_ok = diskio.lf_start_list_dirs(pattern_ptr)
-;             else -> list_ok = diskio.lf_start_list(pattern_ptr)
+;             1 . list_ok = diskio.lf_start_list_files(pattern_ptr)
+;             2 . list_ok = diskio.lf_start_list_dirs(pattern_ptr)
+;             else . list_ok = diskio.lf_start_list(pattern_ptr)
 ;         }
 
 ;         if list_ok {
