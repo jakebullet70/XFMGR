@@ -2,6 +2,7 @@ files_folders {
     ubyte total_dir, total_files = 0
     alias tmp_str  = main.g_tmp_str_buffer2 
     alias tmp_str0 = main.g_tmp_str_buffer3 
+    str ROOT_DIR = iso:"/"
 
     const ubyte FILE_MAX_LEN = 40
 
@@ -11,16 +12,20 @@ files_folders {
         dir_error = false
 
         arena_dirs.free_all()
-        dirs_cache.num_dirs = 0        ;--- reset dir count
 
-                ;--- list directories first
+        ;dirs_cache.total_dir = 1        ;--- reset dir count
+        total_dir++   
+        dirs_cache.add(ROOT_DIR,0)
+
+
+        ;--- list directories first
         if diskio.lf_start_list_dirs(0) {
             while diskio.lf_next_entry() {    
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
                 strings_ext.concat_strings("[",tmp_str,tmp_str0)
                 strings_ext.concat_strings(tmp_str0,"]",tmp_str)
-                ;dirs_cache.add(tmp_str,0)
+                dirs_cache.add(tmp_str,0)
                 total_dir++   
             }
         } else {

@@ -12,6 +12,7 @@ dirs_cache {
         ^^Entry prev          ; Previous entry in the list
         str name              ; Name (key)
         bool is_tagged
+        bool is_logged
         uword blocks          ; do we need this?  TODO
         ubyte rec_num
     }
@@ -24,7 +25,7 @@ dirs_cache {
     const ubyte DIR_NAME_SIZE = 27
 
 
-    const ubyte LEFT_COL = 3
+    const ubyte LEFT_COL = 2
     const ubyte TOP_ROW = 6
     
     ;--- vars for movement
@@ -163,10 +164,10 @@ dirs_cache {
         for i in 0 to max_lines {
             helpers.print_strXY2(LEFT_COL,TOP_ROW + i,str_clear) 
         }        
-        if num_dirs == 0 {
-            helpers.print_strXY2(LEFT_COL,TOP_ROW + 1,iso:"No Directories")
-            return
-        }
+        ; if num_dirs == 0 {
+        ;     helpers.print_strXY2(LEFT_COL,TOP_ROW + 1,iso:"No Directories")
+        ;     return
+        ; }
 
         ;^^Entry current = head
         current = head
@@ -231,6 +232,7 @@ dirs_cache {
 
         new_record.name = name_copy
         new_record.is_tagged = false
+        new_record.is_logged = false
         new_record.blocks = blocks
         new_record.next = 0
         new_record.prev = 0
