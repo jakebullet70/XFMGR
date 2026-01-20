@@ -16,7 +16,12 @@ screen {
     const ubyte SCREENDUMP_BANK1 = 62
     const ubyte SCREENDUMP_BANK2 = 63
 
+
     sub store() {
+
+        ;--- re-use global vars
+        alias loopSize = main.g_word_tmp1
+        alias dataValue = main.x
 
         cx16.vaddr_autoincr(1, VERA_TXTSCREEN, 0, 1)
 
@@ -28,10 +33,13 @@ screen {
         ;// Start with first 8kb
         cx16.rambank(SCREENDUMP_BANK1)
         
-        uword loopSize = ringbuffer.tail - ringbuffer.head
+        ;uword loopSize = ringbuffer.tail - ringbuffer.head
+        loopSize = ringbuffer.tail - ringbuffer.head
 
         repeat loopSize {
-            ubyte dataValue = cx16.VERA_DATA0
+        
+            ;ubyte dataValue = cx16.VERA_DATA0
+            dataValue = cx16.VERA_DATA0
 
             @(ringbuffer.head) = dataValue
 
@@ -56,7 +64,13 @@ screen {
         cx16.rambank(sys.pop())
     }
 
+
     sub restore() {
+
+        ;--- re-use global vars
+        alias loopSize = main.g_word_tmp1
+        alias dataValue = main.x
+
         cx16.vaddr_autoincr(1, VERA_TXTSCREEN, 0, 1)
 
         ringbuffer.init(SCREENDUMP_BANK1)
@@ -67,10 +81,13 @@ screen {
         ;// Start with first 8kb
         cx16.rambank(SCREENDUMP_BANK1)
         
-        uword loopSize = ringbuffer.tail - ringbuffer.head
+        ;uword loopSize = ringbuffer.tail - ringbuffer.head
+        loopSize = ringbuffer.tail - ringbuffer.head
 
         repeat loopSize {
-            ubyte dataValue = @(ringbuffer.head)
+
+            ;ubyte dataValue = @(ringbuffer.head)
+            dataValue = @(ringbuffer.head)
 
             cx16.VERA_DATA0 = dataValue
 
