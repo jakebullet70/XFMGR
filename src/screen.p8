@@ -20,7 +20,7 @@ screen {
     sub store() {
 
         ;--- re-use global vars
-        alias loopSize = main.g_word_tmp1
+        alias loopSize = main.uword_tmp1
         alias dataValue = main.x
 
         cx16.vaddr_autoincr(1, VERA_TXTSCREEN, 0, 1)
@@ -68,7 +68,7 @@ screen {
     sub restore() {
 
         ;--- re-use global vars
-        alias loopSize = main.g_word_tmp1
+        alias loopSize = main.uword_tmp1
         alias dataValue = main.x
 
         cx16.vaddr_autoincr(1, VERA_TXTSCREEN, 0, 1)
