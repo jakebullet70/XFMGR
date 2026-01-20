@@ -47,13 +47,14 @@ main {
     str g_tmp_str_buffer3 = "?" * 160
     ubyte @zp i,j,x,y = 0
     bool bool_tmp = false
-    uword g_word_tmp1,g_word_tmp2 
+    uword uword_tmp1,uword_tmp2
     
     uword old_keyhdl                        ;--- custom KB handler var
     ubyte keycode_ext,keycode,kb_ndx        ;--- key press vars
     ubyte[5] last_keys
 
-    str start_dir = "?" * 80                ;--- start folder, is 80 enough?
+    const ubyte DEF_PATH_LENGTH = 80
+    str start_dir = "?" * DEF_PATH_LENGTH    ;--- start folder, is 80 enough?
 
     
     sub start() {
@@ -70,7 +71,7 @@ main {
 
         void strings.copy(diskio.curdir(),start_dir)  ;--- save starup folder
         ;debug.say(start_dir)
-        menus.mode = menus.FILE ;--- default for the moment
+        menus.mode = menus.DIR ;--- default for the moment
         menus.draw()
         
         files_cache.init()
@@ -81,6 +82,8 @@ main {
 
         void files_folders.read_files(8)        ;--- read files into files_cache
         files_cache.draw_files_2_scrn()
+
+        select_focus()
 
         custom_keyboard_handler_on_off(true)    ;--- set custom KB handler ==> sub &kb_handler
         ;---------------------------------------------
@@ -98,6 +101,18 @@ main {
         return
 
     }    
+
+
+    sub select_focus() {
+        if menus.mode == menus.FILE {
+            dirs_cache.lost_focus()
+            files_cache.set_focus()
+        } else {
+            dirs_cache.set_focus()
+            files_cache.lost_focus()
+        }
+        menus.draw()
+    }
 
     
     ;--- main character input loop       
@@ -123,10 +138,10 @@ main {
             ;--- check modifer keys, draw ALT / CTRL menu or process a key
             if menus.ALT_PRESSED or menus.CTRL_PRESSED {
                 if menus.is_alt_dir_menu or menus.is_alt_file_menu or menus.is_ctrl_dir_menu or menus.is_ctrl_file_menu { 
-                    if keycode != 0 or keycode_ext !=0 process_keys.letter_keys()    ;--- process modifer + key 
-                    continue                                                    ;--- menu is already shown, back to grab keys
+                    if keycode != 0 or keycode_ext !=0 process_keys.letter_keys()       ;--- process modifer + key 
+                    continue                                                            ;--- menu is already shown, back to grab keys
                 } 
-                menus.draw()                                             ;--- draw CTRL / ALT menus
+                menus.draw()                                                            ;--- draw CTRL / ALT menus
                 continue
             }
 
@@ -143,7 +158,12 @@ main {
 
             if not menus.CTRL_PRESSED and not menus.ALT_PRESSED {
                 ;--- key strokes - movement up / down / pgup / pgdn
+                ;debug.say2("keycode:",keycode)
                 when keycode {
+                    keys.CR -> { ;--- swap FILE / DIR focus
+                        menus.mode = if menus.mode == menus.FILE then menus.DIR else menus.FILE
+                        select_focus()
+                    }
                     keys.DN_ARROW_PRESSED  -> { 
                         if menus.mode == menus.DIR { 
                             if dirs_cache.num_dirs <= 1 continue

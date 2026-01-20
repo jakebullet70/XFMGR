@@ -198,13 +198,21 @@ files_cache {
          return pretty_str
     }
 
-    sub select_line(ubyte line) {
-        line_color(line, theme.ROW_HILIGHT)
+     sub set_focus() {
+        if num_files == 0 return
+        line_color(selected_line, theme.ROW_HILIGHT)
     }
+    ; sub select_line(ubyte line) {
+    ;     line_color(line, theme.ROW_HILIGHT)
+    ; }
 
-    sub unselect_line(ubyte line) {
-        line_color(line, theme.TXT_NORMAL)
+    sub lost_focus() {
+        if num_files == 0 return
+        line_color(selected_line, theme.TXT_NORMAL)
     }
+    ; sub unselect_line(ubyte line) {
+    ;     line_color(line, theme.TXT_NORMAL)
+    ; }
 
     sub line_color(ubyte line, ubyte colors) {
         alias charpos = main.i
