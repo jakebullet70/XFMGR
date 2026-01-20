@@ -38,13 +38,7 @@ keys {
     const ubyte P_PRESSED = $1A
     const ubyte N_PRESSED = $33
 
-
-
     const ubyte ESC = 27
     const ubyte CR = 13
-
-
-
-
 
 }
