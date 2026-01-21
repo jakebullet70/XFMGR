@@ -23,80 +23,105 @@ process_keys {
         
         repeat { ;--- fake loop
             
-            if menus.CTRL_PRESSED {                 ;--- CTRL key   
+            if menus.CTRL_PRESSED {                            
+
+                if menus.mode == menus.DIR {                    ;--- CTRL - DIR menu
+                    if keys.Q_PRESSED in last_keys { 
+                        flags.exit_out = prompts.ask_exit()     ;--- quit, TODO, exits to the current dir, not the one it was started from
+                        break
+                    }
+
+                } else {                                         ;--- CTRL - FILE menus
+
+                }
+                
 
               
-            } else if menus.ALT_PRESSED {           ;--- ALT key
-                if keys.Q_PRESSED in last_keys { 
-                    flags.exit_out = prompts.ask_exit()   ;--- quit, TODO, exits to the current dir, not the one it was started from
-                    break
+            } else if menus.ALT_PRESSED {                   
+
+                if menus.mode == menus.DIR {                    ;--- ALT - DIR menu
+                    if keys.Q_PRESSED in last_keys { 
+                        flags.exit_out = prompts.ask_exit()     ;--- quit, TODO, exits to the current dir, not the one it was started from
+                        break
+                    }
+
+                } else {                                        ;--- ALT - FILE menus
+
                 }
+                
 
 
-            } else {                                ;--- key - no modifier
+            } else {                                        
                 ;debug.say2("process_letter_keys-else:",keycode_ext)
-                if keys.D_PRESSED in last_keys {            ;--- delete
-                    flags.refresh_scrn = prompts.delete_file(false)
-                    break
-                }
-                if keys.R_PRESSED in last_keys {            ;--- rename
-                    flags.refresh_scrn = prompts.rename_file(false)
-                    break
-                }      
-                if keys.Q_PRESSED in last_keys { 
-                    flags.exit_out = prompts.ask_exit()     ;--- quit
-                    break
-                }      
-                if keys.C_PRESSED in last_keys {            ;--- copy
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.E_PRESSED in last_keys {             ;--- edit txt
-                    ;--- save scrn
-                    screen.store()
-                    helpers.edit_file(files_cache.current.name)
-                    flags.refresh_scrn = true ;--- they could do a save as? (maybe file count - then compare?)
-                    screen.restore()
-                    ;--- restore scrn
-                    break
-                }
-                if keys.F_PRESSED in last_keys {            ;--- filespec
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.L_PRESSED in last_keys {            ;--- log
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.M_PRESSED in last_keys {            ;--- move
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.N_PRESSED in last_keys {            ;--- new date
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.P_PRESSED in last_keys {            ;--- print
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.T_PRESSED in last_keys {            ;--- tag
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.U_PRESSED in last_keys {            ;--- untag
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.V_PRESSED in last_keys {            ;--- view
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
-                if keys.X_PRESSED in last_keys {            ;--- execute
-                    flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
-                    break
-                }
 
+                if menus.mode == menus.DIR {                    ;--- DIR only
+
+                    if keys.D_PRESSED in last_keys {            ;--- delete
+                        flags.refresh_scrn = prompts.delete_file(false)
+                        break
+                    }
+                    if keys.R_PRESSED in last_keys {            ;--- rename
+                        flags.refresh_scrn = prompts.rename_file(false)
+                        break
+                    }      
+                    if keys.Q_PRESSED in last_keys { 
+                        flags.exit_out = prompts.ask_exit()     ;--- quit
+                        break
+                    }      
+                    if keys.C_PRESSED in last_keys {            ;--- copy
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.E_PRESSED in last_keys {             ;--- edit txt
+                        screen.store()
+                        helpers.edit_file(files_cache.current.name)
+                        flags.refresh_scrn = true ;--- they could do a save as? (maybe file count - then compare?)
+                        screen.restore()
+                        break
+                    }
+                    if keys.F_PRESSED in last_keys {            ;--- filespec
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.L_PRESSED in last_keys {            ;--- log
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.M_PRESSED in last_keys {            ;--- move
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.N_PRESSED in last_keys {            ;--- new date
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.P_PRESSED in last_keys {            ;--- print
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.T_PRESSED in last_keys {            ;--- tag
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.U_PRESSED in last_keys {            ;--- untag
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.V_PRESSED in last_keys {            ;--- view
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.X_PRESSED in last_keys {            ;--- execute
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+
+                } else {                                         ;--- FILE only menus
+
+                }
+                
+
+                
             }
             break
         } ;--- end fake loop, everything fires the break statement
