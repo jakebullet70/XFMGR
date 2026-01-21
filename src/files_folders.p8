@@ -3,7 +3,7 @@ files_folders {
     ubyte total_dir, total_files = 0
     alias tmp_str  = main.g_tmp_str_buffer2 
     alias tmp_str0 = main.g_tmp_str_buffer3 
-    str ROOT_DIR = iso:"/"
+    str ROOT_DIR = "   "
     str current_folder = "?" * main.DEF_PATH_LENGTH
 
     const ubyte FILE_MAX_LEN = 40
@@ -15,7 +15,10 @@ files_folders {
 
         arena_dirs.free_all()
 
+
+
         total_dir++   
+        strings_ext.concat_strings(conv.str_ub(drv),":/",ROOT_DIR)
         dirs_cache.add(ROOT_DIR,0)
 
 
@@ -41,17 +44,18 @@ files_folders {
     sub clear_files() {
         arena_files.free_all()
         files_cache.num_files = 0  
-        void strings.copy("",current_folder)    
+        void strings.copy(iso:"",current_folder)    
     }
 
-    
+
     sub read_files(ubyte drv) -> bool { 
         alias file_error = main.bool_tmp
         diskio.drivenumber = drv
         file_error = false
 
         clear_files()
-        void strings.copy(diskio.curdir,current_folder)    
+        void strings.copy(diskio.curdir(),current_folder)    
+        debug.say(current_folder)
 
         ;--- then list files
         if diskio.lf_start_list_files(0) {
