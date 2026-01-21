@@ -15,12 +15,11 @@ files_folders {
 
         arena_dirs.free_all()
 
-
-
         total_dir++   
         strings_ext.concat_strings(conv.str_ub(drv),":/",ROOT_DIR)
         dirs_cache.add(ROOT_DIR,0)
 
+        ubyte dir_level = 0
 
         ;--- list directories first
         if diskio.lf_start_list_dirs(0) {
@@ -29,7 +28,7 @@ files_folders {
                 void strings.lower(tmp_str)    
                 strings_ext.concat_strings("[",tmp_str,tmp_str0)
                 strings_ext.concat_strings(tmp_str0,"]",tmp_str)
-                dirs_cache.add(tmp_str,0)
+                dirs_cache.add(tmp_str,dir_level)
                 total_dir++   
             }
         } else {

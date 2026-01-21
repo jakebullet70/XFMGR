@@ -11,9 +11,10 @@ dirs_cache {
         ^^Entry next          ; Next entry in the list
         ^^Entry prev          ; Previous entry in the list
         str name              ; Name (key)
-        bool is_tagged
-        bool is_logged
-        uword blocks          ; do we need this?  TODO
+        bool is_expanded
+        bool has_children
+        bool visible
+        ubyte level           ; indentation level (0 = root)
         ubyte rec_num
     }
 
@@ -27,6 +28,7 @@ dirs_cache {
 
     const ubyte LEFT_COL = 2
     const ubyte TOP_ROW = 6
+    const ubyte LEVEL_SIZE = 3
     
     ;--- vars for movement
     ubyte top_index = 0
@@ -88,7 +90,7 @@ dirs_cache {
             ; print new name at the top of the list
             txt.plot(LEFT_COL, TOP_ROW)
             current = current.prev
-            print_filename(selected_line)
+            print_dir_name(selected_line)
         }
     }
     
@@ -118,7 +120,7 @@ dirs_cache {
             ; print new name at the bottom of the list
             txt.plot(LEFT_COL,TOP_ROW + max_lines - 1)
             current = current.next
-            print_filename(selected_line)
+            print_dir_name(selected_line)
         }
      
     }
@@ -172,7 +174,7 @@ dirs_cache {
         ;^^Entry current = head
         current = head
         for i in 0 to num_visible_dirs - 1  {
-            print_filename(i)   
+            print_dir_name(i)   
             current = current.next
         }
 
@@ -181,21 +183,21 @@ dirs_cache {
         selected_line = 0
     }
 
-    sub print_filename(ubyte row) {
+    sub print_dir_name(ubyte row) {
         ;^^Entry current is the pointer to the linked list
-        alias filename = main.g_tmp_str_buffer3
-        void strings.copy(pretty_line(current.name,current.is_tagged),filename)
-        helpers.print_strXY2(LEFT_COL,TOP_ROW + row,filename)
+        alias dir_name = main.g_tmp_str_buffer3
+        void strings.copy(pretty_line(current.name,current.is_expanded),dir_name)
+        helpers.print_strXY2(LEFT_COL,TOP_ROW + row,dir_name)
     }
 
-    sub pretty_line(str line, bool tagged) -> str {
-        ;--- make file name pretty
+    sub pretty_line(str line, bool is_expanded) -> str {
+        ;--- make dir name pretty
         alias pretty_str = main.g_tmp_str_buffer2 
         alias tmp_str9   = main.g_tmp_str_buffer1 
-        if tagged {
-            strings_ext.concat_strings(cp437:"*",line,tmp_str9)
-        } else {
+        if is_expanded {
             strings_ext.concat_strings(cp437:" ",line,tmp_str9)
+        } else {
+            strings_ext.concat_strings(cp437:"+",line,tmp_str9)
         }
          strings_ext.pad_right(tmp_str9, pretty_str, ' ', DIR_NAME_SIZE) 
          return pretty_str
@@ -227,7 +229,7 @@ dirs_cache {
         ;--- not sure what to do with this yet
     }
 
-    sub add(str name, uword blocks) {
+    sub add(str name, ubyte level) {
         ;--- Create new entry
 
         ^^Entry new_record = arena_dirs.alloc(sizeof(Entry))
@@ -237,9 +239,10 @@ dirs_cache {
         num_dirs++
 
         new_record.name = name_copy
-        new_record.is_tagged = false
-        new_record.is_logged = false
-        new_record.blocks = blocks
+        new_record.is_expanded = false
+        new_record.level = level
+        new_record.has_children = false
+        new_record.visible = true
         new_record.next = 0
         new_record.prev = 0
         new_record.rec_num = num_dirs 
