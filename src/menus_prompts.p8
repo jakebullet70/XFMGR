@@ -1,3 +1,13 @@
+;==============================================================================
+;---   
+;---   
+;---   
+;==============================================================================
+;---   
+;==============================================================================
+
+
+%import line_editor
 
 prompts {
     alias i = main.i
@@ -5,7 +15,7 @@ prompts {
     alias input_str1 = main.g_tmp_str_buffer1
     alias input_str2 = main.g_tmp_str_buffer2
     alias input_str_ret_val = main.g_tmp_str_buffer3
-    str CANCEL_INPUT = "@"
+    alias CANCEL_INPUT = line_editor.CANCEL_INPUT
     str CR_STR = cp437:"◄╛"
     str UP_STR = cp437:"↑"
     const ubyte PROMPT_LINE_2 = 3
@@ -23,7 +33,7 @@ prompts {
         
         ;void strings.copy(files_cache.current.name,input_str_ret_val)                  ;--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
+        line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
 
         if input_str_ret_val == CANCEL_INPUT return                                     ;--- cancel, bye!
         
@@ -31,92 +41,11 @@ prompts {
         ;exit(0)
     }
 
-
-    sub get_txt(ubyte p_length,ubyte col,ubyte adj_row,
-            ubyte[] cancel_keys,ubyte cancel_keys_len,
-            ubyte[] accept_keys,ubyte accept_keys_len,str text) {
-
-        ;--- ESC is always cancel
-        main.clear_kb()
-        ubyte ndx = 0
-        alias keycode = main.x
-        ;alias max_len = main.y
-        alias break_out = main.bool_tmp
-        break_out = false
-        
-
-        if text != "" helpers.print_strXY(col,txt.height()-adj_row,input_str_ret_val,theme.MENU_BRIGHT,false)
-        txt.color2(theme.MENU_BRIGHT & 15, theme.MENU_BRIGHT>>4)
-        txt.plot(col,txt.height()-adj_row)
-        cx16.blink_enable(true)
-        
-        repeat {
-            void,keycode = cbm.GETIN()             
-            if keycode == 0 continue 
-
-            ;debug.say2("gt-kcode:",main.keycode_ext)
-            txt.plot(col+ndx,txt.height()-adj_row)
-            cx16.blink_enable(false)
-
-            ;==============================================================
-            for j in 0 to cancel_keys_len {
-                if cancel_keys[j] == keycode {  
-                    void strings.copy(CANCEL_INPUT,input_str_ret_val)
-                    break_out = true
-                    break ;--- breaks out of FOR loop
-                }
-            }
-            for j in 0 to accept_keys_len {
-                if accept_keys[j] == keycode {
-                    void strings.copy(conv.str_ub(accept_keys[j]),input_str_ret_val)
-                    break_out = true
-                    break ;--- breaks out of FOR loop
-                }
-            }
-            ;==============================================================
-            if keys.LEFT_ARROW  in main.last_keys { 
-                if ndx > 0 ndx-- 
-                goto restart_get_loop
-            }
-            if keys.RIGHT_ARROW in main.last_keys { 
-                if ndx < files_folders.FILE_MAX_LEN ndx++ 
-                goto restart_get_loop
-            }
-           
-            when main.keycode_ext {
-                keys.END   -> { ndx = strings.length(input_str_ret_val) - 1 }
-                keys.HOME  -> { ndx = 0 }
-                keys.DELETE  -> { 
-                }
-                keys.BACKSPACE -> {
-                }
-                keys.INSERT -> {
-                }
-                
-            }
-
-
-            restart_get_loop:
-                helpers.print_strXY(col,txt.height()-adj_row,input_str_ret_val,theme.MENU_BRIGHT,false)
-                txt.plot(col+ndx,txt.height()-adj_row)
-                cx16.blink_enable(true)
-                main.clear_kb()
-                if break_out break
-                sys.wait(4)
-            
-        }
-
-        main.clear_kb()
-        ;debug.say("break")
-        cx16.blink_enable(false)
-        return
-    }
-
     
     sub ask_exit() -> bool {
         prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
-        get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
+        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
         if input_str_ret_val == CANCEL_INPUT return false
         return true
     }
@@ -134,7 +63,7 @@ prompts {
         
         void strings.copy(files_cache.current.name,input_str_ret_val)                   ;--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
+        line_editor.get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      ;--- get txt loop
 
         if input_str_ret_val == CANCEL_INPUT return false                               ;--- cancel, bye!
         
@@ -152,7 +81,7 @@ prompts {
         prompt_txt(cp437:"DELETE File:",cp437:"",cp437:"Delete this file?                   [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
         helpers.print_strXY(13,txt.height()-4,files_cache.current.name,theme.MENU_BRIGHT,false)  ;--- show fname
-        get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
+        line_editor.get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:'n',cp437:'N',keys.CR],3,[cp437:'y',cp437:'Y'],1,"")
         if input_str_ret_val == CANCEL_INPUT return false 
         if not tagged_files {
             diskio.delete(files_cache.current.name)
@@ -166,7 +95,7 @@ prompts {
     sub not_done_yet(bool dummy) -> bool {
         prompt_txt(cp437:"WORKING ON IT!",cp437:"",cp437:"Under construction: ------:                    ESC Cancel",1,28,3)
         menus.highlight_menu_keys([48,49,50],2,txt.height()-2,theme.MENU_BRIGHT)
-        get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:'Y'],0,"")
+        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:'Y'],0,"")
         return false
     }
     
@@ -195,7 +124,5 @@ prompts {
         ;}
         ;txt.color2(theme.MENU_NORMAL & 15, theme.MENU_NORMAL>>4)
     }
-
-   
 
 }
