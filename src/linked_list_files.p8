@@ -224,6 +224,8 @@ files_cache {
 
     sub print_up_and_down() {
         ;--- not sure what to do with this yet
+        ;--- PRINT CURRENT AND TTL FILES [CUR:11 OF TTL:45]
+        ;--- ON SCREEN like Ztree
     }
 
 
