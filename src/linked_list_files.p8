@@ -223,9 +223,12 @@ files_cache {
     }
 
     sub print_up_and_down() {
-        ;--- not sure what to do with this yet
-        ;--- PRINT CURRENT AND TTL FILES [CUR:11 OF TTL:45]
-        ;--- ON SCREEN like Ztree
+        alias i = main.i
+        i = txt.height() - 6
+        helpers.print_strXY(62,i,cp437:"[File:    Of:   ",theme.BOXES,false)
+        helpers.print_strXY(78,i,cp437:"]",theme.BOXES,false)
+        helpers.print_strXY(68,i,conv.str_ub(selected_line+1),theme.TXT_NORMAL,false)
+        helpers.print_strXY(75,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
     }
 
 
