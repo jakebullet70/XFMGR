@@ -26,11 +26,7 @@ process_keys {
             if menus.CTRL_PRESSED {                            
 
                 if menus.mode == menus.DIR {                    ;--- CTRL - DIR menu
-                    if keys.Q_PRESSED in last_keys { 
-                        flags.exit_out = prompts.ask_exit()     ;--- quit, TODO, exits to the current dir, not the one it was started from
-                        break
-                    }
-
+                 
                 } else {                                         ;--- CTRL - FILE menus
 
                 }
@@ -60,6 +56,11 @@ process_keys {
                     ;     flags.refresh_scrn = prompts.delete_dir()
                     ;     break
                     ; }
+                    if keys.Q_PRESSED in last_keys { 
+                        flags.exit_out = prompts.ask_exit()     ;--- quit, TODO, exits to the current dir, not the one it was started from
+                        break
+                    }
+
 
                 
                 } else {                                         ;--- FILE only menus
