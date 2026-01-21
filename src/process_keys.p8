@@ -56,6 +56,14 @@ process_keys {
 
                 if menus.mode == menus.DIR {                    ;--- DIR only
 
+                    ; if keys.D_PRESSED in last_keys {            ;--- delete
+                    ;     flags.refresh_scrn = prompts.delete_dir()
+                    ;     break
+                    ; }
+
+                
+                } else {                                         ;--- FILE only menus
+
                     if keys.D_PRESSED in last_keys {            ;--- delete
                         flags.refresh_scrn = prompts.delete_file(false)
                         break
@@ -116,7 +124,6 @@ process_keys {
                         break
                     }
 
-                } else {                                         ;--- FILE only menus
 
                 }
                 
@@ -125,6 +132,7 @@ process_keys {
             }
             break
         } ;--- end fake loop, everything fires the break statement
+
 
         ;debug.say("exit - process_letter_keys()")
         main.clear_kb()  
