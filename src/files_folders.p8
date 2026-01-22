@@ -7,6 +7,7 @@ files_folders {
     str current_folder = "?" * main.DEF_PATH_LENGTH
 
     const ubyte FILE_MAX_LEN = 40
+    const ubyte FILE_MAX_LEN_CLEAR = 42
 
     sub read_dirs(ubyte drv) -> bool {
         alias dir_error = main.bool_tmp

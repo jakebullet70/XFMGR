@@ -21,6 +21,7 @@ process_keys {
         if keycode_ext == 0 return ;--- should never happen
         ;debug.say2("process_letter_keys():",keycode) 
 
+        alias ndx = main.y
         repeat { ;--- fake loop
 
             ; if menus.mode == menus.DIR and strings.endswith(dirs_cache.current.name,":/") {
@@ -82,11 +83,11 @@ process_keys {
                         break
                     }
                     if keys.T_PRESSED in last_keys {            ;--- tag all files
-                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        files_cache.tag_all(true)
                         break
                     }
                     if keys.U_PRESSED in last_keys {            ;--- untag all file
-                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        files_cache.tag_all(false)
                         break
                     }
 
@@ -150,7 +151,6 @@ process_keys {
 
                 }
                 
-
 
             } else {                                        
             
@@ -243,11 +243,11 @@ process_keys {
                         break
                     }
                     if keys.T_PRESSED in last_keys {            ;--- tag
-                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        files_cache.tag_file(files_cache.selected_line_on_page,true)
                         break
                     }
                     if keys.U_PRESSED in last_keys {            ;--- untag
-                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        files_cache.tag_file(files_cache.selected_line_on_page,false)   
                         break
                     }
                     if keys.V_PRESSED in last_keys {            ;--- view

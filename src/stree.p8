@@ -64,24 +64,23 @@ main {
         txt.color2(theme.TXT_NORMAL & 15, theme.TXT_NORMAL>>4)
         txt.clear_screen()        
         
-        txt.cp437()                     ;--- enable ISO character set 
+        txt.cp437()                     ;--- enable ISO-IBM character set 
         ;txt.lowercase()
         helpers.set_characters(true)    ;--- use ISO characters for box drawing
         helpers.draw_main_scrn()
 
         void strings.copy(diskio.curdir(),start_dir)  ;--- save starup folder
         ;debug.say(start_dir)
-        menus.mode = menus.DIR ;--- default for the moment
+        menus.mode = menus.DIR 
         menus.draw()
         
-        files_cache.init()
-        dirs_cache.init()
-
+        dirs_cache.init_clear()
         void files_folders.read_dirs(8)        ;--- read dirs into dir_cache
         dirs_cache.draw_dirs_2_scrn()
 
+        files_cache.init_clear()
         void files_folders.read_files(8)        ;--- read files into files_cache
-        files_cache.draw_files_2_scrn()
+        files_cache.draw_files_2_scrn(0)
 
         select_focus()
 

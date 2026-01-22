@@ -37,7 +37,9 @@ dirs_cache {
 
     ^^Entry current
 
-    sub init() { }
+    sub init_clear() { 
+       selected_line = num_visible_dirs = num_dirs = top_index = 0 
+    }
 
     sub key_page_down() {
         debug.say("p-down-HAS-BUG")

@@ -18,61 +18,68 @@ files_cache {
 
     ^^Entry head = 0           ; Head of the doubly linked list
     ^^Entry tail = 0           ; Tail of the doubly linked list
+    ;^^Entry page_top = 0       ; Tail of the doubly linked list
 
-    ubyte num_files = 0        ; Number of entries
+    ubyte num_files,num_tagged = 0        ; Number of entries
 
     alias FILE_NAME_SIZE = files_folders.FILE_MAX_LEN
     const bool NOT_TAGGED = false
     const ubyte LEFT_COL = 32
     const ubyte TOP_ROW = 6
+    str TAG_CHAR = cp437:"♦"
+
+    ;txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
     
     ;--- vars for movement
     ubyte top_index = 0
-    ubyte selected_line,num_visible_files
-    ubyte max_lines = txt.height() - 12
+    ubyte selected_line_on_page,num_visible_files
+    ubyte max_lines = 10 ;txt.height() - 12
 
     ^^Entry current
+    ^^Entry item_tmp_ptr
 
-    sub init() { }
+    sub init_clear() { 
+        num_files = num_tagged = top_index = selected_line_on_page = num_visible_files = 0         ; Number of entries
+    }
 
     sub key_page_down() {
         debug.say("p-down-HAS-BUG")
         ;--- BUG!  Scroll and do page up-dn
         ; if num_files > 0 {
         ;     ; next page of lines
-        ;     unselect_line(selected_line)
-        ;     if selected_line == max_lines - 1
+        ;     unselect_line(selected_line_on_page)
+        ;     if selected_line_on_page == max_lines - 1
         ;         repeat max_lines scroll_list_forward()
 
-        ;     selected_line = num_visible_files - 1
-        ;     select_line(selected_line)
-        ;     print_up_and_down()
+        ;     selected_line_on_page = num_visible_files - 1
+        ;     select_line(selected_line_on_page)
+        ;     print_stats()
         ; }
     }
 
     sub key_page_up() {
         debug.say("p-up-HAS-BUG")
         ;--- BUG!  Scroll and do page up-dn
-        ; line_color(selected_line, theme.TXT_NORMAL)
-        ; if selected_line==0
+        ; line_color(selected_line_on_page, theme.TXT_NORMAL)
+        ; if selected_line_on_page==0
         ;     repeat max_lines scroll_list_backward()
 
-        ; selected_line = 0
+        ; selected_line_on_page = 0
         ; select_line(0)
-        ; print_up_and_down() 
+        ; print_stats() 
     }
 
     sub key_up() { 
-        line_color(selected_line, theme.TXT_NORMAL)
-        if selected_line > 0 {
+        line_color(selected_line_on_page, theme.TXT_NORMAL)
+        if selected_line_on_page > 0 {
             current = current.prev
-            selected_line--
-        } else if num_files>max_lines {
+            selected_line_on_page--
+        } else if num_files > max_lines {
             scroll_list_backward()
         }
 
-        line_color(selected_line, theme.ROW_HILIGHT)
-        print_up_and_down()
+        line_color(selected_line_on_page, theme.ROW_HILIGHT)
+        print_stats()
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
     }
@@ -86,22 +93,22 @@ files_cache {
             ; print new name at the top of the list
             txt.plot(LEFT_COL, TOP_ROW)
             current = current.prev
-            print_filename(selected_line)
+            print_filename(selected_line_on_page)
         }
     }
     
     sub key_down() {
         if num_files > 0 {
-            line_color(selected_line, theme.TXT_NORMAL)
-            if selected_line < num_visible_files - 1 {
-                selected_line++ 
+            line_color(selected_line_on_page, theme.TXT_NORMAL)
+            if selected_line_on_page < num_visible_files - 1 {
+                selected_line_on_page++ 
                 current = current.next
-            } else if num_files>max_lines {
+            } else if num_files > max_lines {
                 scroll_list_forward()
             }
                 
-            line_color(selected_line, theme.ROW_HILIGHT)
-            print_up_and_down()
+            line_color(selected_line_on_page, theme.ROW_HILIGHT)
+            print_stats()
         }
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
@@ -116,7 +123,7 @@ files_cache {
             ; print new name at the bottom of the list
             txt.plot(LEFT_COL,TOP_ROW + max_lines - 1)
             current = current.next
-            print_filename(selected_line)
+            print_filename(selected_line_on_page)
         }
      
     }
@@ -149,7 +156,7 @@ files_cache {
         }
     }
 
-    sub draw_files_2_scrn() {
+    sub draw_files_2_scrn(ubyte select_this_line) {
         alias i = main.i
         alias str_clear = main.g_tmp_str_buffer1
 
@@ -157,7 +164,7 @@ files_cache {
         num_visible_files = min(max_lines, num_files)
 
         ;--- clear panel/page
-        void strings.copy(" "*FILE_NAME_SIZE,str_clear)
+        void strings.copy(" " * files_folders.FILE_MAX_LEN_CLEAR, str_clear)
         for i in 0 to max_lines {
             helpers.print_strXY2(LEFT_COL,TOP_ROW + i,str_clear) 
         }
@@ -166,17 +173,18 @@ files_cache {
             return
         }
 
-        ;^^Entry current = head
-        current = head
+        ;current = head
+        current = find_by_recnum(top_index+1)
+        item_tmp_ptr = current
         for i in 0 to num_visible_files - 1  {
             print_filename(i)   
             current = current.next
         }
-
-        current = head ;--- reset to top
-        line_color(0,theme.ROW_HILIGHT)
-        selected_line = 0
+        current = item_tmp_ptr ;--- reset to top visible line
+        line_color(select_this_line,theme.ROW_HILIGHT)
+        selected_line_on_page = select_this_line
     }
+
 
     sub print_filename(ubyte row) {
         ;^^Entry current is the pointer to the linked list
@@ -190,7 +198,7 @@ files_cache {
         alias pretty_str = main.g_tmp_str_buffer2 
         alias tmp_str9   = main.g_tmp_str_buffer1 
         if tagged {
-            strings_ext.concat_strings(cp437:"*",line,tmp_str9)
+            strings_ext.concat_strings(TAG_CHAR,line,tmp_str9)
         } else {
             strings_ext.concat_strings(cp437:" ",line,tmp_str9)
         }
@@ -200,7 +208,7 @@ files_cache {
 
      sub set_focus() {
         if num_files == 0 return
-        line_color(selected_line, theme.ROW_HILIGHT)
+        line_color(selected_line_on_page, theme.ROW_HILIGHT)
     }
     ; sub select_line(ubyte line) {
     ;     line_color(line, theme.ROW_HILIGHT)
@@ -208,7 +216,7 @@ files_cache {
 
     sub lost_focus() {
         if num_files == 0 return
-        line_color(selected_line, theme.TXT_NORMAL)
+        line_color(selected_line_on_page, theme.TXT_NORMAL)
     }
     ; sub unselect_line(ubyte line) {
     ;     line_color(line, theme.TXT_NORMAL)
@@ -222,15 +230,27 @@ files_cache {
         }
     }
 
-    sub print_up_and_down() {
+    sub print_stats() {
         alias i = main.i
-        i = txt.height() - 6
-        helpers.print_strXY(62,i,cp437:"[File:    Of:   ",theme.BOXES,false)
+        alias real_num = main.j
+        ;i = txt.height() - 6
+        i = 3
+        helpers.print_strXY(52,i,cp437:"[File:    Of:    Tagged:   ",theme.BOXES,false)
         helpers.print_strXY(78,i,cp437:"]",theme.BOXES,false)
-        helpers.print_strXY(68,i,conv.str_ub(selected_line+1),theme.TXT_NORMAL,false)
-        helpers.print_strXY(75,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
-    }
+        helpers.print_strXY(58,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,false)
+        helpers.print_strXY(65,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
+        helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,false)
 
+        str i2 = "?"*24
+        str i1 = "?"*24
+        strings_ext.concat_strings("top ndx:",conv.str_ub(top_index),i1)
+        strings_ext.concat_strings("rec num:",conv.str_ub(current.rec_num),i2)
+        helpers.print_strXY(52,50,"                     ",theme.TXT_NORMAL,false)
+        helpers.print_strXY(52,51,"                     ",theme.TXT_NORMAL,false)
+        helpers.print_strXY(52,50,i1,theme.TXT_NORMAL,false)
+        helpers.print_strXY(52,51,i2,theme.TXT_NORMAL,false)
+
+    }
 
 
     sub add(str name, uword blocks) {
@@ -259,6 +279,70 @@ files_cache {
             tail = new_record
         }   
     }
+    
+    sub tag_file(ubyte line_num,bool tag) {
+        current.is_tagged = tag
+        print_filename(line_num)
+        key_down()
+        if tag {
+            num_tagged++ 
+        } else {
+            num_tagged--
+        }         
+        print_stats()
+    }
+
+    sub tag_all(bool tag){
+        
+        alias ndx = main.x
+        alias last_selected = main.j
+        alias lrec = main.y
+        num_tagged = if tag then num_files else 0
+        ;ubyte last_selected,lrec
+        
+        line_color(selected_line_on_page,theme.TXT_NORMAL)
+        last_selected = selected_line_on_page
+        lrec = current.rec_num
+
+        ;--- tag everything
+        current = head
+        for ndx in 0 to files_cache.num_files - 1  {
+            current.is_tagged = tag
+            current = current.next
+        }
+        draw_files_2_scrn(last_selected)
+        print_stats()
+        current = find_by_recnum(lrec)
+
+        ;=== debug crap!
+        ; str i2 = "?"*24
+        ; str i1 = "?"*24
+        ; strings_ext.concat_strings("rec1:",conv.str_ub(lrec),i1)
+        ; strings_ext.concat_strings("rec2:",conv.str_ub(current.rec_num),i2)
+        ; helpers.print_strXY(2,50,"                     ",theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(2,51,"                     ",theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(2,50,i1,theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(2,51,i2,theme.TXT_NORMAL,false)
+
+
+
+
+    }
+
+
+
+    sub find_by_recnum(ubyte rec_num) -> ^^Entry {
+        ^^Entry current = head
+        while current != 0 {
+            if current.rec_num == rec_num {
+                return current
+            }
+            current = current.next
+        }
+
+        return 0  ; Not found - should not happen
+    }
+
 
 
 
