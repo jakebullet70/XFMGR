@@ -20,8 +20,12 @@ process_keys {
     sub letter_keys() {
         if keycode_ext == 0 return ;--- should never happen
         ;debug.say2("process_letter_keys():",keycode) 
-        
+
         repeat { ;--- fake loop
+
+            ; if menus.mode == menus.DIR and strings.endswith(dirs_cache.current.name,":/") {
+            ;     break ;--- DIR and selection is ROOT
+            ; }
             
             if menus.CTRL_PRESSED {                            
 
@@ -48,16 +52,27 @@ process_keys {
 
 
             } else {                                        
+            
                 ;debug.say2("process_letter_keys-else:",keycode_ext)
 
                 if menus.mode == menus.DIR {                    ;--- DIR only
 
-                    ; if keys.D_PRESSED in last_keys {            ;--- delete
-                    ;     flags.refresh_scrn = prompts.delete_dir()
-                    ;     break
-                    ; }
+                    if keys.D_PRESSED in last_keys {            ;--- delete
+                        if strings.endswith(dirs_cache.current.name,iso:":/") return ;--- ROOT folder, break
+                        ;flags.refresh_scrn = prompts.delete_dir()
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
                     if keys.Q_PRESSED in last_keys { 
                         flags.exit_out = prompts.ask_exit()     ;--- quit, TODO, exits to the current dir, not the one it was started from
+                        break
+                    }
+                    if keys.M_PRESSED in last_keys {            ;--- make dir
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.A_PRESSED in last_keys {            ;--- avail
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                         break
                     }
 
