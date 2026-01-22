@@ -75,6 +75,27 @@ process_keys {
                         flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                         break
                     }
+                    if keys.F_PRESSED in last_keys {            ;--- file spec (dir)
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.L_PRESSED in last_keys {            ;--- log - do we need this?
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.R_PRESSED in last_keys {            ;--- rename
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.T_PRESSED in last_keys {            ;--- tag all files
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+                    if keys.U_PRESSED in last_keys {            ;--- untag all file
+                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                        break
+                    }
+
 
 
                 
