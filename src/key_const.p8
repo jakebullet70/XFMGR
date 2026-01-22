@@ -39,6 +39,7 @@ keys {
     const ubyte N_PRESSED = $33
     const ubyte A_PRESSED = $1f
     const ubyte G_PRESSED = $23
+    const ubyte S_PRESSED = $20
 
     const ubyte ESC = 27
     const ubyte CR  = 13
