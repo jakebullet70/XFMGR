@@ -39,6 +39,7 @@ files_cache {
     ^^Entry item_tmp_ptr
 
     sub init_clear() { 
+        helpers.print_strXY(LEFT_COL,TOP_ROW,cp437:"Reading...",theme.TXT_NORMAL,false)
         num_files = num_tagged = top_index = selected_line_on_page = num_visible_files = 0         ; Number of entries
     }
 
@@ -281,15 +282,17 @@ files_cache {
     }
     
     sub tag_file(ubyte line_num,bool tag) {
-        current.is_tagged = tag
+        defer print_stats()
+        defer key_down()
+
+        if current.is_tagged == tag {
+            return ;--- file already tagged or untagged
+        }
+        
+        current.is_tagged = tag 
+        if tag { num_tagged++ } else { num_tagged-- }  ;--- inc / decr       
         print_filename(line_num)
-        key_down()
-        if tag {
-            num_tagged++ 
-        } else {
-            num_tagged--
-        }         
-        print_stats()
+        
     }
 
     sub tag_all(bool tag){
@@ -471,17 +474,3 @@ arena_files {
     ;     debug.say2("inner index",inner_index)     
     ; }
     
-
-    ; sub find_by_recnum(ubyte rec_num) -> ^^Entry {
-    ;     ^^Entry current = head
-    ;     while current != 0 {
-    ;         if current.rec_num == rec_num {
-    ;             return current
-    ;         }
-    ;         current = current.next
-    ;     }
-
-    ;     return 0  ; Not found
-    ; }
-
-
