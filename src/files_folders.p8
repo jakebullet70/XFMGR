@@ -54,7 +54,7 @@ files_folders {
 
         clear_files()
         void strings.copy(diskio.curdir(),current_folder)    
-        debug.say(current_folder)
+        ;debug.say(current_folder)
 
         ;--- then list files
         if diskio.lf_start_list_files(0) {
