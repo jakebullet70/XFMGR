@@ -232,14 +232,15 @@ files_cache {
     }
 
     sub print_stats() {
+        ; TODO needs refactor
         alias i = main.i
         alias real_num = main.j
         ;i = txt.height() - 6
         i = 3
-        helpers.print_strXY(52,i,cp437:"[File:    Of:    Tagged:   ",theme.BOXES,false)
+        helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:   ",theme.BOXES,false)
         helpers.print_strXY(78,i,cp437:"]",theme.BOXES,false)
-        helpers.print_strXY(58,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,false)
-        helpers.print_strXY(65,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
+        helpers.print_strXY(57,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,false)
+        helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
         helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,false)
 
         str i2 = "?"*24
@@ -284,11 +285,9 @@ files_cache {
     sub tag_file(ubyte line_num,bool tag) {
         defer print_stats()
         defer key_down()
-
         if current.is_tagged == tag {
             return ;--- file already tagged or untagged
         }
-        
         current.is_tagged = tag 
         if tag { num_tagged++ } else { num_tagged-- }  ;--- inc / decr       
         print_filename(line_num)
