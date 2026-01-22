@@ -33,7 +33,7 @@ files_cache {
     ;--- vars for movement
     ubyte top_index = 0
     ubyte selected_line_on_page,num_visible_files
-    ubyte max_lines = 10 ;txt.height() - 12
+    ubyte max_lines = txt.height() - 12
 
     ^^Entry current
     ^^Entry item_tmp_ptr
@@ -324,11 +324,7 @@ files_cache {
         ; helpers.print_strXY(2,50,i1,theme.TXT_NORMAL,false)
         ; helpers.print_strXY(2,51,i2,theme.TXT_NORMAL,false)
 
-
-
-
     }
-
 
 
     sub find_by_recnum(ubyte rec_num) -> ^^Entry {
@@ -339,7 +335,6 @@ files_cache {
             }
             current = current.next
         }
-
         return 0  ; Not found - should not happen
     }
 
