@@ -242,11 +242,11 @@ process_keys {
                         flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                         break
                     }
-                    if keys.T_PRESSED in last_keys {            ;--- tag
+                    if keys.T_PRESSED in last_keys {            ;--- tag single file
                         files_cache.tag_file(files_cache.selected_line_on_page,true)
                         break
                     }
-                    if keys.U_PRESSED in last_keys {            ;--- untag
+                    if keys.U_PRESSED in last_keys {            ;--- untag single file
                         files_cache.tag_file(files_cache.selected_line_on_page,false)   
                         break
                     }
