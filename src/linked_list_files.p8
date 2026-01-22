@@ -43,6 +43,7 @@ files_cache {
         num_files = num_tagged = top_index = selected_line_on_page = num_visible_files = 0         ; Number of entries
     }
 
+    
     sub key_page_down() {
         debug.say("p-down-HAS-BUG")
         ;--- BUG!  Scroll and do page up-dn
@@ -69,6 +70,7 @@ files_cache {
         ; select_line(0)
         ; print_stats() 
     }
+
 
     sub key_up() { 
         line_color(selected_line_on_page, theme.TXT_NORMAL)
@@ -98,6 +100,7 @@ files_cache {
         }
     }
     
+
     sub key_down() {
         if num_files > 0 {
             line_color(selected_line_on_page, theme.TXT_NORMAL)
@@ -129,6 +132,7 @@ files_cache {
      
     }
     
+
     sub scroll_txt_down(ubyte col, ubyte row, ubyte width, ubyte height, ubyte fillchar) {
         alias y = main.y
         alias x = main.x
@@ -156,6 +160,7 @@ files_cache {
             txt.setchr(x,y, fillchar)
         }
     }
+
 
     sub draw_files_2_scrn(ubyte select_this_line) {
         alias i = main.i
@@ -194,6 +199,7 @@ files_cache {
         helpers.print_strXY2(LEFT_COL,TOP_ROW + row,filename)
     }
 
+
     sub pretty_line(str line, bool tagged) -> str {
         ;--- make file name pretty
         alias pretty_str = main.g_tmp_str_buffer2 
@@ -207,21 +213,16 @@ files_cache {
          return pretty_str
     }
 
-     sub set_focus() {
+
+     sub set_focus() {  ;--- called when changing from FILES - DIR panels
         if num_files == 0 return
         line_color(selected_line_on_page, theme.ROW_HILIGHT)
     }
-    ; sub select_line(ubyte line) {
-    ;     line_color(line, theme.ROW_HILIGHT)
-    ; }
 
-    sub lost_focus() {
+    sub lost_focus() {  ;--- called when changing from FILES - DIR panels
         if num_files == 0 return
         line_color(selected_line_on_page, theme.TXT_NORMAL)
     }
-    ; sub unselect_line(ubyte line) {
-    ;     line_color(line, theme.TXT_NORMAL)
-    ; }
 
     sub line_color(ubyte line, ubyte colors) {
         alias charpos = main.i
@@ -237,20 +238,20 @@ files_cache {
         alias real_num = main.j
         ;i = txt.height() - 6
         i = 3
-        helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:   ",theme.BOXES,false)
-        helpers.print_strXY(78,i,cp437:"]",theme.BOXES,false)
+        helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:    ]",theme.BOXES,false)
+        ;helpers.print_strXY(78,i,cp437:"]",theme.BOXES,false)
         helpers.print_strXY(57,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,false)
         helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
         helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,false)
 
-        str i2 = "?"*24
-        str i1 = "?"*24
-        strings_ext.concat_strings("top ndx:",conv.str_ub(top_index),i1)
-        strings_ext.concat_strings("rec num:",conv.str_ub(current.rec_num),i2)
-        helpers.print_strXY(52,50,"                     ",theme.TXT_NORMAL,false)
-        helpers.print_strXY(52,51,"                     ",theme.TXT_NORMAL,false)
-        helpers.print_strXY(52,50,i1,theme.TXT_NORMAL,false)
-        helpers.print_strXY(52,51,i2,theme.TXT_NORMAL,false)
+        ; str i2 = "?"*24
+        ; str i1 = "?"*24
+        ; strings_ext.concat_strings("top ndx:",conv.str_ub(top_index),i1)
+        ; strings_ext.concat_strings("rec num:",conv.str_ub(current.rec_num),i2)
+        ; helpers.print_strXY(52,50,"                     ",theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(52,51,"                     ",theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(52,50,i1,theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(52,51,i2,theme.TXT_NORMAL,false)
 
     }
 
@@ -291,8 +292,8 @@ files_cache {
         current.is_tagged = tag 
         if tag { num_tagged++ } else { num_tagged-- }  ;--- inc / decr       
         print_filename(line_num)
-        
     }
+
 
     sub tag_all(bool tag){
         
@@ -325,7 +326,6 @@ files_cache {
         ; helpers.print_strXY(2,51,"                     ",theme.TXT_NORMAL,false)
         ; helpers.print_strXY(2,50,i1,theme.TXT_NORMAL,false)
         ; helpers.print_strXY(2,51,i2,theme.TXT_NORMAL,false)
-
     }
 
 
