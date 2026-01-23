@@ -330,12 +330,12 @@ files_cache {
 
 
     sub find_by_recnum(ubyte rec_num) -> ^^Entry {
-        ^^Entry current = head
-        while current != 0 {
-            if current.rec_num == rec_num {
-                return current
+        ^^Entry item = head
+        while item != 0 {
+            if item.rec_num == rec_num {
+                return item
             }
-            current = current.next
+            item = item.next
         }
         return 0  ; Not found - should not happen
     }
