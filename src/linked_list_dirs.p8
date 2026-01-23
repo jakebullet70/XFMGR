@@ -231,9 +231,7 @@ dirs_cache {
         ;--- not sure what to do with this yet
     }
 
-    sub add(str name, ubyte level) {
-        ;--- Create new entry
-
+    sub create(str name, ubyte level) -> ^^Entry {
         ^^Entry new_record = arena_dirs.alloc(sizeof(Entry))
         ^^ubyte name_copy  = arena_dirs.alloc(strings.length(name) + 1)
         void strings.copy(name, name_copy)
@@ -247,7 +245,14 @@ dirs_cache {
         new_record.visible = true
         new_record.next = 0
         new_record.prev = 0
-        new_record.rec_num = num_dirs 
+        new_record.rec_num = num_dirs
+
+        return new_record
+    }
+
+    sub add(str name, ubyte level) {
+        ;--- Create new entry
+        ^^Entry new_record = create(name, level)
 
         ;--- Add to the end of the doubly linked list
         if head == 0 {  ;--- First entry
@@ -258,10 +263,25 @@ dirs_cache {
             new_record.prev = tail
             tail = new_record
         }
-
-       
     }
 
+    sub insert(str name, ubyte level, ^^Entry previous_entry, bool as_child) {
+
+        ^^Entry new_record = create(name, level)
+
+        ;== Configure new record as child of previous entry
+        if (as_child) {
+            previous_entry.has_children = true
+            new_record.level = previous_entry.level + 1
+
+        }
+
+        ;== Link new record to surrounding records
+        new_record.next = previous_entry.next
+        previous_entry.next = new_record
+        new_record.prev = previous_entry
+        new_record.next.prev = new_record
+    }
 }
 
 
