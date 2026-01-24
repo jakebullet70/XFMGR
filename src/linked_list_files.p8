@@ -162,18 +162,28 @@ files_cache {
     }
 
 
-    sub draw_files_2_scrn(ubyte select_this_line) {
+    sub show_not_logged(){
+        clear_panel()
+        helpers.print_strXY(LEFT_COL,TOP_ROW,cp437:"Not Logged",theme.TXT_NORMAL,false)
+    }
+
+    sub clear_panel(){
+        ;--- clear panel/page
         alias i = main.i
         alias str_clear = main.g_tmp_str_buffer1
-
-        txt.color2(theme.TXT_NORMAL & 15, theme.TXT_NORMAL>>4)
-        num_visible_files = min(max_lines, num_files)
-
-        ;--- clear panel/page
         void strings.copy(" " * files_folders.FILE_MAX_LEN_CLEAR, str_clear)
         for i in 0 to max_lines {
             helpers.print_strXY2(LEFT_COL,TOP_ROW + i,str_clear) 
         }
+    }
+
+    sub draw_files_2_scrn(ubyte select_this_line) {
+        alias i = main.i
+        
+        txt.color2(theme.TXT_NORMAL & 15, theme.TXT_NORMAL>>4)
+        num_visible_files = min(max_lines, num_files)
+
+        clear_panel()
         if num_files == 0 {
             helpers.print_strXY2(LEFT_COL,TOP_ROW + 1, iso:"No Files")
             return
