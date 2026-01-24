@@ -76,8 +76,8 @@ main {
         
         const ubyte ROOT_LEVEL = 0
         read_dir(8,"*",ROOT_LEVEL)
-        read_files(8,"*.*")
-        select_focus()
+        read_files(8,"*.*","/")
+        select_focus2()
 
         custom_keyboard_handler_on_off(true)    ;--- set custom KB handler ==> sub &kb_handler
         ;---------------------------------------------
@@ -92,25 +92,27 @@ main {
         ;txt.uppercase()
         txt.clear_screen()
         txt.print("bye!")
+        ;--- restore the startup dir: TODO, ALT-Q i think exits to current dir, not startup
+        diskio.chdir(start_dir) 
         return
 
     }    
 
     sub read_dir(ubyte drv, str filter, ubyte level) {
         dirs_cache.init_clear()
-        void files_folders.read_dirs(drv,filter,level)      
+        void files_folders.load_dirs(drv,filter,level)      
         dirs_cache.draw_dirs_2_scrn()
     }
     
-    sub read_files(ubyte drv, str filter) {
+    sub read_files(ubyte drv, str filter,str path) {
+        diskio.chdir(path)
         files_cache.init_clear()
-        void files_folders.read_files(drv,filter)        ;--- read files into files_cache
+        void files_folders.load_files(drv,filter)        ;--- read files into files_cache
         files_cache.draw_files_2_scrn(0)
-
     }
         
 
-    sub select_focus() {
+    sub select_focus2() {
         if menus.mode == menus.FILE {
             dirs_cache.lost_focus()
             files_cache.set_focus()
@@ -120,6 +122,24 @@ main {
         }
         menus.draw()
     }
+
+    sub select_focus() {
+
+        if menus.mode == menus.DIR and not dirs_cache.current.logged {
+            ;--- loads dir in file panel but NO focus
+            debug.say(dirs_cache.current.name)
+            dirs_cache.current.logged = true
+            alias spath = g_tmp_str_buffer1
+            strings_ext.concat_strings("/",dirs_cache.current.name,spath)
+            read_files(diskio.drivenumber,files_folders.filter_files,spath)
+            files_cache.lost_focus()
+            return
+        }
+        menus.mode = if menus.mode == menus.FILE then menus.DIR else menus.FILE
+        select_focus2()
+    }
+
+
 
     
     ;--- main character input loop       
@@ -169,7 +189,6 @@ main {
                 ;sys.wait(200)
                 when keycode {
                     keys.CR,keys.TAB -> { ;--- swap FILE / DIR focus
-                        menus.mode = if menus.mode == menus.FILE then menus.DIR else menus.FILE
                         select_focus()
                     }
                     keys.DN_ARROW_PRESSED  -> { 

@@ -185,7 +185,7 @@ files_cache {
 
         clear_panel()
         if num_files == 0 {
-            helpers.print_strXY2(LEFT_COL,TOP_ROW + 1, iso:"No Files")
+            helpers.print_strXY2(LEFT_COL,TOP_ROW, iso:"No Files")
             return
         }
 

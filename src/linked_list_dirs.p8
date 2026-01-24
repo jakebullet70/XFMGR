@@ -53,7 +53,7 @@ dirs_cache {
 
         ;     selected_line = num_visible_dirs - 1
         ;     select_line(selected_line)
-        ;     print_up_and_down()
+        ;     print_status()
         ; }
     }
 
@@ -66,20 +66,20 @@ dirs_cache {
 
         ; selected_line = 0
         ; select_line(0)
-        ; print_up_and_down() 
+        ; print_status() 
     }
 
     sub key_up() { 
         line_color(selected_line, theme.TXT_NORMAL)
         if selected_line > 0 {
+            current.logged = false
             current = current.prev
             selected_line--
         } else if num_dirs>max_lines {
             scroll_list_backward()
         }
 
-        ;line_color(selected_line, theme.ROW_HILIGHT)
-        show_new_folder()
+        show_new_folder_or_not_logged()
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
     }
@@ -101,26 +101,27 @@ dirs_cache {
         if num_dirs > 0 {
             line_color(selected_line, theme.TXT_NORMAL)
             if selected_line < num_visible_dirs - 1 {
+                current.logged = false
                 selected_line++ 
                 current = current.next
             } else if num_dirs > max_lines {
                 scroll_list_forward()
             }
-            show_new_folder()    
+            show_new_folder_or_not_logged()    
         }
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
     }
 
-    sub show_new_folder() {
+    sub show_new_folder_or_not_logged() {
         ;debug.say2(current.name,current.rec_num)
         line_color(selected_line, theme.ROW_HILIGHT)
-        if current.rec_num == 1 { ;--- is ROOT?
-            main.read_files(diskio.drivenumber,files_folders.filter_files)
+        if current.rec_num == 1 { ;--- ONLY read ROOT?
+            main.read_files(diskio.drivenumber,files_folders.filter_files,"/")
         }  else {
             files_cache.show_not_logged()
         }
-        print_up_and_down()
+        print_status()
     }
 
     sub scroll_list_forward() {
@@ -205,13 +206,16 @@ dirs_cache {
         ;--- make dir name pretty
         alias pretty_str = main.g_tmp_str_buffer2 
         alias tmp_str9   = main.g_tmp_str_buffer1 
-        if is_expanded {
-            strings_ext.concat_strings(cp437:" ",line,tmp_str9)
+        ;chr_tleft
+        if current.rec_num == 1 { ;--- ROOT
+            strings_ext.concat_strings(cp437:"",line,tmp_str9)
+        } else if is_expanded {
+            strings_ext.concat_strings(cp437:" ├─",line,tmp_str9)
         } else {
-            strings_ext.concat_strings(cp437:"+",line,tmp_str9)
+            strings_ext.concat_strings(cp437:"+├─",line,tmp_str9)
         }
-         strings_ext.pad_right(tmp_str9, pretty_str, ' ', DIR_NAME_SIZE) 
-         return pretty_str
+        strings_ext.pad_right(tmp_str9, pretty_str, ' ', DIR_NAME_SIZE) 
+        return pretty_str
     }
 
     sub set_focus() {
@@ -224,13 +228,17 @@ dirs_cache {
 
     sub line_color(ubyte line, ubyte colors) {
         alias charpos = main.i
+        alias start_col = main.j
         cx16.r1L = line+TOP_ROW
-        for charpos in LEFT_COL to DIR_NAME_SIZE + LEFT_COL {
+        start_col = 2 + LEFT_COL + (current.level * LEVEL_SIZE)
+        if current.rec_num == 1 { start_col = LEFT_COL }
+        
+        for charpos in start_col to DIR_NAME_SIZE + LEFT_COL {
             txt.setclr(charpos, cx16.r1L, colors)
         }
     }
 
-    sub print_up_and_down() {
+    sub print_status() {
         ;--- not sure what to do with this yet
         ;--- being used in files though
     }
