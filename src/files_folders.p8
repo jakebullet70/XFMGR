@@ -9,7 +9,7 @@ files_folders {
     const ubyte FILE_MAX_LEN = 40
     const ubyte FILE_MAX_LEN_CLEAR = 42
 
-    sub read_dirs(ubyte drv) -> bool {
+    sub read_dirs(ubyte drv,str filter) -> bool {
         alias dir_error = main.bool_tmp
         diskio.drivenumber = drv
         dir_error = false
@@ -23,8 +23,8 @@ files_folders {
         ubyte dir_level = 0
 
         ;--- list directories first
-        if diskio.lf_start_list_dirs(0) {
-            while diskio.lf_next_entry() {    
+        if diskio.lf_start_list_dirs(filter) {
+            while diskio.lf_next_entry_nocase() {    
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
                 strings_ext.concat_strings("[",tmp_str,tmp_str0)
@@ -48,7 +48,7 @@ files_folders {
     }
 
 
-    sub read_files(ubyte drv) -> bool { 
+    sub read_files(ubyte drv,str filter) -> bool { 
         alias file_error = main.bool_tmp
         diskio.drivenumber = drv
         file_error = false
@@ -58,8 +58,8 @@ files_folders {
         ;debug.say(current_folder)
 
         ;--- then list files
-        if diskio.lf_start_list_files(0) {
-            while diskio.lf_next_entry() {
+        if diskio.lf_start_list_files(filter) {
+            while diskio.lf_next_entry_nocase() {
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
                 files_cache.add(tmp_str,diskio.list_blocks)

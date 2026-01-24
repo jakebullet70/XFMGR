@@ -75,11 +75,11 @@ main {
         menus.draw()
         
         dirs_cache.init_clear()
-        void files_folders.read_dirs(8)        ;--- read dirs into dir_cache
+        void files_folders.read_dirs(8,"*")        ;--- read dirs into dir_cache
         dirs_cache.draw_dirs_2_scrn()
 
         files_cache.init_clear()
-        void files_folders.read_files(8)        ;--- read files into files_cache
+        void files_folders.read_files(8,"*.*")        ;--- read files into files_cache
         files_cache.draw_files_2_scrn(0)
 
         select_focus()
