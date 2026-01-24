@@ -74,14 +74,9 @@ main {
         menus.mode = menus.DIR 
         menus.draw()
         
-        dirs_cache.init_clear()
-        void files_folders.read_dirs(8,"*")        ;--- read dirs into dir_cache
-        dirs_cache.draw_dirs_2_scrn()
-
-        files_cache.init_clear()
-        void files_folders.read_files(8,"*.*")        ;--- read files into files_cache
-        files_cache.draw_files_2_scrn(0)
-
+        const ubyte ROOT_LEVEL = 0
+        read_dir(8,"*",ROOT_LEVEL)
+        read_files(8,"*.*")
         select_focus()
 
         custom_keyboard_handler_on_off(true)    ;--- set custom KB handler ==> sub &kb_handler
@@ -101,6 +96,19 @@ main {
 
     }    
 
+    sub read_dir(ubyte drv, str filter, ubyte level) {
+        dirs_cache.init_clear()
+        void files_folders.read_dirs(drv,filter,level)      
+        dirs_cache.draw_dirs_2_scrn()
+    }
+    
+    sub read_files(ubyte drv, str filter) {
+        files_cache.init_clear()
+        void files_folders.read_files(drv,filter)        ;--- read files into files_cache
+        files_cache.draw_files_2_scrn(0)
+
+    }
+        
 
     sub select_focus() {
         if menus.mode == menus.FILE {
