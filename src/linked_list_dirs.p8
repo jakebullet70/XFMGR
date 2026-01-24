@@ -14,6 +14,7 @@ dirs_cache {
         bool is_expanded
         bool has_children
         bool visible
+        bool logged
         ubyte level           ; indentation level (0 = root)
         ubyte rec_num
     }
@@ -77,8 +78,8 @@ dirs_cache {
             scroll_list_backward()
         }
 
-        line_color(selected_line, theme.ROW_HILIGHT)
-        print_up_and_down()
+        ;line_color(selected_line, theme.ROW_HILIGHT)
+        show_new_folder()
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
     }
@@ -102,17 +103,25 @@ dirs_cache {
             if selected_line < num_visible_dirs - 1 {
                 selected_line++ 
                 current = current.next
-            } else if num_dirs>max_lines {
+            } else if num_dirs > max_lines {
                 scroll_list_forward()
             }
-                
-            line_color(selected_line, theme.ROW_HILIGHT)
-            print_up_and_down()
+            show_new_folder()    
         }
         ;debug.say2("rec num:",current.rec_num)
         ;debug.say2("top idx:",top_index)
     }
 
+    sub show_new_folder() {
+        ;debug.say2(current.name,current.rec_num)
+        line_color(selected_line, theme.ROW_HILIGHT)
+        if current.rec_num == 1 { ;--- is ROOT?
+            main.read_files(diskio.drivenumber,files_folders.filter_files)
+        }  else {
+            files_cache.show_not_logged()
+        }
+        print_up_and_down()
+    }
 
     sub scroll_list_forward() {
         if top_index + max_lines < num_dirs  {
@@ -189,7 +198,7 @@ dirs_cache {
         ;^^Entry current is the pointer to the linked list
         alias dir_name = main.g_tmp_str_buffer3
         void strings.copy(pretty_line(current.name,current.is_expanded),dir_name)
-        helpers.print_strXY2(LEFT_COL,TOP_ROW + row,dir_name)
+        helpers.print_strXY2(LEFT_COL + (current.level * LEVEL_SIZE),TOP_ROW + row,dir_name)
     }
 
     sub pretty_line(str line, bool is_expanded) -> str {
@@ -208,16 +217,10 @@ dirs_cache {
     sub set_focus() {
         line_color(selected_line, theme.ROW_HILIGHT)
     }
-    ; sub select_line(ubyte line) {
-    ;     line_color(line, theme.ROW_HILIGHT)
-    ; }
 
     sub lost_focus() {
         line_color(selected_line, theme.TXT_NORMAL)
     }
-    ; sub unselect_line(ubyte line) {
-    ;     line_color(line, theme.TXT_NORMAL)
-    ; }
 
     sub line_color(ubyte line, ubyte colors) {
         alias charpos = main.i
@@ -229,6 +232,7 @@ dirs_cache {
 
     sub print_up_and_down() {
         ;--- not sure what to do with this yet
+        ;--- being used in files though
     }
 
     sub create(str name, ubyte level) -> ^^Entry {
@@ -243,6 +247,7 @@ dirs_cache {
         new_record.level = level
         new_record.has_children = false
         new_record.visible = true
+        new_record.logged = false
         new_record.next = 0
         new_record.prev = 0
         new_record.rec_num = num_dirs

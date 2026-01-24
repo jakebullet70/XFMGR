@@ -6,24 +6,28 @@ files_folders {
     str ROOT_DIR = "   "
     str current_folder = "?" * main.DEF_PATH_LENGTH
 
+    str filter_dir   = "?"*25
+    str filter_files = "?"*35
+    
     const ubyte FILE_MAX_LEN = 40
     const ubyte FILE_MAX_LEN_CLEAR = 42
 
-    sub read_dirs(ubyte drv,str filter) -> bool {
+    sub read_dirs(ubyte drv,str filter,ubyte dir_level) -> bool {
         alias dir_error = main.bool_tmp
         diskio.drivenumber = drv
         dir_error = false
 
         arena_dirs.free_all()
 
-        total_dir++   
-        strings_ext.concat_strings(conv.str_ub(drv),":/",ROOT_DIR)
-        dirs_cache.add(ROOT_DIR,0)
-
-        ubyte dir_level = 0
+        void strings.ncopy(filter,filter_dir,25)
+        if dir_level == 0 {
+            total_dir++   ;--- dir level 0 - add ROOT
+            strings_ext.concat_strings(conv.str_ub(drv),":/",ROOT_DIR)
+            dirs_cache.add(ROOT_DIR,0)
+        }
 
         ;--- list directories first
-        if diskio.lf_start_list_dirs(filter) {
+        if diskio.lf_start_list_dirs(filter_dir) {
             while diskio.lf_next_entry_nocase() {    
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
@@ -54,11 +58,12 @@ files_folders {
         file_error = false
 
         clear_files()
+        void strings.ncopy(filter,filter_files,35)
         void strings.copy(diskio.curdir(),current_folder)    
         ;debug.say(current_folder)
 
         ;--- then list files
-        if diskio.lf_start_list_files(filter) {
+        if diskio.lf_start_list_files(filter_files) {
             while diskio.lf_next_entry_nocase() {
                 void strings.copy(diskio.list_filename, tmp_str)
                 void strings.lower(tmp_str)    
