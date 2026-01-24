@@ -102,7 +102,7 @@ process_keys {
                         break
                     }
                     if keys.E_PRESSED in last_keys {            ;--- edit new-blank file
-                        menus.ALT_PRESSED = false
+                        menus.ALT_PRESSED = false               ;--- getting stuck on sometimes
                         screen.store()
                         helpers.edit_file("")
                         flags.refresh_scrn = true   ;--- new file? check file count - then compare?
