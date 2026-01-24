@@ -127,7 +127,6 @@ main {
 
         if menus.mode == menus.DIR and not dirs_cache.current.logged {
             ;--- loads dir in file panel but NO focus
-            debug.say(dirs_cache.current.name)
             dirs_cache.current.logged = true
             alias spath = g_tmp_str_buffer1
             strings_ext.concat_strings("/",dirs_cache.current.name,spath)
