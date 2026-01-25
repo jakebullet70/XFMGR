@@ -165,6 +165,8 @@ files_cache {
     sub show_not_logged(){
         clear_panel()
         helpers.print_strXY(LEFT_COL,TOP_ROW,cp437:"Not Logged",theme.TXT_NORMAL,false)
+        files_folders.clear_files()
+        print_stats()
     }
 
     sub clear_panel(){
@@ -241,30 +243,6 @@ files_cache {
             txt.setclr(charpos, cx16.r1L, colors)
         }
     }
-
-    sub print_stats() {
-        ; TODO needs refactor
-        alias i = main.i
-        alias real_num = main.j
-        ;i = txt.height() - 6
-        i = 3
-        helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:    ]",theme.BOXES,false)
-        ;helpers.print_strXY(78,i,cp437:"]",theme.BOXES,false)
-        helpers.print_strXY(57,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,false)
-        helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
-        helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,false)
-
-        ; str i2 = "?"*24
-        ; str i1 = "?"*24
-        ; strings_ext.concat_strings("top ndx:",conv.str_ub(top_index),i1)
-        ; strings_ext.concat_strings("rec num:",conv.str_ub(current.rec_num),i2)
-        ; helpers.print_strXY(52,50,"                     ",theme.TXT_NORMAL,false)
-        ; helpers.print_strXY(52,51,"                     ",theme.TXT_NORMAL,false)
-        ; helpers.print_strXY(52,50,i1,theme.TXT_NORMAL,false)
-        ; helpers.print_strXY(52,51,i2,theme.TXT_NORMAL,false)
-
-    }
-
 
     sub add(str name, uword blocks) {
         ;--- Create new entry
@@ -350,7 +328,32 @@ files_cache {
         return 0  ; Not found - should not happen
     }
 
+    sub print_stats() {
+        ; TODO needs refactor
+        alias i = main.i
+        alias real_num = main.j
+        ;alias x = main.x
+        ;i = txt.height() - 6
+        i = 3
+        helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:    ]",theme.BOXES,false)
+        if num_files == 0 {
+            helpers.print_strXY(57,i,conv.str_ub(0),theme.TXT_NORMAL,false)
+        } else { 
+            helpers.print_strXY(57,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,false) 
+        }
+        helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,false)
+        helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,false)
 
+        ; str i2 = "?"*24
+        ; str i1 = "?"*24
+        ; strings_ext.concat_strings("top ndx:",conv.str_ub(top_index),i1)
+        ; strings_ext.concat_strings("rec num:",conv.str_ub(current.rec_num),i2)
+        ; helpers.print_strXY(52,50,"                     ",theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(52,51,"                     ",theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(52,50,i1,theme.TXT_NORMAL,false)
+        ; helpers.print_strXY(52,51,i2,theme.TXT_NORMAL,false)
+
+    }
 
 
 }

@@ -48,8 +48,7 @@ files_folders {
     
     sub clear_files() {
         arena_files.free_all()
-        files_cache.num_files = 0  
-        counted_files = 0
+        files_cache.selected_line_on_page = files_cache.num_files = files_cache.num_tagged = counted_files = 0
         void strings.copy(iso:"",current_folder) ; clear old
     }
 

@@ -74,9 +74,8 @@ main {
         menus.mode = menus.DIR 
         menus.draw()
         
-        const ubyte ROOT_LEVEL = 0
-        read_dir(8,"*",ROOT_LEVEL)
-        read_files(8,"*.*","/")
+        read_dir(8,"*",0)           ;--- 0 = ROOT level
+        read_files(8,"*.*","/")     ;--- again, ROOT
         select_focus2()
 
         custom_keyboard_handler_on_off(true)    ;--- set custom KB handler ==> sub &kb_handler
@@ -92,22 +91,38 @@ main {
         ;txt.uppercase()
         txt.clear_screen()
         txt.print("bye!")
-        ;--- restore the startup dir: TODO, ALT-Q i think exits to current dir, not startup
+        ;--- restore the startup dir: TODO, ALT-Q, i think exits to current dir, Q exits startup
         diskio.chdir(start_dir) 
         return
 
     }    
 
+    ;=========================================================================
+
+    sub update_stats() {
+        dirs_cache.print_stats()
+        files_cache.print_stats()
+        update_stats_main()
+    }
+
+    sub update_stats_main() { 
+    }
+
+
+
+    ;=========================================================================
+
     sub read_dir(ubyte drv, str filter, ubyte level) {
         dirs_cache.init_clear()
-        void files_folders.load_dirs(drv,filter,level)      
+        void files_folders.load_dirs(drv,filter,level)   ;--- adds files into existing dir_cache   
         dirs_cache.draw_dirs_2_scrn()
     }
+
     
     sub read_files(ubyte drv, str filter,str path) {
         diskio.chdir(path)
         files_cache.init_clear()
-        void files_folders.load_files(drv,filter)        ;--- read files into files_cache
+        void files_folders.load_files(drv,filter)        ;--- clears & reads files into files_cache
         files_cache.draw_files_2_scrn(0)
     }
         
@@ -121,23 +136,26 @@ main {
             files_cache.lost_focus()
         }
         menus.draw()
+        update_stats()
     }
 
     sub select_focus() {
 
         if menus.mode == menus.DIR and not dirs_cache.current.logged {
-            ;--- loads dir in file panel but NO focus
+            ;--- loads pointed dir files into file panel but NO focus
             dirs_cache.current.logged = true
             alias spath = g_tmp_str_buffer1
             strings_ext.concat_strings("/",dirs_cache.current.name,spath)
             read_files(diskio.drivenumber,files_folders.filter_files,spath)
             files_cache.lost_focus()
+            files_cache.print_stats()
             return
         }
         menus.mode = if menus.mode == menus.FILE then menus.DIR else menus.FILE
         select_focus2()
     }
 
+    ;=========================================================================
 
 
     
@@ -171,17 +189,15 @@ main {
                 continue
             }
 
+            ;----------------
             get_key_again:
-                ;debug.say("start-get-kb")
-                ;cx16.kbdbuf_clear()
-                ;keycode_ext = keycode = 0               ;--- reset key vars, keycode_ext var contains modifer key
-                void,keycode = cbm.GETIN()              ;--- custom KB handler points to ==> &kb_handler
-                ;keycode = cx16.kbdbuf_get()
-                if keycode == 0 and keycode_ext == 0 goto get_key_again
+            ;----------------
+            ;keycode_ext = keycode = 0               ;--- reset key vars, keycode_ext var contains modifer key
+            void,keycode = cbm.GETIN()              ;--- custom KB handler points to ==> &kb_handler
+            ;keycode = cx16.kbdbuf_get()
+            if keycode == 0 and keycode_ext == 0 goto get_key_again
+        
             
-            
-
-
             if not menus.CTRL_PRESSED and not menus.ALT_PRESSED {
                 ;--- key strokes - movement up / down / pgup / pgdn
                 ;debug.say2("keycode:",keycode)

@@ -53,7 +53,7 @@ dirs_cache {
 
         ;     selected_line = num_visible_dirs - 1
         ;     select_line(selected_line)
-        ;     print_status()
+        ;     print_stats()
         ; }
     }
 
@@ -66,7 +66,7 @@ dirs_cache {
 
         ; selected_line = 0
         ; select_line(0)
-        ; print_status() 
+        ; print_stats() 
     }
 
     sub key_up() { 
@@ -118,10 +118,11 @@ dirs_cache {
         line_color(selected_line, theme.ROW_HILIGHT)
         if current.rec_num == 1 { ;--- ONLY read ROOT?
             main.read_files(diskio.drivenumber,files_folders.filter_files,"/")
+            files_cache.print_stats()
         }  else {
             files_cache.show_not_logged()
         }
-        print_status()
+        print_stats() ;-- dir stats
     }
 
     sub scroll_list_forward() {
@@ -238,9 +239,8 @@ dirs_cache {
         }
     }
 
-    sub print_status() {
-        ;--- not sure what to do with this yet
-        ;--- being used in files though
+    sub print_stats() {
+        ;--- stats on folders
     }
 
     sub create(str name, ubyte level) -> ^^Entry {
