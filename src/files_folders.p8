@@ -31,9 +31,6 @@ files_folders {
         if diskio.lf_start_list_dirs(filter_dir) {
             while diskio.lf_next_entry_nocase() {    
                 void strings.copy(diskio.list_filename, tmp_str)
-                ;void strings.lower_iso(tmp_str)    
-                ;strings_ext.concat_strings("[",tmp_str,tmp_str0)
-                ;strings_ext.concat_strings(tmp_str0,"]",tmp_str)
                 dirs_cache.add(tmp_str,dir_level)
                 counted_dir++   
             }
@@ -66,8 +63,7 @@ files_folders {
         ;--- then list files
         if diskio.lf_start_list_files(filter_files) {
             while diskio.lf_next_entry_nocase() {
-                void strings.copy(diskio.list_filename, tmp_str)
-                ;void strings.lower_iso(tmp_str)    
+                void strings.copy(diskio.list_filename, tmp_str)   
                 files_cache.add(tmp_str,diskio.list_blocks)
                 counted_files++       
             }
