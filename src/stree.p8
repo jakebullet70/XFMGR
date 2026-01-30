@@ -87,7 +87,7 @@ main {
         ;---------------------------------------------
         main_key_loop()
         ;---------------------------------------------
-        ;--- End, lets bail from here!
+        ;--- !!!! End, lets bail from here !!!!
         ;---------------------------------------------
         custom_keyboard_handler_on_off(false)       ;--- restore old KB handler
         txt.iso_off()
@@ -111,16 +111,7 @@ main {
     sub update_stats_main() { 
     }
 
-
-
     ;=========================================================================
-
-    ; sub read_dir(ubyte drv, str filter, ubyte level) {
-    ;     dirs_cache.init_clear()
-    ;     void files_folders.load_dirs(drv,filter,level)   ;--- adds files into existing dir_cache   
-    ;     dirs_cache.draw_dirs_2_scrn()
-    ; }
-
     
     sub read_files(ubyte drv, str filter,str path) {
         diskio.chdir(path)
@@ -129,6 +120,7 @@ main {
         files_cache.draw_files_2_scrn(0)
     }
         
+    ;=========================================================================
 
     sub select_focus2() {
         if menus.mode == menus.FILE {
@@ -159,8 +151,8 @@ main {
     }
 
     ;=========================================================================
-
-
+    ;=========================================================================
+    ;=========================================================================
     
     ;--- main character input loop       
     sub main_key_loop() {
@@ -192,6 +184,7 @@ main {
                 continue
             }
 
+            
             ;----------------
             get_key_again:
             ;----------------
@@ -263,8 +256,8 @@ main {
     ;--------------------------------------------------------------------------
 
     sub clear_kb() {
-        cx16.kbdbuf_clear()
-        for i in 0 to 4 { ;--- clear the kb stack 
+        cx16.kbdbuf_clear() ;--- clear the kb buffer
+        for i in 0 to 4 {   ;--- clear the kb modifer queue
             last_keys[i] = 0    
         }
     }
