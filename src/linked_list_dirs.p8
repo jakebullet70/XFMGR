@@ -70,6 +70,7 @@ dirs_cache {
     }
 
     sub key_up() { 
+        if selected_line + top_index == 0 return ;--- already at top
         line_color(selected_line, theme.TXT_NORMAL)
         if selected_line > 0 {
             current.logged = false
@@ -98,6 +99,7 @@ dirs_cache {
     }
     
     sub key_down() {
+        if selected_line + top_index + 1 == num_dirs  return ;--- already at bottom
         if num_dirs > 0 {
             line_color(selected_line, theme.TXT_NORMAL)
             if selected_line < num_visible_dirs - 1 {
