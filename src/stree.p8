@@ -74,10 +74,13 @@ main {
         menus.mode = menus.DIR 
         menus.draw()
         
-        read_dir(8,"*",0)           ;--- 0 = ROOT level
-        read_files(8,"*.*","/")     ;--- again, ROOT
+        ;--- 1st SD read -----------------------------
+        dirs_cache.init_clear()
+        void files_folders.load_dirs(8,"*",0)   ;--- 0 = ROOT level
+        dirs_cache.draw_dirs_2_scrn()
+        read_files(8,"*.*","/")                 ;--- / = ROOT level
         select_focus2()
-
+        ;--------------------------------------------
         custom_keyboard_handler_on_off(true)    ;--- set custom KB handler ==> sub &kb_handler
         ;---------------------------------------------
         ;--- Main key loop!  
@@ -112,11 +115,11 @@ main {
 
     ;=========================================================================
 
-    sub read_dir(ubyte drv, str filter, ubyte level) {
-        dirs_cache.init_clear()
-        void files_folders.load_dirs(drv,filter,level)   ;--- adds files into existing dir_cache   
-        dirs_cache.draw_dirs_2_scrn()
-    }
+    ; sub read_dir(ubyte drv, str filter, ubyte level) {
+    ;     dirs_cache.init_clear()
+    ;     void files_folders.load_dirs(drv,filter,level)   ;--- adds files into existing dir_cache   
+    ;     dirs_cache.draw_dirs_2_scrn()
+    ; }
 
     
     sub read_files(ubyte drv, str filter,str path) {
