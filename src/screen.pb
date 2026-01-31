@@ -8,19 +8,19 @@
 ' //     forth which we don't want here.
 ' // =============================================================================
 
-Import buffers
+IMPORT buffers
 
-Module screen
+MODULE screen
 
-    Const VERA_TXTSCREEN As Uword = $b000
-    Const SCREENDUMP_BANK1 As Ubyte = 62
-    Const SCREENDUMP_BANK2 As Ubyte = 63
+    CONST VERA_TXTSCREEN AS UWORD = $b000
+    CONST SCREENDUMP_BANK1 AS UBYTE = 62
+    CONST SCREENDUMP_BANK2 AS UBYTE = 63
 
-    Sub store()
+    SUB store()
 
         '--- re-use global vars
-        Alias loopSize = main.uword_tmp1
-        Alias dataValue = main.x
+        ALIAS loopSize = main.uword_tmp1
+        ALIAS dataValue = main.x
 
         cx16.vaddr_autoincr(1, VERA_TXTSCREEN, 0, 1)
 
@@ -34,7 +34,7 @@ Module screen
         
         loopSize = ringbuffer.tail - ringbuffer.head
 
-        Repeat loopSize
+        REPEAT loopSize
         
             dataValue = cx16.VERA_DATA0
 
@@ -43,13 +43,13 @@ Module screen
             ringbuffer.fill++
             ringbuffer.inc_head()
 
-        End Repeat
+        END REPEAT
 
         ' Second 8kb
         ringbuffer.init(SCREENDUMP_BANK2)
         cx16.rambank(SCREENDUMP_BANK2)
 
-        Repeat loopSize
+        REPEAT loopSize
         
             dataValue = cx16.VERA_DATA0
 
@@ -58,17 +58,17 @@ Module screen
             ringbuffer.fill++
             ringbuffer.inc_head()
         
-        End Repeat
+        END REPEAT
 
         ' Restore ram bank
         cx16.rambank(sys.pop())
-    End Sub
+    END SUB
 
-    Sub restore()
+    SUB restore()
 
         ' Use global vars
-        Alias loopSize = main.uword_tmp1
-        Alias dataValue = main.x
+        ALIAS loopSize = main.uword_tmp1
+        ALIAS dataValue = main.x
 
         cx16.vaddr_autoincr(1, VERA_TXTSCREEN, 0, 1)
 
@@ -82,7 +82,7 @@ Module screen
         
         loopSize = ringbuffer.tail - ringbuffer.head
 
-        Repeat loopSize
+        REPEAT loopSize
 
             dataValue = Peek(ringbuffer.head)
 
@@ -91,13 +91,13 @@ Module screen
             ringbuffer.fill++
             ringbuffer.inc_head()
         
-        End Repeat
+        END REPEAT
 
         ' Second 8kb
         ringbuffer.init(SCREENDUMP_BANK2)
         cx16.rambank(SCREENDUMP_BANK2)
 
-        Repeat loopSize
+        REPEAT loopSize
 
             dataValue = Peek(ringbuffer.head)
 
@@ -106,9 +106,9 @@ Module screen
             ringbuffer.fill++
             ringbuffer.inc_head()
 
-        End Repeat
+        END REPEAT
 
         ' Restore ram bank
         cx16.rambank(sys.pop())
-    End Sub
-End Module
+    END SUB
+END MODULE
