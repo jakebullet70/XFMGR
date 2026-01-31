@@ -33,13 +33,13 @@ MODULE dirs_cache
     
     '--- vars for movement
     DIM top_index AS UBYTE = 0
-    DIM selected_line, num_visible_dirs AS UBYTE
+    DIM selected_line_on_page, num_visible_dirs AS UBYTE
     DIM max_lines AS UBYTE = txt.height() - 12
 
     DIM current AS ^^Entry
 
     SUB init_clear() 
-       selected_line = num_visible_dirs = num_dirs = top_index = 0 
+       selected_line_on_page = num_visible_dirs = num_dirs = top_index = 0 
     END SUB
 
     SUB key_page_down() 
@@ -47,12 +47,12 @@ MODULE dirs_cache
         '--- BUG!  Scroll and do page up-dn
         ' if num_dirs > 0 {
         '     ' next page of lines
-        '     unselect_line(selected_line)
-        '     if selected_line == max_lines - 1
+        '     unselect_line(selected_line_on_page)
+        '     if selected_line_on_page == max_lines - 1
         '         repeat max_lines scroll_list_forward()
 
-        '     selected_line = num_visible_dirs - 1
-        '     select_line(selected_line)
+        '     selected_line_on_page = num_visible_dirs - 1
+        '     select_line(selected_line_on_page)
         '     print_stats()
         ' }
     END SUB
@@ -60,22 +60,22 @@ MODULE dirs_cache
     SUB key_page_up() 
         debug.say("p-up-HAS-BUG")
         '--- BUG!  Scroll and do page up-dn
-        ' line_color(selected_line, theme.TXT_NORMAL)
-        ' if selected_line==0
+        ' line_color(selected_line_on_page, theme.TXT_NORMAL)
+        ' if selected_line_on_page==0
         '     repeat max_lines scroll_list_backward()
 
-        ' selected_line = 0
+        ' selected_line_on_page = 0
         ' select_line(0)
         ' print_stats() 
     END SUB
 
     SUB key_up() 
-        IF selected_line + top_index = 0 THEN RETURN '--- already at top
-        line_color(selected_line, theme.TXT_NORMAL)
-        IF selected_line > 0 THEN
+        IF selected_line_on_page + top_index = 0 THEN RETURN '--- already at top
+        line_color(selected_line_on_page, theme.TXT_NORMAL)
+        IF selected_line_on_page > 0 THEN
             current.logged = FALSE
             current = current.prevEntry
-            selected_line--
+            selected_line_on_page--
         ELSEIF num_dirs > max_lines THEN
             scroll_list_backward()
         END IF
@@ -94,17 +94,17 @@ MODULE dirs_cache
             ' print new name at the top of the list
             txt.plot(LEFT_COL, TOP_ROW)
             current = current.prevEntry
-            print_dir_name(selected_line)
+            print_dir_name(selected_line_on_page)
         END IF
     END SUB
     
     SUB key_down() 
-        IF selected_line + top_index + 1 = num_dirs THEN RETURN '--- already at bottom
+        IF selected_line_on_page + top_index + 1 = num_dirs THEN RETURN '--- already at bottom
         IF num_dirs > 0 THEN
-            line_color(selected_line, theme.TXT_NORMAL)
-            IF selected_line < num_visible_dirs - 1 THEN
+            line_color(selected_line_on_page, theme.TXT_NORMAL)
+            IF selected_line_on_page < num_visible_dirs - 1 THEN
                 current.logged = FALSE
-                selected_line++ 
+                selected_line_on_page++ 
                 current = current.nextEntry
             ELSEIF num_dirs > max_lines THEN
                 scroll_list_forward()
@@ -117,7 +117,7 @@ MODULE dirs_cache
 
     SUB show_new_folder_or_not_logged() 
         'debug.say2(current.name,current.rec_num)
-        line_color(selected_line, theme.ROW_HILIGHT)
+        line_color(selected_line_on_page, theme.ROW_HILIGHT)
         IF current.rec_num = 1 THEN '--- ONLY read ROOT?
             main.read_files(diskio.drivenumber, files_folders.filter_files, "/")
             files_cache.print_stats()
@@ -135,7 +135,7 @@ MODULE dirs_cache
             ' print new name at the bottom of the list
             txt.plot(LEFT_COL, TOP_ROW + max_lines - 1)
             current = current.nextEntry
-            print_dir_name(selected_line)
+            print_dir_name(selected_line_on_page)
         END IF
      
     END SUB
@@ -195,7 +195,7 @@ MODULE dirs_cache
 
         current = head '--- reset TO top
         line_color(0,theme.ROW_HILIGHT)
-        selected_line = 0
+        selected_line_on_page = 0
     END SUB
 
     SUB print_dir_name(row AS UBYTE) 
@@ -222,11 +222,11 @@ MODULE dirs_cache
     END FUNCTION
 
     SUB set_focus() 
-        line_color(selected_line, theme.ROW_HILIGHT)
+        line_color(selected_line_on_page, theme.ROW_HILIGHT)
     END SUB
 
     SUB lost_focus() 
-        line_color(selected_line, theme.TXT_NORMAL)
+        line_color(selected_line_on_page, theme.TXT_NORMAL)
     END SUB
 
     SUB line_color(line AS UBYTE, colors AS UBYTE) 
