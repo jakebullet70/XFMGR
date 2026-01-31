@@ -136,7 +136,7 @@ MODULE main
 
     SUB select_focus()
 
-        IF menus.mode = menus.DIR AND NOT dirs_cache.current.logged THEN
+        IF menus.mode = menus.DIR AND (NOT dirs_cache.current.logged) THEN
             '--- loads pointed dir files into file panel but NO focus
             dirs_cache.current.logged = TRUE
             ALIAS spath = g_tmp_str_buffer1
@@ -158,7 +158,7 @@ MODULE main
     SUB main_key_loop()
         REPEAT
 
-            IF (NOT menus.CTRL_PRESSED AND NOT menus.ALT_PRESSED) THEN 
+            IF NOT menus.CTRL_PRESSED AND (NOT menus.ALT_PRESSED) THEN 
                 menus.clear_modifier_flags() 
             END IF
             
