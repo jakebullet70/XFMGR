@@ -242,7 +242,7 @@ MODULE main
             process_keys.letter_keys()           '--- process keys
             IF flags.exit_out THEN BREAK         '--- break out of loop
             
-        END REPEAT '--- repeat loop
+        END REPEAT 
     END SUB
 
    
