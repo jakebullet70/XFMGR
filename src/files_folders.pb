@@ -6,7 +6,7 @@ MODULE files_folders
     DIM ROOT_DIR AS STRING = "   "
     DIM current_folder AS STRING = "?" * main.DEF_PATH_LENGTH
 
-    DIM filter_dir AS STRING = "?"*25
+    DIM filter_dir AS STRING = "?"*25 ' NOT doing a filter on DIR's
     DIM filter_files AS STRING = "?"*35
     
     CONST FILE_MAX_LEN AS UBYTE = 40
@@ -19,7 +19,7 @@ MODULE files_folders
 
         arena_dirs.free_all()
         counted_dir = 0
-        VOID strings.ncopy(filter,filter_dir,25)
+        VOID strings.ncopy(filter,filter_dir,25)  ' NOT doing a filter on DIR's
 
         IF dir_level = 0 THEN
             counted_dir++   '--- dir level 0 - add ROOT
