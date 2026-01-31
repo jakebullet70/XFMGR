@@ -84,9 +84,9 @@ MODULE helpers
         plot_charXY(30,txt.height()-5,chr_tup,theme.BOXES)
         
         print_strXY(1 ,1,iso:"XFMGR V0.1.0",theme.TXT_NORMAL,FALSE)
-        print_strXY(63,1,iso:"Dec 29 - 02:30PM",theme.TXT_NORMAL,FALSE)
-        print_strXY(1 ,3,iso:"Path",theme.TXT_NORMAL,FALSE)
-        print_strXY(32,3,iso:"Files",theme.TXT_NORMAL,FALSE)
+        'print_strXY(63,1,iso:"Dec 29 - 02:30PM",theme.TXT_NORMAL,FALSE)
+        'print_strXY(1 ,3,iso:"Path",theme.TXT_NORMAL,FALSE)
+        'print_strXY(32,3,iso:"Files",theme.TXT_NORMAL,FALSE)
     END SUB
 
     SUB draw_horiz_line(col AS UBYTE, row AS UBYTE, width AS UBYTE)

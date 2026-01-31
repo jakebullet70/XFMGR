@@ -243,11 +243,24 @@ MODULE dirs_cache
 
     SUB print_stats() 
         '--- stats on folders
+        ALIAS tmp  = main.g_tmp_str_buffer3
+        ALIAS tmp1 = main.g_tmp_str_buffer2
+        ALIAS tmp2 = main.g_tmp_str_buffer1
+        helpers.print_strXY(1,3," "*20,theme.TXT_NORMAL,FALSE) 
+
+        strings_ext.concat_strings(iso:"Path:",files_folders.current_folder,tmp)
+        
+        IF NOT strings.endswith(tmp,"/") THEN
+            strings.append(tmp,"/")
+        END IF
+
+        strings_ext.concat_strings(tmp,files_folders.filter_dir,tmp1)
+        helpers.print_strXY(1,3,tmp1,theme.TXT_NORMAL,FALSE)
     END SUB
 
     FUNCTION create(name AS STRING, level AS UBYTE) AS ^^Entry
         DIM new_record AS ^^Entry = arena_dirs.alloc(SIZEOF(Entry))
-        DIM name_copy AS ^^UBYTE = arena_dirs.alloc(strings.length(name) + 1)
+        DIM name_copy AS ^^UBYTE  = arena_dirs.alloc(strings.length(name) + 1)
         VOID strings.copy(name, name_copy)
 
         num_dirs++

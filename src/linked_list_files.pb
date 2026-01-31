@@ -331,8 +331,6 @@ MODULE files_cache
         ' TODO needs refactor
         ALIAS i = main.i
         ALIAS real_num = main.j
-        'ALIAS x = main.x
-        'i = txt.height() - 6
         i = 3
         helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:    ]",theme.BOXES,FALSE)
         IF num_files = 0 THEN
@@ -342,6 +340,11 @@ MODULE files_cache
         END IF
         helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,FALSE)
         helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,FALSE)
+
+        ALIAS tmp = main.g_tmp_str_buffer3
+        strings_ext.concat_strings(iso:"Files:",files_folders.filter_files,tmp)
+        helpers.print_strXY(32,3,tmp,theme.TXT_NORMAL,FALSE)
+
 
         ' DIM i2 AS STRING = "?"*24
         ' DIM i1 AS STRING = "?"*24

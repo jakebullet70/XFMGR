@@ -109,6 +109,7 @@ MODULE main
     END SUB
 
     SUB update_stats_main() 
+        helpers.print_strXY(63,1,iso:"Dec 29 - 02:30PM",theme.TXT_NORMAL,FALSE)
     END SUB
 
     '=========================================================================
