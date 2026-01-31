@@ -26,7 +26,7 @@ MODULE files_cache
     CONST NOT_TAGGED AS BOOL = FALSE
     CONST LEFT_COL AS UBYTE = 32
     CONST TOP_ROW AS UBYTE = 6
-    DIM TAG_CHAR AS STRING = cp437:"♦"
+    DIM TAG_CHAR AS   STRING = cp437:"♦"
 
     'txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
     
@@ -135,7 +135,7 @@ MODULE files_cache
     SUB scroll_txt_down(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, fillchar AS UBYTE)
         ALIAS y = main.y
         ALIAS x = main.x
-        FOR y = row+height-1 DOWNTO row+1
+        FOR y = row+height-1 TO row+1 STEP -1
             FOR x = col TO col+width-1
                 txt.setchr(x,y, txt.getchr(x, y-1))
             NEXT
