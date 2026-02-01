@@ -13,11 +13,11 @@ MODULE keys
     '--- editing -------------------------------
     CONST LEFT_ARROW AS UBYTE = $4f
     CONST RIGHT_ARROW AS UBYTE = $59
-    CONST DELETE AS UBYTE = $cc
-    CONST INSERT AS UBYTE = $cb
-    CONST BACKSPACE AS UBYTE = $8f
-    CONST HOME AS UBYTE = $5b
-    CONST ENDKEY AS UBYTE = $5d
+    CONST DELETE AS UBYTE = $4c
+    CONST INSERT AS UBYTE = $4b
+    CONST BACKSPACE AS UBYTE = $0f
+    CONST HOME AS UBYTE = $50
+    CONST END_KEY AS UBYTE = $51
 
     '--- Up/Down hex codes ----------------------
     CONST Q_PRESSED AS UBYTE = $11
