@@ -223,8 +223,8 @@ MODULE process_keys
                         screen.restore()
                         BREAK
                     END IF
-                    IF keys.F_PRESSED IN last_keys THEN            '--- filespec
-                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    IF keys.F_PRESSED IN last_keys THEN            '--- filespec (file)                        
+                        flags.refresh_scrn = prompts.file_spec()   
                         BREAK
                     END IF
                     IF keys.L_PRESSED IN last_keys THEN            '--- log
@@ -259,12 +259,7 @@ MODULE process_keys
                         flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                         BREAK
                     END IF
-
-
                 END IF
-                
-
-                
             END IF
             BREAK
         END REPEAT '--- end fake loop, everything fires the break statement

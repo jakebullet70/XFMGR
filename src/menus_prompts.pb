@@ -20,12 +20,37 @@ MODULE prompts
     DIM UP_STR AS STRING = cp437:"↑"
     CONST PROMPT_LINE_2 AS UBYTE = 3
     CONST PROMPT_LINE_3 AS UBYTE = 2
+    CONST PROMPT_LINE_1 AS UBYTE = 4
+    'DIM STR_ENTER_FILE_SPEC AS STRING = cp437:"Enter file specification"
 
     'txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
 
 
+
+    FUNCTION file_spec() AS BOOL
+        prompt_txt(cp437:"Filespec:","",
+                   cp437:"Enter file specification                             History    Ok  ESC Cancel",0,14,2)
+        menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
+        draw_icons(53,63,txt.height()-2)
+        
+        'VOID strings.copy("*.*",input_str_ret_val)                                         '--- copy current fname to working str        
+        helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)    '--- show filespec
+        line_editor.get_txt(14,10,PROMPT_LINE_1,[keys.ESC],0,[keys.CR],0,"*.*")             '--- get txt loop
+
+        IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                '--- cancel, bye!
+        ' txt.plot(5,35)
+        ' txt.print(files_folders.current_folder)
+        ' txt.nl()
+        ' txt.print(input_str_ret_val)
+        
+        strings.strip(input_str_ret_val)
+        main.read_files(diskio.drivenumber,input_str_ret_val,files_folders.current_folder)
+        RETURN FALSE
+
+    END FUNCTION
     
-    SUB run_file()
+
+    FUNCTION run_file() AS BOOL
         prompt_txt(cp437:"EXECUTE File:",cp437:"",
                    cp437:"                                                     History    Ok  ESC Cancel",0,14,2)
         menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
@@ -35,11 +60,10 @@ MODULE prompts
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
         line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      '--- get txt loop
 
-        IF input_str_ret_val = CANCEL_INPUT THEN RETURN                                     '--- cancel, bye!
-        
-        
-        'exit(0)
-    END SUB
+        IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                     '--- cancel, bye!
+        RETURN FALSE
+    
+    END FUNCTION
 
     
     FUNCTION ask_exit() AS BOOL
@@ -98,9 +122,13 @@ MODULE prompts
         line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:"Y"c],0,"")
         RETURN FALSE
     END FUNCTION
-    
+
+
 
     '==============================================================================
+    '==============================================================================
+    '==============================================================================
+
 
      SUB draw_icons(col_arrow AS UBYTE, col_CR AS UBYTE, row AS UBYTE)
         IF col_arrow <> 0 THEN helpers.print_strXY(col_arrow,row,UP_STR,theme.MENU_BRIGHT,FALSE)
