@@ -275,9 +275,7 @@ MODULE process_keys
                 files_cache.print_stats()
             END IF
         END IF
-        ALIAS tmp = main.g_tmp_str_buffer2
-        strings_ext.concat_strings(iso:"Files:",files_folders.filter_files,tmp)
-        helpers.print_strXY(32,3,tmp,theme.TXT_NORMAL,FALSE)
+
         RETURN
     END SUB
 
