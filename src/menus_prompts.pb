@@ -8,6 +8,7 @@
 
 
 IMPORT line_editor
+IMPORT history_popup
 
 MODULE prompts
     ALIAS i = main.i
@@ -36,7 +37,8 @@ MODULE prompts
         'VOID strings.copy("*.*",input_str_ret_val)                                        
        ' helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)    '--- show filespec
         VOID strings.copy("*.*", input_str_ret_val)                              '--- working str        
-        line_editor.get_txt(14,10,PROMPT_LINE_1,[keys.ESC],0,[keys.CR],0)             '--- get txt loop
+        line_editor.get_txt(14,10,PROMPT_LINE_1,[keys.ESC],0,[keys.CR],0, 
+                                prompt_history.FILE_FILESPEC)             '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                '--- cancel, bye!
         ' txt.plot(5,35)
@@ -59,7 +61,7 @@ MODULE prompts
         
         VOID strings.copy(files_cache.current.name,input_str_ret_val)                  '--- copy current fname to working str        
         'helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0)                      '--- get txt loop
+        line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,prompt_history.NOTHING)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                     '--- cancel, bye!
         RETURN FALSE
@@ -71,7 +73,8 @@ MODULE prompts
         prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
         VOID strings.copy("",input_str_ret_val)                  '--- working str        
-        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,[cp437:"y"c,cp437:"Y"c],1)
+        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,
+                                [cp437:"y"c,cp437:"Y"c],1,prompt_history.NOTHING)
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE
         RETURN TRUE
     END FUNCTION
@@ -89,7 +92,7 @@ MODULE prompts
         
         VOID strings.copy(files_cache.current.name,input_str_ret_val)                   '--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,14,3,[keys.ESC],0,[keys.CR],0)                      '--- get txt loop
+        line_editor.get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,prompt_history.NOTHING)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                               '--- cancel, bye!
         
@@ -109,7 +112,8 @@ MODULE prompts
         
         helpers.print_strXY(13,txt.height()-4,files_cache.current.name,theme.MENU_BRIGHT,FALSE)  '--- show fname
         VOID strings.copy("",input_str_ret_val)                                                  '---  working str = none       
-        line_editor.get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,[cp437:"y"c,cp437:"Y"c],1)
+        line_editor.get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,
+                            [cp437:"y"c,cp437:"Y"c],1,prompt_history.NOTHING)
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE 
         IF NOT tagged_files THEN
             diskio.delete(files_cache.current.name)
@@ -124,7 +128,7 @@ MODULE prompts
         prompt_txt(cp437:"WORKING ON IT!",cp437:"",cp437:"Under construction: ------:                    ESC Cancel",1,28,3)
         menus.highlight_menu_keys([48,49,50],2,txt.height()-2,theme.MENU_BRIGHT)
         VOID strings.copy("",input_str_ret_val)  
-        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:"Y"c],0)
+        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:"Y"c],0,prompt_history.NOTHING)
         RETURN FALSE
     END FUNCTION
 

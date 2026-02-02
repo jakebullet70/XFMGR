@@ -13,7 +13,8 @@ MODULE line_editor
     
     SUB get_txt(p_length AS UBYTE, col AS UBYTE, adj_row AS UBYTE,
             cancel_keys[] AS UBYTE, cancel_keys_len AS UBYTE,
-            accept_keys[] AS UBYTE, accept_keys_len AS UBYTE)
+            accept_keys[] AS UBYTE, accept_keys_len AS UBYTE,
+            history_prompt_val AS UBYTE)
 
         '--- ESC is always cancel
         '---
@@ -71,6 +72,10 @@ MODULE line_editor
             END IF
             IF keys.RIGHT_ARROW IN main.last_keys THEN
                 IF ndx < files_folders.FILE_MAX_LEN THEN ndx++
+                GOTO restart_get_loop
+            END IF
+            IF keys.UP_ARROW IN main.last_keys THEN
+                prompt_history.popup(history_prompt_val)
                 GOTO restart_get_loop
             END IF
             '==============================================================
