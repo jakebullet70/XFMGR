@@ -140,12 +140,9 @@ MODULE line_editor
             IF break_out THEN BREAK
             IF p_length <> 1 THEN '--- do nothing if only a single char
                 j = txt.height() - adj_row
-                txt.color2(theme.MENU_BRIGHT & 15, theme.MENU_BRIGHT >> 4)
-                FOR i = 0 TO p_length - 1                       '--- clear old
-                    helpers.print_strXY2(col+i, j, " ")
-                NEXT
-                helpers.print_strXY2(col, j, input_str_ret_val) '--- print newly edited
-                txt.plot(col + ndx, j)
+                helpers.clear_section(col,j,p_length,1,theme.MENU_BRIGHT)   '--- clear old
+                helpers.print_strXY2( col,j,input_str_ret_val)              '--- print newly edited
+                txt.plot(col + ndx, j)                                      '--- plot cursor
             END IF
             cx16.blink_enable(TRUE)
             main.clear_kb()
