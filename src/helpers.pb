@@ -21,13 +21,27 @@ MODULE helpers
         txt.setcc2(col,row,char,colors)
     END SUB
 
+    SUB clear_section(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
+        ALIAS i = main.i        '--- re-use vars
+        ALIAS j = main.j        '--- re-use vars
+        txt.color2(colors BITAND 15, colors SHR 4)
+        FOR j = 0 TO height - 1
+            txt.plot(col, row + j)
+            FOR i = 0 TO width - 1
+                txt.chrout_lit(32)  '--- space character
+            NEXT
+        NEXT
+    END SUB
+
+
     SUB draw_box(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
         ALIAS rows = main.j     '--- re-use vars
         ALIAS i    = main.i     '--- re-use vars
         rows = txt.height()
         POKEW 903, 65 '--- change scrn height so no scroll  
 
-        draw_horiz_line(col,row,width)
+        txt.color2(colors BITAND 15, colors SHR 4)
+        draw_horiz_line(col,row,width,colors)
         txt.plot(col,row)
         txt.chrout_lit(chr_topleft)
         txt.plot(col+width-1,row)
@@ -40,7 +54,7 @@ MODULE helpers
              txt.chrout_lit(chr_vert)
         NEXT
         
-        draw_horiz_line(col,row+height-1,width)
+        draw_horiz_line(col,row+height-1,width,colors)
         txt.plot(col,row+height-1)
         txt.chrout_lit(chr_botleft)
         txt.plot(col+width-1,row+height-1)
@@ -76,10 +90,10 @@ MODULE helpers
     SUB draw_main_scrn()
         txt.clear_screen()
         draw_box(0,0,txt.width(), txt.height(), theme.BOXES)
-        draw_horiz_line(0,txt.height() - 5,txt.width())
-        draw_horiz_line(0,2,txt.width())
-        draw_horiz_line(0,4,txt.width())
-        draw_vert_line(30,4,txt.height()-5)
+        draw_horiz_line(0,txt.height() - 5,txt.width(),theme.BOXES)
+        draw_horiz_line(0,2,txt.width(),theme.BOXES)
+        draw_horiz_line(0,4,txt.width(),theme.BOXES)
+        draw_vert_line(30,4,txt.height()-5,theme.BOXES)
         plot_charXY(30,4,chr_tdown,theme.BOXES)
         plot_charXY(30,txt.height()-5,chr_tup,theme.BOXES)
         
@@ -89,24 +103,27 @@ MODULE helpers
         'print_strXY(32,3,iso:"Files",theme.TXT_NORMAL,FALSE)
     END SUB
 
-    SUB draw_horiz_line(col AS UBYTE, row AS UBYTE, width AS UBYTE)
+    SUB draw_horiz_line(col AS UBYTE, row AS UBYTE, width AS UBYTE, colors AS UBYTE)
         txt.plot(col,row)
-        txt.color2(theme.BOXES BITAND 15, theme.BOXES SHR 4)
+        txt.color2(colors BITAND 15, colors SHR 4)
         REPEAT width
             txt.chrout_lit(chr_horiz)
         END REPEAT
-        plot_charXY(col,row,chr_tleft,theme.BOXES)
-        plot_charXY(col+width-1,row,chr_tright,theme.BOXES)
+        plot_charXY(col,row,chr_tleft,colors)
+        plot_charXY(col+width-1,row,chr_tright,colors)
     END SUB
 
-    SUB draw_vert_line(col AS UBYTE, row AS UBYTE, height AS UBYTE)
+    SUB draw_vert_line(col AS UBYTE, row AS UBYTE, height AS UBYTE,colors AS UBYTE)
         ALIAS i = main.i        '--- re-use vars
+        txt.color2(colors BITAND 15, colors SHR 4)
         FOR i = 1 TO height - 2
              txt.plot(col,row+i)
              txt.chrout_lit(chr_vert)
         NEXT
     END SUB
 
+
+    '=======================================================================================
 
     SUB edit_file(filename AS UWORD)
         ' activate rom based x16edit, see https://github.com/stefan-b-jakobsson/x16-edit/tree/master/docs
