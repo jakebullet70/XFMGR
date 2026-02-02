@@ -3,6 +3,7 @@
 MODULE helpers
     DIM chr_topleft, chr_topright, chr_botleft, chr_botright AS UBYTE
     DIM chr_tleft, chr_tright, chr_tup, chr_tdown, chr_horiz, chr_vert AS UBYTE
+    DIM i,j AS UBYTE    
     
 
     SUB print_strXY(col AS UBYTE, row AS UBYTE, txtstring AS STRING, colors AS UBYTE, convertchars AS BOOL)
@@ -22,21 +23,18 @@ MODULE helpers
     END SUB
 
     SUB clear_section(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
-        ALIAS i = main.i        '--- re-use vars
-        ALIAS j = main.j        '--- re-use vars
         txt.color2(colors BITAND 15, colors SHR 4)
         FOR j = 0 TO height - 1
             txt.plot(col, row + j)
-            FOR i = 0 TO width - 1
-                txt.chrout_lit(32)  '--- space character
-            NEXT
+            REPEAT width 
+                txt.chrout_lit(32)
+            END REPEAT
         NEXT
     END SUB
 
 
     SUB draw_box(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
-        ALIAS rows = main.j     '--- re-use vars
-        ALIAS i    = main.i     '--- re-use vars
+        ALIAS rows = j  
         rows = txt.height()
         POKEW 903, 65 '--- change scrn height so no scroll  
 
@@ -114,7 +112,7 @@ MODULE helpers
     END SUB
 
     SUB draw_vert_line(col AS UBYTE, row AS UBYTE, height AS UBYTE,colors AS UBYTE)
-        ALIAS i = main.i        '--- re-use vars
+        'ALIAS i = main.i        '--- re-use vars
         txt.color2(colors BITAND 15, colors SHR 4)
         FOR i = 1 TO height - 2
              txt.plot(col,row+i)
