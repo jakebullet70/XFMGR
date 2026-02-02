@@ -13,7 +13,7 @@ MODULE line_editor
     
     SUB get_txt(p_length AS UBYTE, col AS UBYTE, adj_row AS UBYTE,
             cancel_keys[] AS UBYTE, cancel_keys_len AS UBYTE,
-            accept_keys[] AS UBYTE, accept_keys_len AS UBYTE, text AS STRING)
+            accept_keys[] AS UBYTE, accept_keys_len AS UBYTE)
 
         '--- ESC is always cancel
         '---
@@ -31,9 +31,9 @@ MODULE line_editor
         main.clear_kb()
 
         '--- Initialize input_str_ret_val from text parameter
-        VOID strings.copy(text, input_str_ret_val)
+        
         ndx = strings.length(input_str_ret_val) 
-        IF text <> "" THEN 
+        IF ndx > 0 THEN 
             helpers.print_strXY(col, txt.height() - adj_row, input_str_ret_val, theme.MENU_BRIGHT, FALSE)
         END IF
         
