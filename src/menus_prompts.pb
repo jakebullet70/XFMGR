@@ -33,9 +33,10 @@ MODULE prompts
         menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
         draw_icons(53,63,txt.height()-2)
         
-        'VOID strings.copy("*.*",input_str_ret_val)                                         '--- copy current fname to working str        
-        helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)    '--- show filespec
-        line_editor.get_txt(14,10,PROMPT_LINE_1,[keys.ESC],0,[keys.CR],0,"*.*")             '--- get txt loop
+        'VOID strings.copy("*.*",input_str_ret_val)                                        
+       ' helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)    '--- show filespec
+        VOID strings.copy("*.*", input_str_ret_val)                              '--- working str        
+        line_editor.get_txt(14,10,PROMPT_LINE_1,[keys.ESC],0,[keys.CR],0)             '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                '--- cancel, bye!
         ' txt.plot(5,35)
@@ -45,7 +46,7 @@ MODULE prompts
         
         strings.strip(input_str_ret_val)
         main.read_files(diskio.drivenumber,input_str_ret_val,files_folders.current_folder)
-        RETURN FALSE
+        RETURN TRUE
 
     END FUNCTION
     
@@ -56,9 +57,9 @@ MODULE prompts
         menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
         draw_icons(53,63,txt.height()-2)
         
-        'VOID strings.copy(files_cache.current.name,input_str_ret_val)                  '--- copy current fname to working str        
-        helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      '--- get txt loop
+        VOID strings.copy(files_cache.current.name,input_str_ret_val)                  '--- copy current fname to working str        
+        'helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
+        line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                     '--- cancel, bye!
         RETURN FALSE
@@ -69,7 +70,8 @@ MODULE prompts
     FUNCTION ask_exit() AS BOOL
         prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
-        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,[cp437:"y"c,cp437:"Y"c],1,"")
+        VOID strings.copy("",input_str_ret_val)                  '--- working str        
+        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,[cp437:"y"c,cp437:"Y"c],1)
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE
         RETURN TRUE
     END FUNCTION
@@ -87,7 +89,7 @@ MODULE prompts
         
         VOID strings.copy(files_cache.current.name,input_str_ret_val)                   '--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,input_str_ret_val)                      '--- get txt loop
+        line_editor.get_txt(1,14,3,[keys.ESC],0,[keys.CR],0)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                               '--- cancel, bye!
         
@@ -104,8 +106,10 @@ MODULE prompts
         '--- if tagged_files=true then delete multi files
         prompt_txt(cp437:"DELETE File:",cp437:"",cp437:"Delete this file?                   [N]o  Yes  ESC Cancel",1,28,3)
         menus.highlight_menu_keys([38,43,48,49,50],4,txt.height()-2,theme.MENU_BRIGHT)
+        
         helpers.print_strXY(13,txt.height()-4,files_cache.current.name,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,[cp437:"y"c,cp437:"Y"c],1,"")
+        VOID strings.copy("",input_str_ret_val)                                                  '---  working str = none       
+        line_editor.get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,[cp437:"y"c,cp437:"Y"c],1)
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE 
         IF NOT tagged_files THEN
             diskio.delete(files_cache.current.name)
@@ -119,7 +123,8 @@ MODULE prompts
     FUNCTION not_done_yet(dummy AS BOOL) AS BOOL
         prompt_txt(cp437:"WORKING ON IT!",cp437:"",cp437:"Under construction: ------:                    ESC Cancel",1,28,3)
         menus.highlight_menu_keys([48,49,50],2,txt.height()-2,theme.MENU_BRIGHT)
-        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:"Y"c],0,"")
+        VOID strings.copy("",input_str_ret_val)  
+        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,keys.CR],1,[cp437:"Y"c],0)
         RETURN FALSE
     END FUNCTION
 
