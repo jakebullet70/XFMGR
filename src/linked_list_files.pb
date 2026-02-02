@@ -340,14 +340,10 @@ MODULE files_cache
         END IF
         helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,FALSE)
         helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,FALSE)
-
         
         ALIAS tmp = main.g_tmp_str_buffer2
         strings_ext.concat_strings(iso:"Files:",files_folders.filter_files,tmp)
-        txt.plot(32,3)
-        FOR i = 0 TO 17                       '--- clear old
-            helpers.print_strXY2(32+i,3, " ")
-        NEXT
+        helpers.clear_section(32,3,17,1,theme.TXT_NORMAL)   '--- clear old
         helpers.print_strXY(32,3,tmp,theme.TXT_NORMAL,FALSE)
 
 
