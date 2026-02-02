@@ -13,6 +13,7 @@ MODULE keys
     '--- editing -------------------------------
     CONST LEFT_ARROW AS UBYTE = $4f
     CONST RIGHT_ARROW AS UBYTE = $59
+    CONST UP_ARROW AS UBYTE = $53
     CONST DELETE AS UBYTE = $4c
     CONST INSERT AS UBYTE = $4b
     CONST BACKSPACE AS UBYTE = $0f
