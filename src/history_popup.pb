@@ -47,4 +47,6 @@ MODULE prompt_history
 
     SUB append_2_hist_file(fname AS STRING)
 
+    END SUB
+
 END MODULE
