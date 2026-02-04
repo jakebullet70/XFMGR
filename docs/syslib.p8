@@ -127,7 +127,7 @@ asmsub RDTIM16() clobbers(X) -> uword @AY {
     }}
 }
 
-asmsub SETTIML(long jiffies @R0R1_32) {
+asmsub SETTIML(long jiffies @R0R1) {
     ; -- just like SETTIM, but with a single 32 bit (lower 24 bits used) argument.
     %asm {{
         lda  cx16.r0
@@ -137,7 +137,7 @@ asmsub SETTIML(long jiffies @R0R1_32) {
     }}
 }
 
-asmsub RDTIML() clobbers(X) -> long @R0R1_32 {
+asmsub RDTIML() clobbers(X) -> long @R0R1 {
     ; --  like RDTIM_safe() and returning the timer value as a 32 bit (lower 24 bits used) value.
     %asm {{
         jsr  RDTIM_safe
@@ -412,10 +412,9 @@ cx16 {
     &ubyte  VERA_FX_ACCUM       = VERA_BASE + $000a
     &ubyte  VERA_FX_ACCUM_RESET = VERA_BASE + $0009
 
-
-; VERA_PSG_BASE     = $1F9C0
-; VERA_PALETTE_BASE = $1FA00
-; VERA_SPRITES_BASE = $1FC00
+    const long VERA_PSG_BASE     = $1F9C0
+    const long VERA_PALETTE_BASE = $1FA00
+    const long VERA_SPRITES_BASE = $1FC00
 
 ; I/O
 
@@ -424,10 +423,13 @@ cx16 {
     &ubyte  via1pra    = VIA1_BASE + 1
     &ubyte  via1ddrb   = VIA1_BASE + 2
     &ubyte  via1ddra   = VIA1_BASE + 3
+    &uword  via1t1     = VIA1_BASE + 4
     &ubyte  via1t1l    = VIA1_BASE + 4
     &ubyte  via1t1h    = VIA1_BASE + 5
+    &uword  via1t1lw   = VIA1_BASE + 6
     &ubyte  via1t1ll   = VIA1_BASE + 6
     &ubyte  via1t1lh   = VIA1_BASE + 7
+    &uword  via1t2     = VIA1_BASE + 8
     &ubyte  via1t2l    = VIA1_BASE + 8
     &ubyte  via1t2h    = VIA1_BASE + 9
     &ubyte  via1sr     = VIA1_BASE + 10
@@ -437,15 +439,18 @@ cx16 {
     &ubyte  via1ier    = VIA1_BASE + 14
     &ubyte  via1ora    = VIA1_BASE + 15
 
-    const uword  VIA2_BASE   = $9f10                  ;VIA 6522 #2
+    const uword  VIA2_BASE   = $9f10                  ;VIA 6522 #2, not always present
     &ubyte  via2prb    = VIA2_BASE + 0
     &ubyte  via2pra    = VIA2_BASE + 1
     &ubyte  via2ddrb   = VIA2_BASE + 2
     &ubyte  via2ddra   = VIA2_BASE + 3
+    &uword  via2t1     = VIA2_BASE + 4
     &ubyte  via2t1l    = VIA2_BASE + 4
     &ubyte  via2t1h    = VIA2_BASE + 5
+    &uword  via2t1lw   = VIA2_BASE + 6
     &ubyte  via2t1ll   = VIA2_BASE + 6
     &ubyte  via2t1lh   = VIA2_BASE + 7
+    &uword  via2t2     = VIA2_BASE + 8
     &ubyte  via2t2l    = VIA2_BASE + 8
     &ubyte  via2t2h    = VIA2_BASE + 9
     &ubyte  via2sr     = VIA2_BASE + 10
@@ -545,7 +550,7 @@ extsub $ff68 = mouse_config(byte shape @A, ubyte resX @X, ubyte resY @Y)  clobbe
 extsub $ff6b = mouse_get(ubyte zdataptr @X) -> ubyte @A, byte @X    ;  use mouse_pos() instead
 extsub $ff71 = mouse_scan()  clobbers(A, X, Y)
 extsub $ff53 = joystick_scan()  clobbers(A, X, Y)
-extsub $ff56 = joystick_get(ubyte joynr @A) -> uword @AX, bool @Y   ; note: everything is inverted even the boolean present flag.  Also see detect_joysticks() and get_all_joysticks()
+extsub $ff56 = joystick_get(ubyte joynr @A) -> uword @AX, bool @Y   ; note: everything is inverted even the boolean present flag.  Also see joysticks_detect() and joysticks_getall()
 
 ; X16Edit (rom bank 13/14 but you ideally should use the routine search_x16edit() to search for the correct bank)
 extsub $C000 = x16edit_default() clobbers(A,X,Y)
@@ -553,6 +558,11 @@ extsub $C003 = x16edit_loadfile(ubyte firstbank @X, ubyte lastbank @Y, str filen
 extsub $C006 = x16edit_loadfile_options(ubyte firstbank @X, ubyte lastbank @Y, str filename @R0,
                 uword filenameLengthAndOptions @R1, uword tabstopAndWordwrap @R2,
                 uword disknumberAndColors @R3, uword headerAndStatusColors @R4) clobbers(A,X,Y)
+; note: the following routine is not yet available in currently released ROMS (v49) hopefully the updated X16Edit will be in r50.
+extsub $C009 = x16edit_loadfile_options2(ubyte firstbank @X, ubyte lastbank @Y, str filename @R0,
+                uword filenameLengthAndOptions @R1, uword tabstopAndWordwrap @R2,
+                uword disknumberAndColors @R3, uword headerAndStatusColors @R4,
+                uword linenumberLM @R5, ubyte linenumberH @R6) clobbers(A,X,Y)
 
 ; Audio (rom bank 10)
 ; NOTE: because these are auto-banked, you should not call them from an IRQ handler routine (due to jsrfar race condition).
@@ -641,6 +651,10 @@ const ubyte  EXTAPI16_stack_push = $01
 const ubyte  EXTAPI16_stack_pop = $02
 const ubyte  EXTAPI16_stack_enter_kernal_stack = $03
 const ubyte  EXTAPI16_stack_leave_kernal_stack = $04
+const ubyte  EXTAPI16_xmacptr = $05
+const ubyte  EXTAPI16_xmciout = $06
+const ubyte  EXTAPI16_hbload = $07
+const ubyte  EXTAPI16_get_last_far_bank = $08
 
 
 asmsub set_screen_mode(ubyte mode @A) clobbers(A,X,Y) {
@@ -1240,7 +1254,7 @@ asmsub restore_vera_context() clobbers(A) {
 
     asmsub set_chrin_keyhandler(ubyte handlerbank @A, uword handler @XY) clobbers(A) {
         ; Install a custom CHRIN (BASIN) key handler in a safe manner. Call this before each line you want to read.
-        ; See https://github.com/X16Community/x16-docs/blob/101759f3bfa5e6cce4e8c5a0b67cb0f2f1c6341e/X16%20Reference%20-%2003%20-%20Editor.md#custom-basin-petscii-code-override-handler
+        ; See https://github.com/X16Community/x16-docs/blob/r49/X16%20Reference%20-%2003%20-%20Editor.md#custom-basin-petscii-code-override-handler
         %asm {{
             sei
             sta  P8ZP_SCRATCH_REG
@@ -1322,7 +1336,7 @@ inline asmsub  disable_irqs() clobbers(A) {
 
 asmsub  enable_irq_handlers(bool disable_all_irq_sources @Pc) clobbers(A,Y)  {
     ; Install the "master IRQ handler" that will dispatch IRQs
-    ; to the registered handler for each type.  (Only Vera IRQs supported for now).
+    ; to the registered handler for each type.
     ; The handlers don't need to clear its ISR bit, but have to return 0 or 1 in A,
     ; where 1 means: continue with the system IRQ handler, 0 means: don't call that.
 	%asm {{
@@ -1330,7 +1344,11 @@ asmsub  enable_irq_handlers(bool disable_all_irq_sources @Pc) clobbers(A,Y)  {
         sei
         bcc  +
         lda  #%00001111
-        trb  cx16.VERA_IEN      ; disable all IRQ sources
+        ; disable all IRQ sources on VERA and VIA1
+        trb  cx16.VERA_IEN
+        lda  #%01111111
+        sta  cx16.via1ier
+
 +       lda  #<_irq_dispatcher
         ldy  #>_irq_dispatcher
         sta  cbm.CINV
@@ -1348,6 +1366,8 @@ asmsub  enable_irq_handlers(bool disable_all_irq_sources @Pc) clobbers(A,Y)  {
 		sty  _aflow_vec+1
 		sta  _sprcol_vec
 		sty  _sprcol_vec+1
+		sta  _timer1_vec
+		sty  _timer1_vec+1
 
         plp
         rts
@@ -1357,11 +1377,12 @@ _vsync_vec   .word  ?
 _line_vec    .word  ?
 _aflow_vec   .word  ?
 _sprcol_vec  .word  ?
+_timer1_vec  .word  ?
 _continue_with_system_handler   .byte  ?
         .send BSS
 
 _irq_dispatcher
-        ; order of handling: LINE, SPRCOL, AFLOW, VSYNC.
+        ; order of handling: LINE, TIMER1(VIA1), VSYNC, SPRCOL, AFLOW
         jsr  sys.save_prog8_internals
         cld
         lda  cx16.VERA_ISR
@@ -1377,7 +1398,17 @@ _irq_dispatcher
         tsb  _continue_with_system_handler
         pla
 
-+       lsr  a
+        ; timer1 (VIA1) irq?
++       pha
+        lda  #%01000000
+        and  cx16.via1ifr
+        beq  +   ; not timer1 irq
+        sta  cx16.via1ifr
+        jsr  _timer1_handler
+        tsb  _continue_with_system_handler
++       pla
+
+        lsr  a
         bcc  +
         pha
         jsr  _vsync_handler
@@ -1422,6 +1453,8 @@ _sprcol_handler
         jmp  (_sprcol_vec)
 _aflow_handler
         jmp  (_aflow_vec)
+_timer1_handler
+        jmp  (_timer1_vec)
     }}
 }
 
@@ -1486,6 +1519,28 @@ asmsub set_aflow_irq_handler(uword address @AY) clobbers(A) {
     }}
 }
 
+asmsub set_timer1_irq_handler(uword address @AY) {
+    ; Sets the VIA1 TIMER1 irq handler to use with enable_irq_handlers(). Does not enable or disable VIA1 timer irqs setting.
+    %asm {{
+        php
+        sei
+        sta  enable_irq_handlers._timer1_vec
+        sty  enable_irq_handlers._timer1_vec+1
+        plp
+        rts
+    }}
+}
+
+
+sub set_timer1(uword delay, bool keeprunning) {
+    ; -- set VIA1 timer1 to trigger after the given delay (cycles). Enables VIA timer1 irqs if delay>0, otherwise disables it.
+    cx16.via1acr &= %00111111
+    if keeprunning
+        cx16.via1acr |= %01000000    ; continuous (free-run) mode
+    cx16.via1ier = if delay==0 then %01000000 else %11000000
+    cx16.via1t1lw = delay
+}
+
 
 inline asmsub  disable_irq_handlers() {
     ; back to the system default IRQ handler.
@@ -1528,7 +1583,7 @@ sub search_x16edit() -> ubyte {
     sub set_program_args(str args_ptr, ubyte args_size) {
         ; -- Set the inter-program arguments.
         ; standardized way to pass arguments between programs is in ram bank 0, address $bf00-$bfff.
-        ; see https://github.com/X16Community/x16-docs/blob/101759f3bfa5e6cce4e8c5a0b67cb0f2f1c6341e/X16%20Reference%20-%2008%20-%20Memory%20Map.md#bank-0
+        ; see https://github.com/X16Community/x16-docs/blob/r49/X16%20Reference%20-%2008%20-%20Memory%20Map.md#bank-0
         sys.push(getrambank())
         rambank(0)
         sys.memcopy(args_ptr, $bf00, args_size)
@@ -1540,7 +1595,7 @@ sub search_x16edit() -> ubyte {
     asmsub get_program_args(^^ubyte buffer @R0, ubyte buf_size @R1, bool binary @Pc) {
         ; -- Retrieve the inter-program arguments. If binary=false, it treats them as a string (stops copying at first zero).
         ; standardized way to pass arguments between programs is in ram bank 0, address $bf00-$bfff.
-        ; see https://github.com/X16Community/x16-docs/blob/101759f3bfa5e6cce4e8c5a0b67cb0f2f1c6341e/X16%20Reference%20-%2008%20-%20Memory%20Map.md#bank-0
+        ; see https://github.com/X16Community/x16-docs/blob/r49/X16%20Reference%20-%2008%20-%20Memory%20Map.md#bank-0
         %asm {{
             lda  #0
             rol  a
@@ -1603,6 +1658,8 @@ _continue   iny
         }}
     }
 }
+
+%import shared_sys_functions
 
 sys {
     ; ------- lowlevel system routines --------
@@ -1681,6 +1738,16 @@ asmsub  restore_irq() clobbers(A) {
 	    and  #%11110000     ; disable all Vera IRQs but the vsync
 	    ora  #%00000001
 	    sta  cx16.VERA_IEN
+        lda  #%01111111
+        sta  cx16.via1ier
+        ; set timer1 back to free running mode
+        lda  cx16.via1acr
+        and  %00111111
+        ora  %01000000
+        sta  cx16.via1acr
+        lda  #$ff
+        sta  cx16.via1t1ll
+        sta  cx16.via1t1lh
 	    plp
 	    rts
         .section BSS_NOCLEAR
@@ -1856,182 +1923,6 @@ _larger
     }
 
 
-    asmsub internal_stringcopy(str source @R0, str target @AY) clobbers (A,Y) {
-        ; Called when the compiler wants to assign a string value to another string.
-        %asm {{
-		sta  P8ZP_SCRATCH_W1
-		sty  P8ZP_SCRATCH_W1+1
-		lda  cx16.r0
-		ldy  cx16.r0+1
-		jmp  prog8_lib.strcpy
-        }}
-    }
-
-    asmsub memcopy(uword source @R0, uword target @R1, uword count @AY) clobbers(A,X,Y) {
-        ; note: only works for NON-OVERLAPPING memory regions!
-        ;       If you have to copy overlapping memory regions, consider using
-        ;       the cx16 specific kernal routine `memory_copy` (make sure kernal rom is banked in).
-        ; note: can't be inlined because is called from asm as well.
-        ;       also: doesn't use cx16 ROM routine so this always works even when ROM is not banked in.
-        %asm {{
-            cpy  #0
-            bne  _longcopy
-
-            ; copy <= 255 bytes
-            tay
-            bne  _copyshort
-            rts     ; nothing to copy
-
-_copyshort
-            dey
-            beq  +
--           lda  (cx16.r0),y
-            sta  (cx16.r1),y
-            dey
-            bne  -
-+           lda  (cx16.r0),y
-            sta  (cx16.r1),y
-            rts
-
-_longcopy
-            pha                         ; lsb(count) = remainder in last page
-            tya
-            tax                         ; x = num pages (1+)
-            ldy  #0
--           lda  (cx16.r0),y
-            sta  (cx16.r1),y
-            iny
-            bne  -
-            inc  cx16.r0+1
-            inc  cx16.r1+1
-            dex
-            bne  -
-            ply
-            bne  _copyshort
-            rts
-        }}
-    }
-
-    asmsub memset(uword mem @R0, uword numbytes @R1, ubyte value @A) clobbers(A,X,Y) {
-        %asm {{
-            ldy  cx16.r0
-            sty  P8ZP_SCRATCH_W1
-            ldy  cx16.r0+1
-            sty  P8ZP_SCRATCH_W1+1
-            ldx  cx16.r1
-            ldy  cx16.r1+1
-            jmp  prog8_lib.memset
-        }}
-    }
-
-    asmsub memsetw(uword mem @R0, uword numwords @R1, uword value @AY) clobbers (A,X,Y) {
-        %asm {{
-            ldx  cx16.r0
-            stx  P8ZP_SCRATCH_W1
-            ldx  cx16.r0+1
-            stx  P8ZP_SCRATCH_W1+1
-            ldx  cx16.r1
-            stx  P8ZP_SCRATCH_W2
-            ldx  cx16.r1+1
-            stx  P8ZP_SCRATCH_W2+1
-            jmp  prog8_lib.memsetw
-        }}
-    }
-
-    asmsub memcmp(uword address1 @R0, uword address2 @R1, uword size @AY) -> byte @A {
-        ; Compares two blocks of memory
-        ; Returns -1 (255), 0 or 1, meaning: block 1 sorts before, equal or after block 2.
-        %asm {{
-            sta  P8ZP_SCRATCH_W1
-            sty  P8ZP_SCRATCH_W1+1
-            ldx  P8ZP_SCRATCH_W1+1
-            beq  _no_msb_size
-
-_loop_msb_size
-            ldy  #0
--           lda  (cx16.r0),y
-            cmp  (cx16.r1),y
-            bcs  +
-            lda  #-1
-            rts
-+           beq  +
-            lda  #1
-            rts
-+           iny
-            bne  -
-            inc  cx16.r0+1
-            inc  cx16.r1+1
-            dec  P8ZP_SCRATCH_W1+1
-            dex
-            bne  _loop_msb_size
-
-_no_msb_size
-            lda  P8ZP_SCRATCH_W1
-            bne  +
-            rts
-
-+           ldy  #0
--           lda  (cx16.r0),y
-            cmp  (cx16.r1),y
-            bcs  +
-            lda  #-1
-            rts
-+           beq  +
-            lda  #1
-            rts
-+           iny
-            cpy  P8ZP_SCRATCH_W1
-            bne  -
-
-            lda #0
-            rts
-        }}
-    }
-
-    inline asmsub read_flags() -> ubyte @A {
-        %asm {{
-            php
-            pla
-        }}
-    }
-
-    inline asmsub clear_carry() {
-        %asm {{
-        clc
-        }}
-    }
-
-    inline asmsub set_carry() {
-        %asm {{
-        sec
-        }}
-    }
-
-    inline asmsub clear_irqd() {
-        %asm {{
-        cli
-        }}
-    }
-
-    inline asmsub set_irqd() {
-        %asm {{
-        sei
-        }}
-    }
-
-    inline asmsub irqsafe_set_irqd() {
-        %asm {{
-        php
-        sei
-        }}
-    }
-
-    inline asmsub irqsafe_clear_irqd() {
-        %asm {{
-        plp
-        }}
-    }
-
     inline asmsub disable_caseswitch() {
         %asm {{
             lda  #8
@@ -2043,49 +1934,6 @@ _no_msb_size
         %asm {{
             lda  #9
             jsr  cbm.CHROUT
-        }}
-    }
-
-    asmsub save_prog8_internals() {
-        %asm {{
-            lda  P8ZP_SCRATCH_B1
-            sta  save_SCRATCH_ZPB1
-            lda  P8ZP_SCRATCH_REG
-            sta  save_SCRATCH_ZPREG
-            lda  P8ZP_SCRATCH_W1
-            sta  save_SCRATCH_ZPWORD1
-            lda  P8ZP_SCRATCH_W1+1
-            sta  save_SCRATCH_ZPWORD1+1
-            lda  P8ZP_SCRATCH_W2
-            sta  save_SCRATCH_ZPWORD2
-            lda  P8ZP_SCRATCH_W2+1
-            sta  save_SCRATCH_ZPWORD2+1
-            rts
-            .section BSS
-save_SCRATCH_ZPB1	.byte  ?
-save_SCRATCH_ZPREG	.byte  ?
-save_SCRATCH_ZPWORD1	.word  ?
-save_SCRATCH_ZPWORD2	.word  ?
-            .send BSS
-            ; !notreached!
-        }}
-    }
-
-    asmsub restore_prog8_internals() {
-        %asm {{
-            lda  save_prog8_internals.save_SCRATCH_ZPB1
-            sta  P8ZP_SCRATCH_B1
-            lda  save_prog8_internals.save_SCRATCH_ZPREG
-            sta  P8ZP_SCRATCH_REG
-            lda  save_prog8_internals.save_SCRATCH_ZPWORD1
-            sta  P8ZP_SCRATCH_W1
-            lda  save_prog8_internals.save_SCRATCH_ZPWORD1+1
-            sta  P8ZP_SCRATCH_W1+1
-            lda  save_prog8_internals.save_SCRATCH_ZPWORD2
-            sta  P8ZP_SCRATCH_W2
-            lda  save_prog8_internals.save_SCRATCH_ZPWORD2+1
-            sta  P8ZP_SCRATCH_W2+1
-            rts
         }}
     }
 
@@ -2123,20 +1971,6 @@ save_SCRATCH_ZPWORD2	.word  ?
             ldx  prog8_lib.orig_stackpointer
             txs
             jmp  p8_sys_startup.cleanup_at_exit
-        }}
-    }
-
-    inline asmsub progend() -> uword @AY {
-        %asm {{
-            lda  #<prog8_program_end
-            ldy  #>prog8_program_end
-        }}
-    }
-
-    inline asmsub progstart() -> uword @AY {
-        %asm {{
-            lda  #<prog8_program_start
-            ldy  #>prog8_program_start
         }}
     }
 
@@ -2190,7 +2024,7 @@ save_SCRATCH_ZPWORD2	.word  ?
         }}
     }
 
-    inline asmsub pushl(long value @R0R1_32) {
+    inline asmsub pushl(long value @R0R1) {
         %asm {{
             lda  cx16.r0
             pha
@@ -2203,7 +2037,7 @@ save_SCRATCH_ZPWORD2	.word  ?
         }}
     }
 
-    inline asmsub popl() -> long @R0R1_32 {
+    inline asmsub popl() -> long @R0R1 {
         %asm {{
             pla
             sta  cx16.r0+3
@@ -2273,6 +2107,7 @@ asmsub  init_system()  {
         sta  $00    ; select ram bank
         lda  #0
         sta  $01    ; set ROM bank to kernal bank to speed up kernal calls
+        sta  cx16.VERA_DC_BORDER
         tax
         tay
         cli

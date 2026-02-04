@@ -176,7 +176,7 @@ io_error:
 
     sub list_filenames(str pattern_ptr, uword filenames_buffer, uword filenames_buf_size) -> ubyte {
         ; -- fill the provided buffer with the names of the files on the disk (until buffer is full).
-        ;    Files in the buffer are separated by a 0 byte. You can provide an optional pattern to match against.
+        ;    Files in the buffer are separated by a 0 byte. You can provide an optional pattern to match against (case-sensitive).
         ;    After the last filename one additional 0 byte is placed to indicate the end of the list.
         ;    Returns number of files (it skips 'dir' entries i.e. subdirectories).
         ;    Note: NO case-folding is done in this routine! (unlike DOS"$ which does case folding on the basic prompt)
@@ -187,6 +187,7 @@ io_error:
         uword buffer_start = filenames_buffer
         ubyte files_found = 0
         filenames_buffer[0]=0
+
         if lf_start_list(pattern_ptr) {
             while lf_next_entry() {
                 if list_filetype!="dir" {
@@ -200,8 +201,45 @@ io_error:
                     }
                 }
             }
-            lf_end_list()
         }
+
+        lf_end_list()
+        @(filenames_buffer)=0
+        sys.clear_carry()
+        return files_found
+    }
+
+    sub list_filenames_nocase(str lowercase_pattern_ptr, uword filenames_buffer, uword filenames_buf_size) -> ubyte {
+        ; -- fill the provided buffer with the names of the files on the disk (until buffer is full).
+        ;    Files in the buffer are separated by a 0 byte. You can provide an optional pattern to match against (case-insensitive, ISO-encoding).
+        ;    Pattern needs to be in lowercase already.
+        ;    After the last filename one additional 0 byte is placed to indicate the end of the list.
+        ;    Returns number of files (it skips 'dir' entries i.e. subdirectories).
+        ;    Note: NO case-folding is done in this routine! (unlike DOS"$ which does case folding on the basic prompt)
+        ;    Also sets carry on exit: Carry clear = all files returned, Carry set = directory has more files that didn't fit in the buffer.
+        ;    Note that no list of pointers of some form is returned, the names are just squashed together.
+        ;    If you really need a list of pointers to the names, that is pretty straightforward to construct by iterating over the names
+        ;    and registering when the next one starts after the 0-byte separator.
+        uword buffer_start = filenames_buffer
+        ubyte files_found = 0
+        filenames_buffer[0]=0
+
+        if lf_start_list(lowercase_pattern_ptr) {
+            while lf_next_entry_nocase() {
+                if list_filetype!="dir" {
+                    filenames_buffer += strings.copy(list_filename, filenames_buffer) + 1
+                    files_found++
+                    if filenames_buffer - buffer_start > filenames_buf_size-20 {
+                        @(filenames_buffer)=0
+                        lf_end_list()
+                        sys.set_carry()
+                        return files_found
+                    }
+                }
+            }
+        }
+
+        lf_end_list()
         @(filenames_buffer)=0
         sys.clear_carry()
         return files_found
@@ -257,72 +295,116 @@ io_error:
         goto diskio.lf_start_list.start_list_internal
     }
 
+    sub lf_start_list_having_prefix(str prefix) -> bool {
+        ; -- start an iterative directory contents listing for entries with given prefix.
+        ;    note: only a single iteration loop can be active at a time!
+        list_filename[0] = '$'
+        list_filename[1] = ':'
+        cx16.r0L = strings.copy(prefix, &list_filename+2)
+        list_filename[cx16.r0L+2] = '*'
+        list_filename[cx16.r0L+3] = 0
+        cbm.SETNAM(cx16.r0L+3, list_filename)
+        diskio.lf_start_list.pattern_ptr = 0
+        goto diskio.lf_start_list.start_list_internal
+    }
+
     sub lf_next_entry() -> bool {
         ; -- retrieve the next entry from an iterative file listing session.
         ;    results will be found in list_blocks, list_filename, and list_filetype.
         ;    if it returns false though, there are no more entries (or an error occurred).
+        ;    If a match pattern was specified, it will be matched CASE SENSITIVELY against the filename.
         ;    Note: NO case-folding is done in this routine! (unlike DOS"$ which does case folding on the basic prompt)
 
         if not iteration_in_progress
             return false
 
         repeat {
-            reset_read_channel()        ; use the input io channel again
-
-            ^^ubyte nameptr = &list_filename
-            ubyte blocks_lsb = cbm.CHRIN()
-            ubyte blocks_msb = cbm.CHRIN()
-
-            if cbm.READST()!=0
-                goto close_end
-
-            list_blocks = mkword(blocks_msb, blocks_lsb)
-
-            ; read until the filename starts after the first "
-            while cbm.CHRIN()!='\"'  {
-                if cbm.READST()!=0
-                    goto close_end
-            }
-
-            ; read the filename
-            repeat {
-                ubyte character = cbm.CHRIN()
-                if character==0
-                    break
-                if character=='\"'
-                    break
-                @(nameptr) = character
-                nameptr++
-            }
-
-            @(nameptr) = 0
-
-            do {
-                cx16.r15L = cbm.CHRIN()
-            } until cx16.r15L!=' '      ; skip blanks up to 3 chars entry type
-            list_filetype[0] = cx16.r15L
-            list_filetype[1] = cbm.CHRIN()
-            list_filetype[2] = cbm.CHRIN()
-            while cbm.CHRIN()!=0 {
-                ; read the rest of the entry until the end
-            }
-
-            void cbm.CHRIN()     ; skip 2 bytes
-            void cbm.CHRIN()
+            if not internal_next_entry()
+                break
 
             if not list_skip_disk_name {
-                if list_pattern==0
-                    return true
-                if strings.pattern_match(list_filename, list_pattern)
+                if list_pattern==0 or strings.pattern_match(list_filename, list_pattern)
                     return true
             }
             list_skip_disk_name = false
         }
 
-close_end:
         lf_end_list()
         return false
     }
+
+    sub lf_next_entry_nocase() -> bool {
+        ; -- retrieve the next entry from an iterative file listing session.
+        ;    results will be found in list_blocks, list_filename, and list_filetype.
+        ;    if it returns false though, there are no more entries (or an error occurred).
+        ;    If a match pattern was specified, it will be matched CASE INSENSITIVELY against the filename, in ISO-encoding.
+        ;    (match pattern has to be in lowercase as well)
+        ;    Note: NO case-folding is done in this routine! (unlike DOS"$ which does case folding on the basic prompt)
+
+        if not iteration_in_progress
+            return false
+
+        repeat {
+            if not internal_next_entry()
+                break
+
+            if not list_skip_disk_name {
+                if list_pattern==0 or strings.pattern_match_nocase(list_filename, list_pattern, true)
+                    return true
+            }
+            list_skip_disk_name = false
+        }
+
+        lf_end_list()
+        return false
+    }
+
+    sub internal_next_entry() -> bool {
+        reset_read_channel()        ; use the input io channel again
+
+        ^^ubyte nameptr = &list_filename
+        ubyte blocks_lsb = cbm.CHRIN()
+        ubyte blocks_msb = cbm.CHRIN()
+
+        if cbm.READST()!=0
+            return false
+
+        list_blocks = mkword(blocks_msb, blocks_lsb)
+
+        ; read until the filename starts after the first "
+        while cbm.CHRIN()!='\"'  {
+            if cbm.READST()!=0
+                return false
+        }
+
+        ; read the filename
+        repeat {
+            ubyte character = cbm.CHRIN()
+            if character==0
+                break
+            if character=='\"'
+                break
+            @(nameptr) = character
+            nameptr++
+        }
+
+        @(nameptr) = 0
+
+        do {
+            cx16.r15L = cbm.CHRIN()
+        } until cx16.r15L!=' '      ; skip blanks up to 3 chars entry type
+        list_filetype[0] = cx16.r15L
+        list_filetype[1] = cbm.CHRIN()
+        list_filetype[2] = cbm.CHRIN()
+        while cbm.CHRIN()!=0 {
+            ; read the rest of the entry until the end
+        }
+
+        void cbm.CHRIN()     ; skip 2 bytes
+        void cbm.CHRIN()
+        return true
+    }
+
 
     sub lf_end_list() {
         ; -- end an iterative file listing session (close channels).
@@ -811,6 +893,7 @@ io_error:
             if cbm.READST()!=0
                 cx16.r0 = 0
         }
+        cbm.CLRCHN()
         cbm.CLOSE(READ_IO_CHANNEL)
         return cx16.r0
     }

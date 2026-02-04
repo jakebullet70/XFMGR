@@ -305,4 +305,82 @@ sub interpolate(float v, float inputMin, float inputMax, float outputMin, float 
     return v * (outputMax - outputMin) + outputMin
 }
 
+    asmsub internal_long_AY_to_FAC() {
+        ; Used by the compiler to cast a long to a a float in FAC
+        ; convert the long pointed to by AY into a float and store it in FAC
+        %asm {{
+            sta  cx16.r1L
+            sty  cx16.r1H
+            lda  #<floats_temp_var
+            ldy  #>floats_temp_var
+            jsr  internal_long_R1_to_float_AY
+            lda  #<floats_temp_var
+            ldy  #>floats_temp_var
+            jmp  MOVFM
+        }}
+    }
+
+    sub internal_long_R1_to_float_AY() {
+        ; Used by the compiler to cast a long to a a float variable:
+        ; make the float pointed to by AY equal to the long pointed to by R1  (as float)
+        %asm {{
+            sta  cx16.r0L
+            sty  cx16.r0H
+        }}
+
+        long value = peekl(cx16.r1)
+        ^^ubyte @zp vptr = &value
+
+        if value==0 {
+            sys.memset(cx16.r0, sizeof(float), 0)
+            return
+        }
+
+        ; Determine the sign and work with the absolute value
+        bool is_negative = value < 0
+        if is_negative
+            value = -value
+
+        ; Calculate the exponent by finding the highest set bit
+        ubyte highest_bit_pos = internal_get_vptr_highest_bit_pos(vptr)
+        ; For the normalized mantissa, the highest bit is an implicit 1 followed by the rest
+        ; So we shift the absolute value to get the proper mantissa representation
+        value <<= 31 - highest_bit_pos
+
+        ; Store the exponent
+        cx16.r0[0] = highest_bit_pos + 129
+
+        ; Store the mantissa with the sign bit
+        cx16.r0[1] = vptr[3] & $7f
+        if is_negative
+            cx16.r0[1] |= $80
+        cx16.r0[2] = vptr[2]
+        cx16.r0[3] = vptr[1]
+        cx16.r0[4] = vptr[0]
+        return
+    }
+
+    sub internal_get_vptr_highest_bit_pos(^^ubyte vptr) -> ubyte {
+        ; note: separate subroutine not nested in internal_long_R1_to_float_AY so that 64tass can optimize it out if not used
+        if vptr[3]==0
+            if vptr[2]==0
+                if vptr[1]==0
+                    if vptr[0]==0 return 0
+                    else return highest_bit_in_byte(vptr[0])
+                else return 8+highest_bit_in_byte(vptr[1])
+            else return 16+highest_bit_in_byte(vptr[2])
+        else return 24+highest_bit_in_byte(vptr[3])
+    }
+
+    asmsub highest_bit_in_byte(ubyte value @A) -> ubyte @Y {
+        ; note: separate subroutine not nested in internal_get_vptr_highest_bit_pos so that 64tass can optimize it out if not used
+        %asm {{
+            ldy  #0
+-           lsr  a
+            beq  +
+            iny
+            bne  -
++           rts
+        }}
+    }
 }
