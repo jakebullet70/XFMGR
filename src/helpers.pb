@@ -61,7 +61,7 @@ MODULE helpers
         REPEAT height -1
             txt.plot(col,i)
             txt.chrout_lit(chr_vert)
-            txt.plot(col+width-1,i)
+            txt.plot(col_right,i)
             txt.chrout_lit(chr_vert)
             i++
         END REPEAT
