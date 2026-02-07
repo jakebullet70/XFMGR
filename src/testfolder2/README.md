@@ -1,0 +1,4 @@
+# XFMGR
+cx16 File Manager inspired by XTree  
+Written in Prog8  
+

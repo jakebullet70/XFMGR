@@ -1,0 +1,11 @@
+{
+  "name": "XFMGR - XTREE for x16",
+  "main": "stree.pb",
+  "target": "cx16",
+  "launchEmu": true,
+  "outputDir": "..\\",
+  "progb": {
+    "keywordCasing": "upper",
+    "formatCommaSpacing": true
+  }
+}
