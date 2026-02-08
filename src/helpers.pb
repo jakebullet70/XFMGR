@@ -11,23 +11,23 @@
 MODULE helpers
     DIM chr_topleft, chr_topright, chr_botleft, chr_botright AS UBYTE
     DIM chr_tleft, chr_tright, chr_tup, chr_tdown, chr_horiz, chr_vert AS UBYTE
-    DIM i,j,x AS UBYTE    
+    DIM i,  j , x AS UBYTE    
     
 
     SUB print_strXY(col AS UBYTE, row AS UBYTE, txtstring AS STRING, colors AS UBYTE, convertchars AS BOOL)
-        txt.plot(col,row)
+        txt.plot(col, row)  
         txt.color2(colors BITAND 15, colors SHR 4)
         txt.print_lit(txtstring)
         '--- convertchars NOT BEING USED    
     END SUB
 
     SUB print_strXY2(col AS UBYTE, row AS UBYTE, txtstring AS STRING)
-        txt.plot(col,row)
+        txt.plot(col, row)
         txt.print_lit(txtstring)
     END SUB
 
     SUB plot_charXY(col AS UBYTE, row AS UBYTE, char AS UBYTE, colors AS UBYTE)
-        txt.setcc2(col,row,char,colors)
+        txt.setcc2(col, row , char, colors)
     END SUB
 
     SUB clear_section(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
@@ -41,7 +41,17 @@ MODULE helpers
         END REPEAT
     END SUB
 
-
+    SUB clr_section(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
+        REPEAT height
+            i=0
+            REPEAT width 
+                txt.setclr(col+i, row, colors)
+                i++
+            END REPEAT
+            row++
+        END REPEAT
+    END SUB
+    
     SUB draw_box(col AS UBYTE, row AS UBYTE, width AS UBYTE, height AS UBYTE, colors AS UBYTE)
         ALIAS rows = j  
         rows = txt.height()
@@ -51,25 +61,25 @@ MODULE helpers
 
         txt.color2(colors BITAND 15, colors SHR 4)
 
-        draw_horiz_line(col,row,width,colors)
-        txt.plot(col,row)
+        draw_horiz_line(col, row, width, colors)
+        txt.plot(col, row)
         txt.chrout_lit(chr_topleft)
-        txt.plot(col_right,row)
+        txt.plot(col_right, row)
         txt.chrout_lit(chr_topright)
 
         i = row + 1
         REPEAT height -1
-            txt.plot(col,i)
+            txt.plot(col, i)
             txt.chrout_lit(chr_vert)
-            txt.plot(col_right,i)
+            txt.plot(col_right, i)
             txt.chrout_lit(chr_vert)
             i++
         END REPEAT
         
-        draw_horiz_line(col,row+height-1,width,colors)
-        txt.plot(col,row+height-1)
+        draw_horiz_line(col, row+height-1, width, colors)
+        txt.plot(col, row+height-1)
         txt.chrout_lit(chr_botleft)
-        txt.plot(col_right,row+height-1)
+        txt.plot(col_right, row+height-1)
         txt.chrout_lit(chr_botright)
         POKEW 903, rows   '--- restore screen height    
     END SUB
