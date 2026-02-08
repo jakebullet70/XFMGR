@@ -3,7 +3,9 @@
   "main": "stree.pb",
   "target": "cx16",
   "launchEmu": true,
+  "compilerPath": "..\\prog8c.jar",
   "outputDir": "..\\",
+  "compilationMode": "auto",
   "progb": {
     "keywordCasing": "upper",
     "formatCommaSpacing": true
