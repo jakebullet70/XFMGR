@@ -168,7 +168,7 @@ MODULE files_cache
         print_stats()
     END SUB
 
-    SUB clear_panel()
+    SUB clear_panel() 'TODO - this needs to call the generic helper function
         '--- clear panel/page
         ALIAS i = main.i
         ALIAS str_clear = main.g_tmp_str_buffer1
@@ -224,6 +224,13 @@ MODULE files_cache
         RETURN pretty_str
     END FUNCTION
 
+    SUB set_ram_bank()
+        sys.push(cx16.getrambank())
+        cx16.rambank(arena_files.MEM_BANK62)
+    END SUB
+    SUB restore_ram_bank()
+        cx16.rambank(sys.pop())
+    END SUB
 
     SUB set_focus()  '--- called when changing from FILES - DIR panels
         IF num_files = 0 THEN RETURN
@@ -245,7 +252,6 @@ MODULE files_cache
 
     SUB add(name AS STRING, blocks AS UWORD)
         '--- Create new entry
-
         DIM new_record AS PTR Entry = arena_files.alloc(SIZEOF(Entry))
         DIM name_copy AS PTR UBYTE = arena_files.alloc(strings.length(name) + 1)
         VOID strings.copy(name, name_copy)
@@ -363,6 +369,8 @@ END MODULE
 
 MODULE arena_files
     ' Simple arena allocator
+    CONST MEM_BANK62 AS UBYTE = 62
+    'DIM buffer AS UWORD = $a000
     DIM buffer AS UWORD = memory("a_files", 6400, 0)
     DIM nextEntry AS UWORD = buffer
 
