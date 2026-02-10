@@ -221,7 +221,7 @@ MODULE dirs_cache
         RETURN pretty_str
     END FUNCTION
 
-    ' SUB set_ram_bank()
+    ' SUB set_ram_bank()  TODO
     '     sys.push(cx16.getrambank())
     '     cx16.rambank(arena_dirs.MEM_BANK62)
     ' END SUB

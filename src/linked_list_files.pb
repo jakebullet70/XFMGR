@@ -224,13 +224,13 @@ MODULE files_cache
         RETURN pretty_str
     END FUNCTION
 
-    SUB set_ram_bank()
-        sys.push(cx16.getrambank())
-        cx16.rambank(arena_files.MEM_BANK62)
-    END SUB
-    SUB restore_ram_bank()
-        cx16.rambank(sys.pop())
-    END SUB
+    ' SUB set_ram_bank()
+    '     sys.push(cx16.getrambank())
+    '     cx16.rambank(arena_files.MEM_BANK62)
+    ' END SUB
+    ' SUB restore_ram_bank()
+    '     cx16.rambank(sys.pop())
+    ' END SUB
 
     SUB set_focus()  '--- called when changing from FILES - DIR panels
         IF num_files = 0 THEN RETURN
