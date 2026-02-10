@@ -12,7 +12,20 @@ MODULE DOS
     DIM flen,dlen,i,j AS UBYTE 
     DIM l_tmp AS LONG
     DIM tmp_str3 AS STRING = "?" * 100
-    
+   
+    ' SUB rename(str oldfileptr, str newfileptr) 
+    '     '; -- copy a file ON the drive
+    '     list_filename[0] = 'c'                 
+    '     list_filename[1] = ':'
+    '     UBYTE flen_new = strings.copy(newfileptr, &list_filename+2)
+    '     list_filename[flen_new+2] = "="c
+    '     UBYTE flen_old = strings.copy(oldfileptr, &list_filename+3+flen_new)
+    '     cbm.SETNAM(3+flen_new+flen_old, list_filename)
+    '     cbm.SETLFS(1, drivenumber, 15)
+    '     VOID cbm.OPEN()
+    '     cbm.CLRCHN()
+    '     cbm.CLOSE(1)     TODO - Do we need this?  needs testing
+    ' END SUB            
 
     '--- Split a full path into directory and filename
     ' path: input path string
@@ -60,7 +73,7 @@ MODULE DOS
     FUNCTION join_path_file(dir AS STRING, file AS STRING) AS STRING
         
         ALIAS out = tmp_str3
-        flen = strings.length(file)
+        'flen = strings.length(file)
         dlen = strings.length(dir)
         'DIM lastch AS UBYTE
         ALIAS lastch = i
