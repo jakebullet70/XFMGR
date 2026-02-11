@@ -9,6 +9,16 @@
 
 IMPORT line_editor
 IMPORT history_popup
+IMPORT stree
+IMPORT key_const
+IMPORT strings
+IMPORT menus
+IMPORT textio
+IMPORT diskio
+IMPORT line_editor
+IMPORT linked_list_files
+IMPORT files_folders
+IMPORT helpers
 
 MODULE prompts
     ALIAS i = main.i
@@ -29,15 +39,15 @@ MODULE prompts
 
 
     FUNCTION file_spec() AS BOOL
-        prompt_txt(cp437:"Filespec:","",
-                   cp437:"Enter file specification                             History    Ok  ESC Cancel",0,14,2)
-        menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
-        draw_icons(53,63,txt.height()-2)
+        prompt_txt(cp437:"Filespec:", "",
+                   cp437:"Enter file specification                             History    Ok  ESC Cancel", 0, 14, 2)
+        menus.highlight_menu_keys([69, 70, 71], 2, txt.height()-2, theme.MENU_BRIGHT)
+        draw_icons(53, 63, txt.height()-2)
         
         'VOID strings.copy("*.*",input_str_ret_val)                                        
        ' helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)    '--- show filespec
         VOID strings.copy("*.*", input_str_ret_val)                              '--- working str        
-        line_editor.get_txt(14,10,PROMPT_LINE_1,[keys.ESC],0,[keys.CR],0, 
+        line_editor.get_txt(14, 10, PROMPT_LINE_1, [keys.ESC], 0, [keys.CR], 0, 
                                 prompt_history.FILE_FILESPEC)             '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                '--- cancel, bye!
@@ -47,7 +57,7 @@ MODULE prompts
         ' txt.print(input_str_ret_val)
         
         strings.strip(input_str_ret_val)
-        main.read_files(diskio.drivenumber,input_str_ret_val,files_folders.current_folder)
+        main.read_files(diskio.drivenumber, input_str_ret_val, files_folders.current_folder)
         RETURN TRUE
 
     END FUNCTION

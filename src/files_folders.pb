@@ -1,3 +1,11 @@
+IMPORT diskio
+IMPORT strings
+IMPORT strings_ext
+IMPORT linked_list_dirs
+IMPORT linked_list_files
+IMPORT stree
+IMPORT conv
+
 MODULE files_folders
 
     DIM counted_dir, counted_files AS UBYTE = 0
@@ -11,6 +19,34 @@ MODULE files_folders
     
     CONST FILE_MAX_LEN AS UBYTE = 40
     CONST FILE_MAX_LEN_CLEAR AS UBYTE = 42
+
+    FUNCTION log_drive(drv AS UBYTE) AS BOOL
+        ALIAS dir_error = main.bool_tmp
+        
+        diskio.drivenumber = drv
+        dir_error = FALSE
+
+        arena_dirs.free_all()
+        counted_dir = 1
+
+        strings_ext.concat_strings(conv.str_ub(drv), ":/", ROOT_DIR)
+        dirs_cache.add(ROOT_DIR, 0)
+
+        '--- list directories first
+        IF diskio.lf_start_list_dirs(0) THEN
+            WHILE diskio.lf_next_entry_nocase()
+                VOID strings.copy(diskio.list_filename, tmp_str)
+                dirs_cache.add(tmp_str, 1)
+                counted_dir++   
+            WEND
+        ELSE
+            dir_error = TRUE
+        END IF
+
+        diskio.lf_end_list()
+        RETURN dir_error
+
+    END FUNCTION
 
     FUNCTION load_dirs(drv AS UBYTE, filter AS STRING, dir_level AS UBYTE) AS BOOL
         ALIAS dir_error = main.bool_tmp

@@ -8,6 +8,12 @@
 
 'IMPORT dos_files
 'IMPORT key_const
+IMPORT screen
+IMPORT strings
+IMPORT helpers
+IMPORT stree
+IMPORT key_const
+IMPORT diskio
 
 MODULE prompt_history
 

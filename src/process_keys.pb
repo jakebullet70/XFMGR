@@ -7,6 +7,14 @@
 '==============================================================================
 
 IMPORT screen
+IMPORT stree
+IMPORT key_const
+IMPORT menus
+IMPORT menus_prompts
+IMPORT helpers
+IMPORT linked_list_files
+IMPORT linked_list_dirs
+IMPORT strings
 
 MODULE process_keys
     ALIAS keycode_ext = main.keycode_ext

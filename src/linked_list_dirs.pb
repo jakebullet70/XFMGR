@@ -5,6 +5,11 @@
 '==============================================================================
 '---   
 '==============================================================================
+IMPORT textio
+IMPORT stree
+IMPORT helpers
+IMPORT strings_ext
+IMPORT strings
 
 MODULE dirs_cache
     TYPE Entry
