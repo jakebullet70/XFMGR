@@ -1,3 +1,6 @@
+IMPORT helpers
+IMPORT textio
+IMPORT stree
 
 MODULE menus
     CONST DIR AS UBYTE = 0

@@ -1,3 +1,5 @@
+IMPORT strings
+
 MODULE strings_ext
     
     '--- NEEDS REFACTOR!!!!  WRITTEN BY AI

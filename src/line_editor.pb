@@ -5,7 +5,13 @@
 '==============================================================================
 '---   
 '==============================================================================
-
+IMPORT textio
+IMPORT stree
+IMPORT helpers
+IMPORT strings
+IMPORT key_const
+IMPORT menus_prompts
+IMPORT history_popup
 
 MODULE line_editor
 
