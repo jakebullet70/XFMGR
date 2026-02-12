@@ -56,7 +56,6 @@ MODULE prompts
         ' txt.nl()
         ' txt.print(input_str_ret_val)
         
-        strings.strip(input_str_ret_val)
         main.read_files(diskio.drivenumber, input_str_ret_val, files_folders.current_folder)
         RETURN TRUE
 
@@ -106,11 +105,10 @@ MODULE prompts
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                               '--- cancel, bye!
         
-        IF NOT tagged_files THEN   '  TODO
+        'IF NOT tagged_files THEN   '  TODO
             'diskio.rename(files_cache.current.name,input_str_ret_val)
-        ELSE
-
-        END IF
+        'ELSE
+        'END IF
         RETURN TRUE '--- true tells caller to refresh screen
     END FUNCTION
 
