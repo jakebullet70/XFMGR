@@ -110,12 +110,12 @@ MODULE history_append
     
     TYPE Entry
         nextEntry AS ^^Entry          ' Next entry in the list
-        prevEntry AS ^^Entry          ' Previous entry in the list
+        prevEntry AS ^^Entry          ' Previous entry in the list    - TODO, prevEntry should be removed?
         name AS STRING                ' Name
     END TYPE
 
-    DIM head AS ^^Entry = 0                       ' Head of the doubly linked list
-    DIM tail AS ^^Entry = 0                       ' Tail of the doubly linked list
+    DIM head AS ^^Entry = 0           ' Head of the doubly linked list
+    DIM tail AS ^^Entry = 0           ' Tail of the doubly linked list - TODO, tail should be removed?
     DIM current AS ^^Entry
 
 
@@ -130,7 +130,7 @@ MODULE history_append
         DIM txt_buffer AS STRING = "?"*80
 
         'debug.say("add_2_hist-1")
-        IF NOT diskio.f_open(fname) THEN RETURN
+        IF NOT diskio.f_open(fname) THEN RETURN '--- open file
 
         '--- new RAMBANK for string and stuff
         sys.push(cx16.getrambank())
@@ -158,41 +158,38 @@ MODULE history_append
         END REPEAT
         diskio.f_close() 
 
+
         'debug.say2("add_2_hist-3:",num_entries) : sys.wait(400)
         DIM fname_bak AS STRING = "?"*80  
-
-        '--- back up current hist file
-        VOID strings.copy(fname,fname_bak)
+        VOID strings.copy(fname,fname_bak)                        '--- back up current hist file
         VOID strings.append(fname_bak,".bak")
         diskio.delete(fname_bak)
         diskio.rename(fname,fname_bak)
 
-        '--- write new hist file with new entry
-        DIM CRLF AS STRING = "  " : CRLF[0] = $0d : CRLF[1] = $0a
+        
+        
+        DIM CRLF AS STRING = "  " : CRLF[0] = $0d : CRLF[1] = $0a  '--- write new hist file with new entry
         'DIM CR AS UWORD = $0d
 
         DIM num AS UBYTE = 1
-        IF NOT diskio.f_open_w(fname) THEN 
-            'debug.say("error")
-            RETURN
-        ELSE
-            VOID diskio.f_write(new_str, strings.length(new_str))   '--- write new entry at top
-            VOID diskio.f_write(CRLF, 2)                            '--- write EOL
-            current = head '--- top
+        VOID diskio.f_open_w(fname)                             '--- open, create file
+        VOID diskio.f_write(new_str, strings.length(new_str))   '--- write new entry at top
+        VOID diskio.f_write(CRLF, 2)                            '--- write EOL
+        current = head '--- top
 
-            REPEAT 
-                IF strings.compare_nocase_iso(new_str,current.name) = 0 THEN '--- see if entry is dupe
-                    current = current.nextEntry
-                    num++
-                    CONTINUE
-                END IF
-                VOID diskio.f_write(current.name, strings.length(current.name))
-                VOID diskio.f_write(CRLF, 2) '--- write EOL
+        REPEAT 
+            IF strings.compare_nocase_iso(new_str,current.name) = 0 THEN '--- see if entry is dupe
                 current = current.nextEntry
                 num++
-                IF num > 25 OR num > num_entries THEN BREAK '--- 25 history items is max OR 
-            END REPEAT
-        END IF   
+                CONTINUE
+            END IF
+            VOID diskio.f_write(current.name, strings.length(current.name))
+            VOID diskio.f_write(CRLF, 2) '--- write EOL
+            current = current.nextEntry
+            num++
+            IF num > 25 OR num > num_entries THEN BREAK '--- 25 history items is max
+        END REPEAT
+        
         'debug.say2("num:",num) : sys.wait(400)
         diskio.f_close_w() 
          
