@@ -15,7 +15,7 @@ MODULE DOS
     DIM l_tmp AS LONG
     DIM tmp_str3 AS STRING = "?" * 100
    
-    ' SUB rename(str oldfileptr, str newfileptr) 
+    ' SUB copy_file(str oldfileptr, str newfileptr)  BUG!!!!  IN HOSTFS  
     '     '; -- copy a file ON the drive
     '     list_filename[0] = 'c'                 
     '     list_filename[1] = ':'
@@ -27,7 +27,7 @@ MODULE DOS
     '     VOID cbm.OPEN()
     '     cbm.CLRCHN()
     '     cbm.CLOSE(1)     TODO - Do we need this?  needs testing
-    ' END SUB            
+    ' END SUB              BUG!!!!  IN HOSTFS 
 
     '--- Split a full path into directory and filename
     ' path: input path string
@@ -101,3 +101,33 @@ MODULE DOS
     END FUNCTION
 
 END MODULE
+
+
+    ' NON diskIO file routines - needs testing
+
+    ' FUNCTION open_4_write(fname AS STRING) AS BOOL
+    '     '--- set filename
+    '     fname_len = strings.length(fname)
+    '     cbm.SETNAM(fname_len, fname)
+        
+    '     '--- set logical file parameters
+    '     cbm.SETLFS(LOGICAL_FILE_NUM, DEVICE_NUM, SECONDARY_ADDR)
+        
+    '     VOID cbm.OPEN()  '--- open the file 
+    '     IF_CS RETURN FALSE
+    '     cbm.CHKOUT(LOGICAL_FILE_NUM) '--- set output channel to file
+    '     RETURN TRUE
+
+    ' END FUNCTION
+
+    ' SUB append(str1 AS STRING)
+    '     FOR i = 0 TO strings.length(str1) - 1
+    '         cbm.CHROUT(str1[i])
+    '     NEXT
+    '     cbm.CHROUT(13)         '--- write carriage return (newline)
+    ' END SUB
+
+    ' SUB close()
+    '     cbm.CLRCHN() '--- restore default output channel
+    '     cbm.CLOSE(LOGICAL_FILE_NUM) '--- close the file
+    ' END SUB
