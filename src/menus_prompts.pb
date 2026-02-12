@@ -51,11 +51,6 @@ MODULE prompts
                                 prompt_history.FILE_FILESPEC)             '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                '--- cancel, bye!
-        ' txt.plot(5,35)
-        ' txt.print(files_folders.current_folder)
-        ' txt.nl()
-        ' txt.print(input_str_ret_val)
-        
         main.read_files(diskio.drivenumber, input_str_ret_val, files_folders.current_folder)
         RETURN TRUE
 
