@@ -174,10 +174,10 @@ MODULE line_editor
         cx16.blink_enable(FALSE)
 
         IF strings.length(input_str_ret_val) > 1 THEN 
-            '--- save to hist files except if single char
+            '--- save to hist files except if single char or empty
             history_append.add_2_hist_file(history_prompt_val,input_str_ret_val)
         END IF
-        
+
         RETURN
 
     END SUB
