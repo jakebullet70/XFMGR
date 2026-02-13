@@ -228,7 +228,7 @@ MODULE dirs_cache
 
     ' SUB set_ram_bank()  TODO
     '     sys.push(cx16.getrambank())
-    '     cx16.rambank(arena_dirs.MEM_BANK62)
+    '     cx16.rambank(mem_banks.BANK59)
     ' END SUB
     ' SUB restore_ram_bank()
     '     cx16.rambank(sys.pop())
@@ -323,7 +323,7 @@ END MODULE
 
 MODULE arena_dirs
     ' Simple arena allocator
-    CONST MEM_BANK61 AS UBYTE = 61
+    'CONST MEM_BANK61 AS UBYTE = 61
     'DIM buffer AS UWORD = $a000
     DIM buffer AS UWORD = memory("a_dirs", 3200, 0)
     DIM nextEntry AS UWORD = buffer

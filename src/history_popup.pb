@@ -121,7 +121,7 @@ MODULE history_append
 
     SUB add_2_hist_file(what AS UBYTE, new_str AS STRING)
         
-        debug.say(new_str)
+        'debug.say(new_str)
         'sys.wait(400)
         prompt_history.get_fname(what) '--- saves filename in var 'fname'
         IF strings.length(fname) = 0 THEN RETURN
@@ -134,7 +134,7 @@ MODULE history_append
 
         '--- new RAMBANK for string and stuff
         sys.push(cx16.getrambank())
-        cx16.rambank(arena_strings.MEM_BANK60)
+        cx16.rambank(mem_banks.BANK60)
         arena_strings.free_all()
         DEFER cx16.rambank(sys.pop())
 
@@ -226,8 +226,7 @@ MODULE history_append
 END MODULE
 
 MODULE arena_strings
-    ' Simple arena allocator
-    CONST MEM_BANK60 AS UBYTE = 60
+    ' Simple arena allocator, refactored
     DIM buffer AS UWORD = $A000
     'DIM buffer AS UWORD = memory("a_strs", 3200, 0)
     DIM nextEntry AS UWORD = buffer

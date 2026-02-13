@@ -18,6 +18,14 @@ IMPORT process_keys
 OPTION no_sysinit
 ZEROPAGE basicsafe
 
+MODULE mem_banks
+    CONST BANK60 AS UBYTE = 60  '--- used for temp strings (history popups)
+    CONST BANK63 AS UBYTE = 63  '--- save screen, 2 banks
+    CONST BANK62 AS UBYTE = 62  '--- save screen, 2 banks
+    CONST BANK59 AS UBYTE = 59  '--- linked list dir, TODO
+    CONST BANK61 AS UBYTE = 61  '--- linked list files, TODO
+END MODULE
+
 
 MODULE theme
     '--- default colors

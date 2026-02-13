@@ -233,7 +233,7 @@ MODULE files_cache
 
     ' SUB set_ram_bank()
     '     sys.push(cx16.getrambank())
-    '     cx16.rambank(arena_files.MEM_BANK62)
+    '     cx16.rambank(mem_banks.MEM_BANK61)
     ' END SUB
     ' SUB restore_ram_bank()
     '     cx16.rambank(sys.pop())
@@ -376,7 +376,6 @@ END MODULE
 
 MODULE arena_files
     ' Simple arena allocator
-    CONST MEM_BANK62 AS UBYTE = 62
     'DIM buffer AS UWORD = $a000
     DIM buffer AS UWORD = memory("a_files", 6400, 0)
     DIM nextEntry AS UWORD = buffer
