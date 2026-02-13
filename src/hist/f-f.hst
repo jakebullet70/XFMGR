@@ -1,5 +1,7 @@
-*.oik
 *.*
+*.bl
+*.basl
+*.oik
 *.oio
 *.qrt
 *.qwe
@@ -7,6 +9,4 @@
 *.der
 *.mkl
 *.bat
-*.basl
-*.bl
 *.rrr
