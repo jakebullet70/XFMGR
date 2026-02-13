@@ -14,9 +14,11 @@ IMPORT stree
 IMPORT key_const
 IMPORT diskio
 IMPORT line_editor
-
+IMPORT strings_ext
 
 MODULE prompt_history
+
+    DIM hist_path AS STRING = iso:"/src/hist/" 'TODO !! need to calc on startup  
 
     DIM str_tmp01 AS STRING = "?"*70
     ' DIM str_tmp02 AS STRING = "?"*70
@@ -24,14 +26,19 @@ MODULE prompt_history
     ALIAS fname = main.g_tmp_str_buffer1
 
     CONST FILE_FILESPEC AS UBYTE = 1
+    CONST FILE_RENAME AS UBYTE = 2
     CONST NOTHING AS UBYTE = 0
 
     FUNCTION popup(what AS UBYTE) AS STRING
-
+        
+        get_fname(what) '--- set the fname var  
+        IF strings.length(fname) = 0 THEN RETURN ""
+        IF NOT diskio.exists(fname) THEN  RETURN "" ' create new file, should never happen...   TODO
+        
         screen.store()
         DEFER screen.restore()
 
-        '--- draw cool box
+        '--- draw cool box ------------------------------------- TODO, refactor
         CONST bLEFT AS UBYTE = 12
         CONST bWIDTH AS UBYTE = 66
         CONST bTOP_ROW AS UBYTE = 13
@@ -45,11 +52,8 @@ MODULE prompt_history
         helpers.print_strXY(bLEFT+24,bTOP_ROW+bHEIGHT-3,iso:"Select  ESC Cancel",theme.MENU_NORMAL,FALSE)
         prompts.draw_icons(0, 34,bTOP_ROW+bHEIGHT-3)
         menus.highlight_menu_keys([44,45,46],2,bTOP_ROW+bHEIGHT-3,theme.MENU_BRIGHT)
+        '--------------------------------------------------------
         
-        get_fname(what) '--- set the fname var  
-        IF strings.length(fname) = 0 THEN RETURN ""
-        IF NOT diskio.exists(fname) THEN  RETURN "" ' create new file, should never happen...   TODO
-
         'debug.say("start" ) ' remember screen restore
         IF history_menu.read_file_print_2_scrn(fname) = 0 THEN 
             'debug.say("fail" ) ' remember screen restore
@@ -94,15 +98,18 @@ MODULE prompt_history
 
 
     SUB get_fname(what AS UBYTE)
-
-        'VOID strings.copy()
-        'hist_path
+        'DIM p AS STRING = "?"*90
+        ALIAS p = main.g_tmp_str_buffer2
+        VOID strings.copy(DOS.join_path_file(hist_path,iso:"*.hst"),p) 'TODO, hist path
+        DIM find_this AS STRING = iso:"*"
         fname[0] = 0
 
         '--- set correct file name
         SELECT CASE what
             CASE FILE_FILESPEC 
-                VOID strings.copy(iso:"/src/hist/f-f.hst",fname)
+                strings_ext.replace(p,find_this,iso:"f-f",fname)
+            CASE FILE_RENAME 
+                strings_ext.replace(p,find_this,iso:"f-r",fname)
             CASE ELSE
                 RETURN
         END SELECT

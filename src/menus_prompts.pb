@@ -96,14 +96,13 @@ MODULE prompts
         
         VOID strings.copy(files_cache.current.name,input_str_ret_val)                   '--- copy current fname to working str        
         helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,14,3,[keys.ESC],0,[keys.CR],0,prompt_history.NOTHING)                      '--- get txt loop
+        line_editor.get_txt(44,14,3,[keys.ESC],0,[keys.CR],0,prompt_history.FILE_RENAME)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                               '--- cancel, bye!
-        
-        'IF NOT tagged_files THEN   '  TODO
-            'diskio.rename(files_cache.current.name,input_str_ret_val)
-        'ELSE
-        'END IF
+        IF NOT tagged_files THEN   '  TODO
+            diskio.rename(files_cache.current.name,input_str_ret_val)
+        ELSE
+        END IF
         RETURN TRUE '--- true tells caller to refresh screen
     END FUNCTION
 
