@@ -84,6 +84,57 @@ MODULE strings_ext
     END SUB
 
 
+    '--- Generic string replace function
+    ' Replaces all occurrences of find_str with replace_str in str_2_search
+    ' str_2_search: string to search in (passed by value)
+    ' find_str: string to find (passed by value)
+    ' replace_str: string to replace with (passed by value)
+    ' out_str: pointer to target buffer (must be pre-allocated, large enough for result)
+    SUB replace(str_2_search AS STRING, find_str AS STRING, replace_str AS STRING, out_str AS UWORD)
+        DIM search_len AS UBYTE = strings.length(str_2_search)
+        DIM find_len AS UBYTE = strings.length(find_str)
+        DIM replace_len AS UBYTE = strings.length(replace_str)
+        DIM out_pos AS UBYTE = 0
+        DIM i,j AS UBYTE
+        DIM found AS BOOL = FALSE
+        
+        IF find_len == 0 THEN
+            ' Empty find string, just copy source
+            VOID strings.copy(str_2_search, out_str)
+            RETURN
+        END IF
+        
+        i = 0
+        WHILE i < search_len
+            ' Check if find_str matches at current position
+            found = TRUE
+            j = 0
+            WHILE j < find_len AND i + j < search_len
+                IF str_2_search[i + j] <> find_str[j] THEN
+                    found = FALSE
+                END IF
+                j += 1
+            WEND
+            
+            IF found AND j = find_len THEN
+                ' Found a match, copy replace_str
+                FOR j = 0 TO replace_len - 1
+                    out_str[out_pos] = replace_str[j]
+                    out_pos += 1
+                NEXT
+                i += find_len
+            ELSE
+                ' No match, copy character from source
+                out_str[out_pos] = str_2_search[i]
+                out_pos += 1
+                i += 1
+            END IF
+        WEND
+        
+        out_str[out_pos] = 0  ' Null terminate
+    END SUB
+
+
 END MODULE
 
 
