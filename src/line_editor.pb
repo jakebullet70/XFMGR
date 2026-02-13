@@ -94,8 +94,8 @@ MODULE line_editor
                     VOID strings.copy(t,input_str_ret_val)
                     draw_txt_prompt = TRUE
                     CONTINUE
-                ELSE
-                    debug.say("ret blank")
+                'ELSE
+                '    debug.say("ret blank")
                 END IF
 
                 GOTO restart_get_loop
