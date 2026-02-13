@@ -32,8 +32,19 @@ MODULE prompt_history
         DEFER screen.restore()
 
         '--- draw cool box
-        helpers.draw_box(10, 13, 36,43, theme.BOX2)
-        helpers.clear_section(10+1, 13+1, 36-2, 43-2,theme.BOX2) 
+        CONST bLEFT AS UBYTE = 12
+        CONST bWIDTH AS UBYTE = 66
+        CONST bTOP_ROW AS UBYTE = 13
+        CONST bHEIGHT AS UBYTE = 43
+        helpers.draw_box(bLEFT, bTOP_ROW, bWIDTH,bHEIGHT, theme.BOX2)
+        helpers.clear_section(bLEFT+1, bTOP_ROW+1, bWIDTH-2, bHEIGHT-2,theme.BOX2) 
+        helpers.draw_horiz_line(bLEFT, bTOP_ROW+bHEIGHT-5, bWIDTH,theme.BOX2)
+        helpers.plot_charXY(bLEFT,bTOP_ROW+bHEIGHT-5,helpers.chr_tleft,theme.BOX2)
+        helpers.plot_charXY(bLEFT+bWIDTH-1,bTOP_ROW+bHEIGHT-5,helpers.chr_tright,theme.BOX2)
+        helpers.clear_section(bLEFT+1,bTOP_ROW+bHEIGHT-4,bWIDTH-2,3,theme.TXT_NORMAL)
+        helpers.print_strXY(bLEFT+24,bTOP_ROW+bHEIGHT-3,iso:"Select  ESC Cancel",theme.MENU_NORMAL,FALSE)
+        prompts.draw_icons(0, 34,bTOP_ROW+bHEIGHT-3)
+        menus.highlight_menu_keys([44,45,46],2,bTOP_ROW+bHEIGHT-3,theme.MENU_BRIGHT)
         
         get_fname(what) '--- set the fname var  
         IF strings.length(fname) = 0 THEN RETURN ""
@@ -187,7 +198,7 @@ MODULE history_append
             VOID diskio.f_write(CRLF, 2) '--- write EOL
             current = current.nextEntry
             num++
-            IF num > 25 OR num > num_entries THEN BREAK '--- 25 history items is max
+            IF num > 28 OR num > num_entries THEN BREAK '--- 25 history items is max
         END REPEAT
         
         'debug.say2("num:",num) : sys.wait(400)
@@ -248,9 +259,8 @@ END MODULE
 MODULE history_menu
 
     CONST ROW_START AS UBYTE = 50
-    CONST COL_START AS UBYTE = 12
-    CONST ROW_WIDTH AS UBYTE = 30
-
+    CONST COL_START AS UBYTE = 14 
+    CONST ROW_WIDTH AS UBYTE = 76 - COL_START 
     DIM num_entries, selected_index AS BYTE = 0
     ALIAS txt_buffer = prompt_history.str_tmp01
 
@@ -281,7 +291,7 @@ MODULE history_menu
         
         num_entries = 0
         IF NOT diskio.f_open(filename) THEN RETURN 0
-        'debug.say("start100" )
+
         '--- read in hist file to screen memory
         REPEAT
             ' --- works fine with CRLF files
