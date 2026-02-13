@@ -100,7 +100,7 @@ MODULE prompt_history
     SUB get_fname(what AS UBYTE)
         'DIM p AS STRING = "?"*90
         ALIAS p = main.g_tmp_str_buffer2
-        VOID strings.copy(DOS.join_path_file(hist_path,iso:"*.hst"),p) 'TODO, hist path
+        VOID strings.copy(DOS.join_path_file(hist_path,iso:"*.hst"),p) 
         DIM find_this AS STRING = iso:"*"
         fname[0] = 0
 
