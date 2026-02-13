@@ -150,7 +150,7 @@ MODULE prompts
  
     '--- generic text input prompts text
     SUB prompt_txt(txt1 AS STRING, txt2 AS STRING, txt3 AS STRING, p_length AS UBYTE, col AS UBYTE, row AS UBYTE)
-        menus.clear_menu_area()
+        helpers.clear_section(1,txt.height()-4,78,3,theme.MENU_NORMAL) ' - clear_menu_area
         menus.is_prompt = TRUE                          '--- we are in a prompt!!!
         VOID strings.copy("",input_str_ret_val)         '--- clear out ret val
         txt.color2(theme.MENU_NORMAL & 15, theme.MENU_NORMAL >> 4)
