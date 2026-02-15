@@ -245,7 +245,8 @@ END MODULE
 
 MODULE arena_strings
     ' Simple arena allocator, refactored
-    DIM buffer AS UWORD = $A000
+    'DIM buffer AS UWORD = $A000
+    CONST buffer AS UWORD = $A000
     'DIM buffer AS UWORD = memory("a_strs", 3200, 0)
     DIM nextEntry AS UWORD = buffer
 
