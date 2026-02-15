@@ -158,8 +158,8 @@ MODULE prompts
         IF strings.length(txt2) <> 0 THEN helpers.print_strXY2(1,txt.height() - 3,txt2)
         IF strings.length(txt3) <> 0 THEN helpers.print_strXY2(1,txt.height() - 2,txt3)
 
-        helpers.print_strXY(69,txt.height()-2, iso:"ESC Cancel",theme.MENU_NORMAL,FALSE)
-        menus.highlight_menu_keys([69, 70, 71], 2, txt.height()-2, theme.MENU_BRIGHT)
+        helpers.print_strXY(69,txt.height()-2, iso:"ESC Cancel",theme.MENU_NORMAL,FALSE) '---ESC prompt
+        menus.highlight_menu_keys([69, 70, 71], 2, txt.height()-2, theme.MENU_BRIGHT) '---ESC prompt
         'txt.color2(theme.MENU_EDITOR & 15, theme.MENU_EDITOR >> 4)
         'FOR j = 0 TO p_length - 1  '--- REV ON * p_length SKIPPING 
             'helpers.print_strXY2(col+j,(txt.height() - 4) + row," ") 
