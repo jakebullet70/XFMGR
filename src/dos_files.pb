@@ -61,8 +61,8 @@ MODULE DOS
             VOID strings.copy("", dir_out)
         ELSE
             '--- dir includes separator at sep_pos
-            VOID strings.slice(path, 0, sep_pos + 1 AS UBYTE, dir_out)
-            VOID strings.slice(path, sep_pos + 1 AS UBYTE, 255, file_out)
+            strings.slice(path, 0, sep_pos + 1 AS UBYTE, dir_out)
+            strings.slice(path, sep_pos + 1 AS UBYTE, 255, file_out)
         END IF
     END SUB
 

@@ -57,7 +57,7 @@ MODULE main
     DIM g_tmp_str_buffer3 AS STRING = "?" * 160
     DIM i, j, x, y AS UBYTE @zp = 0
     DIM bool_tmp AS BOOL = FALSE
-    DIM uword_tmp1, uword_tmp2 AS UWORD 'ignore
+    DIM uword_tmp1, uword_tmp2 AS UWORD '@ignore-error
     
     DIM old_keyhdl AS UWORD                          '--- custom KB handler var
     DIM keycode_ext, keycode, kb_ndx AS UBYTE        '--- key press vars

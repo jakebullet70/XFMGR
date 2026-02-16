@@ -260,7 +260,7 @@ MODULE dirs_cache
         ALIAS tmp1 = main.g_tmp_str_buffer2
 
         VOID strings.copy(current.name,tmp)
-        IF NOT strings.endswith(tmp,"/") THEN strings.append(tmp,"/")
+        IF NOT strings.endswith(tmp,"/") THEN VOID strings.append(tmp,"/")
         strings_ext.concat_strings(tmp,files_folders.filter_dir,tmp1)
         helpers.print_strXY(6,3," "*15,theme.TXT_NORMAL,FALSE) 
         helpers.print_strXY(6,3,tmp1,theme.TXT_NORMAL,FALSE)

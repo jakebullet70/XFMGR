@@ -3,7 +3,7 @@
 ; from good guy gillham - https://github.com/gillham/prog8libs/tree/main/assert
 
 monitor {
-    sub open() {
+    sub open() { ; @ignore-error
         %asm {{
             brk
         }}
@@ -30,7 +30,7 @@ debug {
     ; str1: first string (passed by value)
     ; str2: second string (passed by value)
     ; target: pointer to target buffer (must be pre-allocated, large enough for both strings + null)
-    sub concat_strings(str str1, str str2, uword target) {
+    sub concat_strings(str str1, str str2, uword target) {  ;@ignore-error
         ubyte len1 = strings.length(str1)
         
         ; Copy first string
@@ -41,14 +41,14 @@ debug {
     }
 
 
-    sub say2(str msg, ubyte num) {
+    sub say2(str msg, ubyte num) { ; @ignore-error
         str tmp = "?"*40
         concat_strings(msg,conv.str_ub(num),tmp)
         say(tmp)
     }
 
 
-    sub say(str msg) {
+    sub say(str msg) { ; @ignore-error
         txt.plot(col,row)
         txt.print(" "*40)
         txt.plot(col,row)
@@ -59,7 +59,7 @@ debug {
         txt.print("]")
     }
 
-    sub assert(uword one, uword two, ubyte check, str msg) -> bool {
+    sub assert(uword one, uword two, ubyte check, str msg) -> bool { ; @ignore-error 
         when check {
             EQ -> if one == two return true
             NE -> if one != two return true
