@@ -58,7 +58,7 @@ MODULE screen
         
             dataValue = cx16.VERA_DATA0
 
-            Poke ringbuffer.head, dataValue
+            poke(ringbuffer.head, dataValue)
 
             ringbuffer.fill++
             ringbuffer.inc_head()
@@ -89,7 +89,7 @@ MODULE screen
 
         REPEAT loopSize
 
-            dataValue = Peek(ringbuffer.head)
+            dataValue = peek(ringbuffer.head)
 
             cx16.VERA_DATA0 = dataValue
 
@@ -104,7 +104,7 @@ MODULE screen
 
         REPEAT loopSize
 
-            dataValue = Peek(ringbuffer.head)
+            dataValue = peek(ringbuffer.head)
 
             cx16.VERA_DATA0 = dataValue
 

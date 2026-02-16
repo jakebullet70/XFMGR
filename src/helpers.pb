@@ -58,7 +58,7 @@ MODULE helpers
         rows = txt.height()
         ALIAS col_right = x
         col_right = col+width-1 
-        pokew 903, 65 '--- change scrn height so no scroll ' @ignore-error  
+        pokew(903, 65) '--- change scrn height so no scroll ' @ignore-error  
 
         txt.color2(colors BITAND 15, colors SHR 4)
 
@@ -82,7 +82,7 @@ MODULE helpers
         txt.chrout_lit(chr_botleft)
         txt.plot(col_right, row+height-1)
         txt.chrout_lit(chr_botright)
-        pokew 903, rows   '--- restore screen height ' @ignore-error    
+        pokew(903, rows)   '--- restore screen height ' @ignore-error    
     END SUB
 
     SUB set_characters(iso_chars AS BOOL)
