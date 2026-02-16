@@ -17,6 +17,7 @@ MODULE line_editor
 
     DIM CANCEL_INPUT AS STRING = "@"
     
+
     SUB get_txt(p_length AS UBYTE, col AS UBYTE, adj_row AS UBYTE,
             cancel_keys[] AS UBYTE, cancel_keys_len AS UBYTE,
             accept_keys[] AS UBYTE, accept_keys_len AS UBYTE,
@@ -27,29 +28,35 @@ MODULE line_editor
         ALIAS keycode = main.x
         ALIAS i = main.i
         ALIAS j = main.j
-        ALIAS break_out = main.bool_tmp
+        
         'ALIAS current_len = main.y
         DIM current_len,ndx AS UBYTE
+        DIM draw_txt_prompt AS BOOL = TRUE
+        DIM break_out AS BOOL = FALSE
 
         '--- put the return val in this string
         ALIAS input_str_ret_val = main.g_tmp_str_buffer3
-        
-        break_out = FALSE
+
         main.clear_kb()
 
-        '--- Initialize input_str_ret_val from text parameter
-        
-        ndx = strings.length(input_str_ret_val) 
-        IF ndx > 0 THEN 
-            helpers.print_strXY(col, txt.height() - adj_row, input_str_ret_val, theme.MENU_BRIGHT, FALSE)
-        END IF
-        
-        txt.color2(theme.MENU_BRIGHT & 15, theme.MENU_BRIGHT >> 4)
-        txt.plot(col+ndx, txt.height() - adj_row)
-        'txt.plot(col+ndx-(IIF p_length <= 1 THEN 0 ELSE 1), txt.height() - adj_row)
-        cx16.blink_enable(TRUE)
-        
         REPEAT
+
+            IF draw_txt_prompt THEN
+                '--- Initialize input_str_ret_val from text parameter or history entry from UP arrow
+                ndx = strings.length(input_str_ret_val) 
+                IF ndx > 0 THEN 
+                    helpers.clear_section(col, txt.height() - adj_row,p_length,1,theme.MENU_BRIGHT)
+                    helpers.print_strXY(col, txt.height() - adj_row, input_str_ret_val, theme.MENU_BRIGHT, FALSE)
+                END IF
+                
+                txt.color2(theme.MENU_BRIGHT & 15, theme.MENU_BRIGHT >> 4)
+                txt.plot(col+ndx, txt.height() - adj_row)
+                'txt.plot(col+ndx-(IIF p_length <= 1 THEN 0 ELSE 1), txt.height() - adj_row)
+                cx16.blink_enable(TRUE)
+                            
+                draw_txt_prompt = FALSE '--- only done once... unless up arrow-history
+            END IF
+
             keycode = cbm.GETIN2()             
             IF keycode = 0 THEN CONTINUE
             
@@ -81,12 +88,19 @@ MODULE line_editor
                 GOTO restart_get_loop
             END IF
             IF keys.UP_ARROW IN main.last_keys THEN
-                prompt_history.popup(history_prompt_val)
+                DIM t AS STRING ="?"*80
+                VOID strings.copy(prompt_history.popup(history_prompt_val),t)
+                IF strings.length(t) <> 0 THEN
+                    VOID strings.copy(t,input_str_ret_val)
+                    draw_txt_prompt = TRUE
+                    CONTINUE
+                'ELSE
+                '    debug.say("ret blank")
+                END IF
+
                 GOTO restart_get_loop
             END IF
             '==============================================================
-            'debug.say2("gt-kcode_ext:",main.keycode_ext)           
-            'debug.say2("gt-kcode:",keycode)
             SELECT CASE main.keycode_ext
                 CASE keys.END_KEY
                     'debug.say("endkey")
@@ -158,6 +172,12 @@ MODULE line_editor
 
         main.clear_kb()
         cx16.blink_enable(FALSE)
+
+        IF strings.length(input_str_ret_val) > 1 THEN 
+            '--- save to hist files except if single char or empty
+            history_append.add_2_hist_file(history_prompt_val,input_str_ret_val)
+        END IF
+
         RETURN
 
     END SUB

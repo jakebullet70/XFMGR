@@ -21,16 +21,9 @@ MODULE menus
         NEXT
     END SUB
 
-    SUB clear_menu_area()
-        ALIAS j = main.j
-        txt.color2(theme.MENU_NORMAL & 15, theme.MENU_NORMAL >> 4)
-        FOR j = 4 DOWNTO 2
-            helpers.print_strXY2(1, txt.height() - j, " " * 78)
-        NEXT
-    END SUB
 
     SUB show_menu_header(mtype AS STRING, DIRorFILE AS STRING)
-        clear_menu_area()
+        helpers.clear_section(1,txt.height()-4,78,3,theme.MENU_NORMAL) ' - clear_menu_area
         helpers.print_strXY2(1, txt.height() - 4, mtype)
         helpers.print_strXY2(1, txt.height() - 3, cp437:"COMMANDS")
         helpers.print_strXY2(1, txt.height() - 2, DIRorFILE)

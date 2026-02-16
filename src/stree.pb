@@ -18,6 +18,13 @@ IMPORT process_keys
 OPTION no_sysinit
 ZEROPAGE basicsafe
 
+MODULE mem_banks
+    CONST BANK60 AS UBYTE = 60  '--- used for temp strings (history popups)
+    CONST BANK63 AS UBYTE = 63  '--- save screen, 2 banks
+    CONST BANK62 AS UBYTE = 62  '--- save screen, 2 banks
+    CONST BANK59 AS UBYTE = 59  '--- linked list dir, TODO
+    CONST BANK61 AS UBYTE = 61  '--- linked list files, TODO
+END MODULE
 
 MODULE theme
     '--- default colors
@@ -50,9 +57,9 @@ MODULE main
     DIM g_tmp_str_buffer3 AS STRING = "?" * 160
     DIM i, j, x, y AS UBYTE @zp = 0
     DIM bool_tmp AS BOOL = FALSE
-    DIM uword_tmp1, uword_tmp2 AS UWORD
+    DIM uword_tmp1, uword_tmp2 AS UWORD '@ignore-error
     
-    DIM old_keyhdl AS UWORD                        '--- custom KB handler var
+    DIM old_keyhdl AS UWORD                          '--- custom KB handler var
     DIM keycode_ext, keycode, kb_ndx AS UBYTE        '--- key press vars
     DIM last_keys[5] AS UBYTE
 

@@ -51,7 +51,7 @@ MODULE files_cache
     END SUB
 
     
-    SUB key_page_down()
+    SUB key_page_down() ' @ignore-error
         debug.say("p-down-HAS-BUG")
         '--- BUG!  Scroll and do page up-dn
         ' IF num_files > 0 THEN
@@ -66,7 +66,7 @@ MODULE files_cache
         ' END IF
     END SUB
 
-    SUB key_page_up()
+    SUB key_page_up() ' @ignore-error
         debug.say("p-up-HAS-BUG")
         '--- BUG!  Scroll and do page up-dn
         ' line_color(selected_line_on_page, theme.TXT_NORMAL)
@@ -175,14 +175,9 @@ MODULE files_cache
         print_stats()
     END SUB
 
-    SUB clear_panel() 'TODO - this needs to call the generic helper function
+    SUB clear_panel() 
         '--- clear panel/page
-        ALIAS i = main.i
-        ALIAS str_clear = main.g_tmp_str_buffer1
-        VOID strings.copy(" " * files_folders.FILE_MAX_LEN_CLEAR, str_clear)
-        FOR i = 0 TO max_lines
-            helpers.print_strXY2(LEFT_COL,TOP_ROW + i,str_clear) 
-        NEXT
+        helpers.clear_section(LEFT_COL,TOP_ROW,files_folders.FILE_MAX_LEN_CLEAR,max_lines,theme.TXT_NORMAL)
     END SUB
 
     SUB draw_files_2_scrn(select_this_line AS UBYTE)
@@ -231,13 +226,13 @@ MODULE files_cache
         RETURN pretty_str
     END FUNCTION
 
-    SUB set_ram_bank()
-        sys.push(cx16.getrambank())
-        cx16.rambank(arena_files.MEM_BANK62)
-    END SUB
-    SUB restore_ram_bank()
-        cx16.rambank(sys.pop())
-    END SUB
+    ' SUB set_ram_bank()
+    '     sys.push(cx16.getrambank())
+    '     cx16.rambank(mem_banks.MEM_BANK61)
+    ' END SUB
+    ' SUB restore_ram_bank()
+    '     cx16.rambank(sys.pop())
+    ' END SUB
 
     SUB set_focus()  '--- called when changing from FILES - DIR panels
         IF num_files = 0 THEN RETURN
@@ -376,7 +371,6 @@ END MODULE
 
 MODULE arena_files
     ' Simple arena allocator
-    CONST MEM_BANK62 AS UBYTE = 62
     'DIM buffer AS UWORD = $a000
     DIM buffer AS UWORD = memory("a_files", 6400, 0)
     DIM nextEntry AS UWORD = buffer

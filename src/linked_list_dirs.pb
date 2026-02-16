@@ -226,9 +226,9 @@ MODULE dirs_cache
         RETURN pretty_str
     END FUNCTION
 
-    ' SUB set_ram_bank()
+    ' SUB set_ram_bank()  TODO
     '     sys.push(cx16.getrambank())
-    '     cx16.rambank(arena_dirs.MEM_BANK62)
+    '     cx16.rambank(mem_banks.BANK59)
     ' END SUB
     ' SUB restore_ram_bank()
     '     cx16.rambank(sys.pop())
@@ -260,7 +260,7 @@ MODULE dirs_cache
         ALIAS tmp1 = main.g_tmp_str_buffer2
 
         VOID strings.copy(current.name,tmp)
-        IF NOT strings.endswith(tmp,"/") THEN strings.append(tmp,"/")
+        IF NOT strings.endswith(tmp,"/") THEN VOID strings.append(tmp,"/")
         strings_ext.concat_strings(tmp,files_folders.filter_dir,tmp1)
         helpers.print_strXY(6,3," "*15,theme.TXT_NORMAL,FALSE) 
         helpers.print_strXY(6,3,tmp1,theme.TXT_NORMAL,FALSE)
@@ -323,7 +323,7 @@ END MODULE
 
 MODULE arena_dirs
     ' Simple arena allocator
-    CONST MEM_BANK61 AS UBYTE = 61
+    'CONST MEM_BANK61 AS UBYTE = 61
     'DIM buffer AS UWORD = $a000
     DIM buffer AS UWORD = memory("a_dirs", 3200, 0)
     DIM nextEntry AS UWORD = buffer

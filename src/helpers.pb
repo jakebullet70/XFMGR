@@ -58,7 +58,7 @@ MODULE helpers
         rows = txt.height()
         ALIAS col_right = x
         col_right = col+width-1 
-        POKEW 903, 65 '--- change scrn height so no scroll  
+        pokew 903, 65 '--- change scrn height so no scroll ' @ignore-error  
 
         txt.color2(colors BITAND 15, colors SHR 4)
 
@@ -82,7 +82,7 @@ MODULE helpers
         txt.chrout_lit(chr_botleft)
         txt.plot(col_right, row+height-1)
         txt.chrout_lit(chr_botright)
-        POKEW 903, rows   '--- restore screen height    
+        pokew 903, rows   '--- restore screen height ' @ignore-error    
     END SUB
 
     SUB set_characters(iso_chars AS BOOL)
@@ -182,7 +182,7 @@ MODULE helpers
 
 
 
-    SUB run_file()
+    SUB run_file() ' @ignore-error 
         ' CLS : LOCATE 10,1 : PRINT : PRINT "STARTING BASLOAD..."
         ' PRINT "BASLOAD";CHR$(34) + FILE_TO_COMP$ + CHR$(34) + "{UP}{UP}";:
         ' KBBUFFER_OUT = $FEC3 : A.REG = 780
