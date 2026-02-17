@@ -86,7 +86,7 @@ MODULE helpers
     END SUB
 
     SUB set_characters(iso_chars AS BOOL)
-        IF iso_chars THEN
+      '  IF iso_chars THEN
             chr_topleft = 218 
             chr_topright = 191
             chr_botleft = 192 
@@ -97,17 +97,17 @@ MODULE helpers
             chr_tright = 180
             chr_tup = 193
             chr_tdown = 194
-        ELSE
-            ' PETSCII box symbols
-            chr_topleft = "┌"c
-            chr_topright = "┐"c
-            chr_botleft = "└"c
-            chr_botright = "┘"c
-            chr_horiz = "─"c
-            chr_vert = "│"c
-            chr_tleft = "├"c
-            chr_tright = "┤"c
-        END IF
+        ' ELSE
+        '     ' PETSCII box symbols
+        '     chr_topleft = "┌"c
+        '     chr_topright = "┐"c
+        '     chr_botleft = "└"c
+        '     chr_botright = "┘"c
+        '     chr_horiz = "─"c
+        '     chr_vert = "│"c
+        '     chr_tleft = "├"c
+        '     chr_tright = "┤"c
+        ' END IF
     END SUB
 
     SUB draw_main_scrn()
