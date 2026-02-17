@@ -119,8 +119,9 @@ MODULE prompts
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE 
         IF NOT tagged_files THEN
             diskio.delete(files_cache.current.name)
+            'VOID files_cache.remove2(files_cache.current)
         ELSE
-
+            files_cache.delete_tagged()
         END IF
         RETURN TRUE '--- true tells caller to refresh screen
     END FUNCTION 

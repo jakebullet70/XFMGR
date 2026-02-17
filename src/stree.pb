@@ -148,17 +148,21 @@ MODULE main
     SUB select_focus()
 
         IF menus.mode = menus.DIR AND (NOT dirs_cache.current.logged) THEN
-            '--- loads pointed dir files into file panel but NO focus
-            dirs_cache.current.logged = TRUE
-            ALIAS spath = g_tmp_str_buffer1
-            strings_ext.concat_strings("/", dirs_cache.current.name, spath)
-            read_files(diskio.drivenumber, files_folders.filter_files, spath)
-            files_cache.lost_focus()
-            files_cache.print_stats()
+            refresh_load()
             RETURN
         END IF
         menus.mode = IIF menus.mode = menus.FILE THEN menus.DIR ELSE menus.FILE
         select_focus2()
+    END SUB
+
+    SUB refresh_load()
+        '--- loads pointed dir files into file panel but NO focus
+        dirs_cache.current.logged = TRUE
+        ALIAS spath = g_tmp_str_buffer1
+        strings_ext.concat_strings("/", dirs_cache.current.name, spath)
+        read_files(diskio.drivenumber, files_folders.filter_files, spath)
+        files_cache.lost_focus()
+        files_cache.print_stats()
     END SUB
 
     '=========================================================================

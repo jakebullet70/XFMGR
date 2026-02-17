@@ -33,7 +33,7 @@ MODULE files_cache
     CONST NOT_TAGGED AS BOOL = FALSE
     CONST LEFT_COL AS UBYTE = 32
     CONST TOP_ROW AS UBYTE = 6
-    DIM TAG_CHAR AS   STRING = cp437:"♦"
+    DIM TAG_CHAR AS STRING = cp437:"♦"
 
     'txt.print_lit(cp437:"≈ IBM Pc ≈ ÇüéâäàåçêëèïîìÄ ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼ ►◄↕‼¶§▬↨↑↓→←∟↔▲▼")
     
@@ -167,7 +167,6 @@ MODULE files_cache
         NEXT
     END SUB
 
-
     SUB show_not_logged()
         clear_panel()
         helpers.print_strXY(LEFT_COL,TOP_ROW,cp437:"Not Logged",theme.TXT_NORMAL,FALSE)
@@ -176,7 +175,6 @@ MODULE files_cache
     END SUB
 
     SUB clear_panel() 
-        '--- clear panel/page
         helpers.clear_section(LEFT_COL,TOP_ROW,files_folders.FILE_MAX_LEN_CLEAR,max_lines,theme.TXT_NORMAL)
     END SUB
 
@@ -252,6 +250,7 @@ MODULE files_cache
         NEXT
     END SUB
 
+
     SUB add(name AS STRING, blocks AS UWORD)
         '--- Create new entry
         DIM new_record AS PTR Entry = arena_files.alloc(SIZEOF(Entry))
@@ -277,7 +276,8 @@ MODULE files_cache
             tail = new_record
         END IF
     END SUB
-    
+
+
     SUB tag_file(line_num AS UBYTE, tag AS BOOL)
         DEFER print_stats()
         DEFER key_down()
@@ -324,17 +324,6 @@ MODULE files_cache
     END SUB
 
 
-    FUNCTION find_by_recnum(rec_num AS UBYTE) AS PTR Entry
-        DIM item AS PTR Entry = head
-        WHILE item <> 0
-            IF item.rec_num = rec_num THEN
-                RETURN item
-            END IF
-            item = item.nextEntry
-        WEND
-        RETURN 0  ' Not found - should not happen
-    END FUNCTION
-
     SUB print_stats()
         ' TODO needs refactor
         ALIAS i = main.i
@@ -365,6 +354,73 @@ MODULE files_cache
         ' helpers.print_strXY(52,51,i2,theme.TXT_NORMAL,FALSE)
 
     END SUB
+
+
+    FUNCTION find_by_recnum(rec_num AS UBYTE) AS PTR Entry
+        DIM item AS PTR Entry = head
+        WHILE item <> 0
+            IF item.rec_num = rec_num THEN
+                RETURN item
+            END IF
+            item = item.nextEntry
+        WEND
+        RETURN 0  ' Not found - should not happen
+    END FUNCTION
+
+
+    SUB delete_tagged()
+        current = head
+        REPEAT num_files
+            IF current.is_tagged THEN
+                diskio.delete(files_cache.current.name)
+            END IF
+            current = current.nextEntry
+        END REPEAT
+    END SUB
+
+
+    ' FUNCTION find_by_filename(name AS STRING) AS PTR Entry
+    '     DIM cur AS PTR Entry = head
+    '     WHILE cur <> 0
+    '         IF strings.compare(cur.name, name) = 0 THEN
+    '             RETURN cur
+    '         END IF
+    '         'current = current.hash_next
+    '         cur = cur.nextEntry
+    '     WEND
+    
+    '     RETURN 0  ' Not found
+    ' END FUNCTION
+
+
+    ' FUNCTION remove(name AS STRING) AS BOOL
+    '     ' Find the entry
+    '     DIM to_remove AS PTR Entry = find_by_filename(name)
+    '     IF to_remove = 0 THEN
+    '         RETURN FALSE  ' Not found
+    '     END IF
+    
+    '    RETURN remove2(to_remove)
+    ' END FUNCTION
+
+    
+    ' FUNCTION remove2(to_remove AS PTR Entry) AS BOOL
+    '     ' Remove from doubly linked list
+    '     IF to_remove.prevEntry <> 0 THEN
+    '         to_remove.prevEntry.nextEntry = to_remove.nextEntry
+    '     ELSE
+    '         head = to_remove.nextEntry  ' Was the head
+    '     END IF
+    
+    '     IF to_remove.nextEntry <> 0 THEN
+    '         to_remove.nextEntry.prevEntry = to_remove.prevEntry
+    '     ELSE
+    '         tail = to_remove.prevEntry  ' Was the tail
+    '     END IF
+    
+    '     num_files--
+    '     RETURN TRUE
+    ' END FUNCTION
 
 
 END MODULE

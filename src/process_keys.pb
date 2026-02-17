@@ -280,7 +280,9 @@ MODULE process_keys
             IF menus.mode = menus.DIR THEN
                 dirs_cache.print_stats()
             ELSE
-                files_cache.print_stats()
+                'debug.say("hhhhhhh")
+                main.refresh_load()
+                main.select_focus2()
             END IF
         END IF
 
