@@ -325,7 +325,8 @@ MODULE arena_dirs
     ' Simple arena allocator
     'CONST MEM_BANK61 AS UBYTE = 61
     'DIM buffer AS UWORD = $a000
-    DIM buffer AS UWORD = memory("a_dirs", 3200, 0)
+    CONST ttl_size AS UWORD = 3200
+    DIM buffer AS UWORD = memory("a_dirs", ttl_size, 0)
     DIM nextEntry AS UWORD = buffer
 
     FUNCTION alloc(size AS UBYTE) AS UWORD
@@ -336,6 +337,7 @@ MODULE arena_dirs
     SUB free_all() 
         ' cannot free individual allocations only the whole arena at once
         ' UNTESTED!!! - assuming this resets the pointer to the top
+        sys.memset(buffer,ttl_size,0)
         nextEntry = buffer
     END SUB
 END MODULE
