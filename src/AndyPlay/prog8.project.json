@@ -1,0 +1,7 @@
+{
+  "name": "stringtesting",
+  "main": "main.pb",
+  "target": "cx16",
+  "launchEmu": true,
+  "compilerArgs": ["-breakinstr stp"]
+}
