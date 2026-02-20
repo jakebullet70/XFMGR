@@ -567,7 +567,7 @@ IF a == 5 THEN     ' C/Prog8 style
 | `<<` | `SHL` or `<<` |
 | `>>` | `SHR` or `>>` |
 
-### Modulo
+### Remainder
 
 | Prog8 | ProgB |
 |-------|-------|
@@ -702,49 +702,8 @@ END IF
 
 | Prog8 | ProgB |
 |-------|-------|
-| `@(address)` | `PEEK(address)` or `@(address)` |
-| `@(address) = value` | `POKE address, value` or `@(address) = value` |
-| `peekw(address)` | `PEEKW(address)` |
-| `pokew(address, value)` | `POKEW address, value` |
-| `peekl(address)` | `PEEKL(address)` |
-| `pokel(address, value)` | `POKEL address, value` |
-| `peekbool(address)` | `PEEKBOOL(address)` |
-| `pokebool(address, value)` | `POKEBOOL address, value` |
-| `peekf(address)` | `PEEKF(address)` |
-| `pokef(address, value)` | `POKEF address, value` |
-
-#### Typed PEEK/POKE Variants
-
-ProgB provides typed variants for reading and writing multi-byte values:
-
-| Type | Read (Expression) | Write (Statement) |
-|------|-------------------|-------------------|
-| Byte (default) | `PEEK(address)` | `POKE address, value` |
-| Word (16-bit) | `PEEKW(address)` | `POKEW address, value` |
-| Long (32-bit) | `PEEKL(address)` | `POKEL address, value` |
-| Bool | `PEEKBOOL(address)` | `POKEBOOL address, value` |
-| Float | `PEEKF(address)` | `POKEF address, value` |
-
-**Example:**
-```basic
-DIM addr AS UWORD = $1000
-
-' Reading typed values
-DIM b AS UBYTE = PEEK(addr)           ' read byte
-DIM w AS UWORD = PEEKW(addr)          ' read word
-DIM l AS LONG = PEEKL(addr)           ' read long
-DIM flag AS BOOL = PEEKBOOL(addr)     ' read bool
-DIM f AS FLOAT = PEEKF(addr)          ' read float
-
-' Writing typed values
-POKE addr, $42                        ' write byte
-POKEW addr, $1234                     ' write word
-POKEL addr, $12345678                 ' write long
-POKEBOOL addr, TRUE                   ' write bool
-POKEF addr, 3.14                      ' write float
-```
-
-**Note:** These map to the Prog8 builtin functions `peekw()`, `pokew()`, etc.
+| `@(address)` | `peek(address)` or `@(address)` |
+| `@(address) = value` | `poke(address, value)` or `@(address) = value` |
 
 ### Conditional Expression
 
@@ -769,14 +728,14 @@ POKEF addr, 3.14                      ' write float
 
 | Prog8 | ProgB |
 |-------|-------|
-| `if_cs { }` | `IF_CS THEN ... END IF` |
-| `if_cc { }` | `IF_CC THEN ... END IF` |
-| `if_eq { }` / `if_z { }` | `IF_EQ THEN ... END IF` |
-| `if_ne { }` / `if_nz { }` | `IF_NE THEN ... END IF` |
-| `if_pl { }` / `if_pos { }` | `IF_PL THEN ... END IF` |
-| `if_mi { }` / `if_neg { }` | `IF_MI THEN ... END IF` |
-| `if_vs { }` | `IF_VS THEN ... END IF` |
-| `if_vc { }` | `IF_VC THEN ... END IF` |
+| `if_cs { }` | `IF_CS ... END IF` |
+| `if_cc { }` | `IF_CC ... END IF` |
+| `if_eq { }` / `if_z { }` | `IF_EQ ... END IF` |
+| `if_ne { }` / `if_nz { }` | `IF_NE ... END IF` |
+| `if_pl { }` / `if_pos { }` | `IF_PL ... END IF` |
+| `if_mi { }` / `if_neg { }` | `IF_MI ... END IF` |
+| `if_vs { }` | `IF_VS ... END IF` |
+| `if_vc { }` | `IF_VC ... END IF` |
 
 ---
 
