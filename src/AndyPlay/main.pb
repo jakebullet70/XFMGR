@@ -45,11 +45,11 @@ MODULE main
             ' You would normally use `entry1.ChildDirectories[0] = value` to set a one of the items, but
             ' instead here we're going to fill the entire child directory area with a value so you can
             ' see it in memory get filled.
-            '          Move pointer to start of the child dirs
+            '          Move pointer to start of the child dirs property
             '          |
             '          |                      Length is the size of type - size of data before child dirs
             '          |                      |
-            '          |                      |                             Use value 9 to fill mem
+            '          |                      |                             Use value 9 to fill mem, just testing
             '          |____________________  |_________________________________________________  |
             sys.memset((entry1 AS UWORD) + 3, (DirectoryManager.TYPE_SIZE_DIRENTRY - 3) AS UWORD, 9)
 
