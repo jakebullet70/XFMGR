@@ -7,40 +7,38 @@ IMPORT conv
 MODULE main
 
     SUB start()
-        ' Start memory address
-        DIM memPos AS PTR UBYTE = $A000
-
-        'DIM abc AS DirectoryManager.DirEntry
-        DIM temp AS PTR UBYTE = TYPEDADDR(memPos)
-        ' Print info about the memory address to check that the pointer works correctly
-        PrintMemAndValue(memPos)
-
-        memPos++
-        PrintMemAndValue(memPos)
-        memPos--
-        txt.print("changing value of ") : txt.print_uwhex(memPos, TRUE) : txt.print("\n")
-        poke(memPos, 123)
-        PrintMemAndValue(memPos)
-
-        ' Increment pointer by 1 and check value again
-        memPos++
-        PrintMemAndValue(memPos)
-        memPos++
-        PrintMemAndValue(memPos)
-
-        'Restart pointer and try using + operator and array access operator
-        memPos = $A000
-        txt.print("alterna ") : txt.print_uwhex(memPos + 0, TRUE) : txt.print(" is ") : txt.print_ub(memPos[0]) : txt.print("\n")
-        txt.print("alterna ") : txt.print_uwhex(memPos + 1, TRUE) : txt.print(" is ") : txt.print_ub(memPos[1]) : txt.print("\n")
-        txt.print("alterna ") : txt.print_uwhex(memPos + 2, TRUE) : txt.print(" is ") : txt.print_ub(memPos[2]) : txt.print("\n")
-
         DirectoryManager.Initialize()
+        DIM index AS UBYTE = 1
+        REPEAT 5
 
-        DIM entry1 AS PTR DirectoryManager.DirEntry
+            ' Reserve a directory entry
+            DIM entry1 AS PTR DirectoryManager.DirEntry = DirectoryManager.CreateDirEntry()
 
-        entry1 = DirectoryManager.CreateDirEntry()
+            ' To edit a directory entry, have to work in the correct bank
+            cx16.push_rambank(DirectoryManager.BANK_DIR_ENTRIES)
 
-        txt.print("address ") : txt.print_uwhex(entry1, TRUE)
+            entry1.Name = "test"
+            entry1.Flags = index
+
+            index++
+            
+            ' You would normall use entry1.ChildDirectories[0] = value to set a one of the items, but
+            ' instead here we're going to fill the entire child directory area with a value so you can
+            ' see it in memory get filled.
+            sys.memset((entry1 AS UWORD) + 3, (DirectoryManager.TYPE_SIZE_DIRENTRY - 3) AS UWORD, 9)
+
+            ' Restore normal memory
+            cx16.pop_rambank()
+
+        END REPEAT
+
+        ' Again, to read the directory entry, have to work in the correct bank
+        cx16.push_rambank(DirectoryManager.BANK_DIR_ENTRIES)
+        entry1 = DirectoryManager.GetDirEntry(2)
+        txt.print("address ") : txt.print_uwhex(entry1, TRUE) : txt.print("\n")
+        txt.print("flags: ") : txt.print_ub(entry1.Flags) : txt.print("\n")
+        txt.print("name: ") : txt.print(entry1.Name) : txt.print("\n")
+        cx16.pop_rambank()
 
     END SUB
 
@@ -52,14 +50,20 @@ END MODULE
 
 MODULE DirectoryManager
     ''' The size of the DirEntry type in bytes.
-    CONST TYPE_SIZE_DIRENTRY AS UBYTE = 35
+    CONST TYPE_SIZE_DIRENTRY AS UBYTE = 35 '$23
+
+    ''' The size of the bitmap for DirEntry items.
+    CONST BITMAP_SIZE AS UBYTE = 29 '$1D
 
     ''' The memory location of the bitmap representing DirEntry.
     CONST ADDR_DIRENTRIES_BITMAP AS UWORD = $A000
 
     ''' The memory location of the DirEntry instances.
-    CONST ADDR_DIRENTRIES_DATA AS UWORD = $A000 + TYPE_SIZE_DIRENTRY ' Root of bank + 1 entry that holds bitmap
-    
+    CONST ADDR_DIRENTRIES_DATA AS UWORD = $A000 + BITMAP_SIZE ' Root of bank + 1 entry that holds bitmap
+
+    ''' The number of entries we can have in the bank.
+    CONST MAX_DIR_ENTRIES AS UBYTE = 8 * BITMAP_SIZE
+
     ''' The bank number where the bitmap and DirEntry instances are stored.
     CONST BANK_DIR_ENTRIES AS UBYTE = 40 '$28
 
@@ -82,12 +86,12 @@ MODULE DirectoryManager
 
     ' This type can't be bigger than 48 bytes. This way we have a 1-1 mapping between the DirEntry and 
     ' string bank.
-    TYPE DirEntry
+    TYPE DirEntry '(35 bytes)
         ' Stores the visual flags of a directory (1-byte)
         Flags AS UBYTE
 
         ' This is effectively the offset into the bank where the string is stored. (2-byte)
-        Name AS PTR STRING
+        Name AS STRING
 
         ' Child directory pointers (32-bytes)
         ChildDirectories AS PTR UBYTE
@@ -103,7 +107,7 @@ MODULE DirectoryManager
     SUB Initialize()
     
         cx16.push_rambank(BANK_DIR_ENTRIES)
-        BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, 29)
+        BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, BITMAP_SIZE)
         BitmapAllocator.Clear()
         cx16.pop_rambank()
 
@@ -115,48 +119,39 @@ MODULE DirectoryManager
 
         cx16.push_rambank(BANK_DIR_ENTRIES)
 
-        BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, 29)
+        ' Map the bitmap to the ram bank area
+        BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, BITMAP_SIZE)
         
+        ' Allocate an item
         DIM index AS UBYTE = BitmapAllocator.Allocate()
 
-        DIM entry AS PTR DirEntry = BitmapAllocator.GetMemoryAddressOfIndex(index, TYPE_SIZE_DIRENTRY) + ADDR_DIRENTRIES_DATA
+        ' Get the memory address of the index (after the bitmap area)
+        DIM entryAddress AS UWORD = BitmapAllocator.GetMemoryAddressOfIndex(index, TYPE_SIZE_DIRENTRY) + ADDR_DIRENTRIES_DATA
 
-BREAKPOINT
+        ' Clear the memory of the entry
+        sys.memset(entryAddress, TYPE_SIZE_DIRENTRY AS UWORD, 0)
 
-        entry.Flags = 2
-        entry.Name = $0101
-        sys.memset(entry + 3, TYPE_SIZE_DIRENTRY AS UWORD, 1)
-        
         cx16.pop_rambank()
 
-        RETURN entry
+        RETURN entryAddress
 
     END FUNCTION
 
-    FUNCTION GetDirEntrySize() AS UBYTE
-        RETURN 35
+    FUNCTION GetDirEntry(index AS UBYTE) AS PTR DirEntry
+
+        ' Get the memory address of the index (after the bitmap area)
+        DIM entryAddress AS UWORD = BitmapAllocator.GetMemoryAddressOfIndex(index, TYPE_SIZE_DIRENTRY) + ADDR_DIRENTRIES_DATA
+
+        RETURN entryAddress
+
     END FUNCTION
 
-    ' TODO: Rewrite
+    ''' Clears the memory of a `DirEntry` instance, effectively resetting its values.
     SUB ClearDirEntry(entry AS PTR DirEntry)
-
-        entry^^.Flags = 0
-        entry^^.Name = 0
-        entry^^.ChildDirectories = 0
-
-    END SUB
-
-    SUB SetBank()
         cx16.push_rambank(BANK_DIR_ENTRIES)
-    END SUB
-
-    SUB UnsetBank()
+        sys.memset(entry, TYPE_SIZE_DIRENTRY AS UWORD, 0)
         cx16.pop_rambank()
     END SUB
-
-    ' FUNCTION CreateDirectoryEntry() AS PTR DirEntry
-
-    ' END FUNCTION
 
 END MODULE
 
