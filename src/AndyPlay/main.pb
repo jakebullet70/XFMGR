@@ -1,3 +1,22 @@
+' Thoughts by Jack Handy.. No.. Andy!
+'
+' XTREE 2.0 used approximately 150K of memory. Files were restricted to 8.3 and directories were
+' restricted to 8.3 with a max of 64 entries per directory.
+
+' We have 8kb of memory in a single bank to store directory strings. If we restrict the size of
+' strings to 48 bytes, we can store 170 entries in a single bank. However, we want to store a bitmap
+' showing what is reserved, which takes up one entry (really just 21 bytes)
+
+' We don't need any managers except for methods to clear out a string, copy to and from the bank,
+' perhaps get the length of a STRING because it's either terminated by a null 0 or it's 48 bytes
+' long. However length is something we could return automatically when we copy from the bank.
+
+' Other considerations:
+
+' What if we did something similar to FAT? FAT just had a file named the directory that was a flag to indicate this "file" was a directory. The file then contained the list of files and directories within it. Since each directory is flagged as "logged", when a directory becomes logged we store it in memory and point to it.
+
+
+
 OPTION no_sysinit
 ZEROPAGE basicsafe
 
@@ -12,11 +31,11 @@ MODULE main
         DIM index AS UBYTE = 1
         REPEAT 5
 
-            ' Reserve a directory entry
+            ' Reserve a directory entry (This push/pop the bank for you)
             DIM entry1 AS PTR DirectoryManager.DirEntry = DirectoryManager.CreateDirEntry()
 
             ' To edit a directory entry, have to work in the correct bank
-            cx16.push_rambank(DirectoryManager.BANK_DIR_ENTRIES)
+            DirectoryManager.PushBank()
 
             entry1.Name = "test"
             entry1.Flags = index
@@ -26,20 +45,38 @@ MODULE main
             ' You would normally use `entry1.ChildDirectories[0] = value` to set a one of the items, but
             ' instead here we're going to fill the entire child directory area with a value so you can
             ' see it in memory get filled.
+            '          Move pointer to start of the child dirs
+            '          |
+            '          |                      Length is the size of type - size of data before child dirs
+            '          |                      |
+            '          |                      |                             Use value 9 to fill mem
+            '          |____________________  |_________________________________________________  |
             sys.memset((entry1 AS UWORD) + 3, (DirectoryManager.TYPE_SIZE_DIRENTRY - 3) AS UWORD, 9)
 
             ' Restore normal memory
-            cx16.pop_rambank()
+            DirectoryManager.PopBank()
 
         END REPEAT
 
         ' Again, to read the directory entry, have to work in the correct bank
-        cx16.push_rambank(DirectoryManager.BANK_DIR_ENTRIES)
+        DirectoryManager.PushBank()
+        
         entry1 = DirectoryManager.GetDirEntry(2)
+        
         txt.print("address ") : txt.print_uwhex(entry1, TRUE) : txt.print("\n")
         txt.print("flags: ") : txt.print_ub(entry1.Flags) : txt.print("\n")
         txt.print("name: ") : txt.print(entry1.Name) : txt.print("\n")
-        cx16.pop_rambank()
+
+        txt.print("reset directory entry\n")
+        DirectoryManager.ClearDirEntry(entry1)
+
+        txt.print("address ") : txt.print_uwhex(entry1, TRUE) : txt.print("\n")
+        txt.print("flags: ") : txt.print_ub(entry1.Flags) : txt.print("\n")
+        ' This will be garbage because the string is a pointer and was reset to 0 which points
+        ' to zero page!
+        txt.print("name: ") : txt.print(entry1.Name) : txt.print("\n")
+
+        DirectoryManager.PopBank()
 
     END SUB
 
@@ -70,21 +107,6 @@ MODULE DirectoryManager
 
     CONST BANK_DIR_STRINGS AS UBYTE = 41 '$29
 
-    ' XTREE 2.0 used approximately 150K of memory. Files were restricted to 8.3 and directories were
-    ' restricted to 8.3 with a max of 64 entries per directory.
-
-    ' We have 8kb of memory in a single bank to store directory strings. If we restrict the size of
-    ' strings to 48 bytes, we can store 170 entries in a single bank. However, we want to store a bitmap
-    ' showing what is reserved, which takes up one entry (really just 21 bytes)
-    
-    ' We don't need any managers except for methods to clear out a string, copy to and from the bank,
-    ' perhaps get the length of a STRING because it's either terminated by a null 0 or it's 48 bytes
-    ' long. However length is something we could return automatically when we copy from the bank.
-
-    ' Other considerations:
-    
-    ' What if we did something similar to FAT? FAT just had a file named the directory that was a flag to indicate this "file" was a directory. The file then contained the list of files and directories within it. Since each directory is flagged as "logged", when a directory becomes logged we store it in memory and point to it.
-
     ' This type can't be bigger than 48 bytes. This way we have a 1-1 mapping between the DirEntry and 
     ' string bank.
     TYPE DirEntry '(35 bytes)
@@ -99,26 +121,25 @@ MODULE DirectoryManager
 
     END TYPE
 
-    ' A byte can map 8 entries. For 170 entries we need 22 bytes to store the flags. We can store the flags in the same bank as the strings
-
-    'DIM DirEntryBitmap[21] AS UBYTE
-    'DIM DirEntry[169] AS DirEntry
-
     ''' Resets the bitmap used for directory entries.
+    '''
+    ''' **Note**: Pushes and pops the memory bank for you.
     SUB Initialize()
     
-        cx16.push_rambank(BANK_DIR_ENTRIES)
+        PushBank()
         BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, BITMAP_SIZE)
         BitmapAllocator.Clear()
-        cx16.pop_rambank()
+        PopBank()
 
     END SUB
 
     ''' Creates a new entry for the directory.\
     ''' **Returns**: A pointer to the newly created `DirEntry` instance.
+    '''
+    ''' **Note**: Pushes and pops the memory bank for you.
     FUNCTION CreateDirEntry() AS PTR DirEntry
 
-        cx16.push_rambank(BANK_DIR_ENTRIES)
+        PushBank()
 
         ' Map the bitmap to the ram bank area
         BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, BITMAP_SIZE)
@@ -132,12 +153,15 @@ MODULE DirectoryManager
         ' Clear the memory of the entry
         sys.memset(entryAddress, TYPE_SIZE_DIRENTRY AS UWORD, 0)
 
-        cx16.pop_rambank()
+        PopBank()
 
         RETURN entryAddress
 
     END FUNCTION
 
+    ''' Calculates the memory address of a `DirEntry` instance based on its index in the bitmap and returns it as a pointer.
+    '''
+    ''' **Note**: Memory bank isn't required.
     FUNCTION GetDirEntry(index AS UBYTE) AS PTR DirEntry
 
         ' Get the memory address of the index (after the bitmap area)
@@ -148,10 +172,22 @@ MODULE DirectoryManager
     END FUNCTION
 
     ''' Clears the memory of a `DirEntry` instance, effectively resetting its values.
+    '''
+    ''' **Note**: _Doesn't_ push or pop the memory bank.
     SUB ClearDirEntry(entry AS PTR DirEntry)
-        cx16.push_rambank(BANK_DIR_ENTRIES)
         sys.memset(entry, TYPE_SIZE_DIRENTRY AS UWORD, 0)
+    END SUB
+
+    SUB PushBank()
+        cx16.push_rambank(BANK_DIR_ENTRIES)
+    END SUB
+
+    SUB PopBank()
         cx16.pop_rambank()
+    END SUB
+
+    SUB SetBank()
+        cx16.rambank(BANK_DIR_ENTRIES)
     END SUB
 
 END MODULE
