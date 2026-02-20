@@ -8,6 +8,7 @@ MODULE main
 
     SUB start()
         DirectoryManager.Initialize()
+
         DIM index AS UBYTE = 1
         REPEAT 5
 
@@ -22,7 +23,7 @@ MODULE main
 
             index++
             
-            ' You would normall use entry1.ChildDirectories[0] = value to set a one of the items, but
+            ' You would normally use `entry1.ChildDirectories[0] = value` to set a one of the items, but
             ' instead here we're going to fill the entire child directory area with a value so you can
             ' see it in memory get filled.
             sys.memset((entry1 AS UWORD) + 3, (DirectoryManager.TYPE_SIZE_DIRENTRY - 3) AS UWORD, 9)
@@ -103,7 +104,7 @@ MODULE DirectoryManager
     'DIM DirEntryBitmap[21] AS UBYTE
     'DIM DirEntry[169] AS DirEntry
 
-    ''' Clears the memory bank used for directory entries.
+    ''' Resets the bitmap used for directory entries.
     SUB Initialize()
     
         cx16.push_rambank(BANK_DIR_ENTRIES)
