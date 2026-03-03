@@ -204,7 +204,7 @@ MODULE main
             '----------------
             get_key_again:
             '----------------
-            'keycode_ext = keycode = 0               '--- reset key vars, keycode_ext var contains modifer key
+            keycode_ext = keycode = 0               '--- reset key vars, keycode_ext var contains modifer key
             VOID, keycode = cbm.GETIN()              '--- custom KB handler points to ==> &kb_handler
             'keycode = cx16.kbdbuf_get()
             IF keycode = 0 AND keycode_ext = 0 THEN GOTO get_key_again
@@ -212,7 +212,7 @@ MODULE main
             
             IF NOT menus.CTRL_PRESSED AND NOT menus.ALT_PRESSED THEN
                 '--- key strokes - movement up / down / pgup / pgdn
-                'debug.say2("keycode:",keycode)
+                'debug.say2("keycode:", keycode)
                 'sys.wait(200)
                 SELECT CASE keycode
                     CASE keys.CR, keys.TAB '--- swap FILE / DIR focus
@@ -235,24 +235,20 @@ MODULE main
                             files_cache.key_up() 
                         END IF 
                         CONTINUE
-                    'CASE keys.PAGE_DN_PRESSED OR keys.PAGE_DN_PRESSED2
-                    CASE keys.PAGE_DN_PRESSED2
-                        debug.say("PAGE_DN_PRESSED")
+                    CASE keys.PAGE_DN_PRESSED
                         IF menus.mode = menus.DIR THEN 
-                            dirs_cache.key_page_down()  
+                           'dirs_cache.key_page_down()  TODO
                         ELSE
-                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
-                            files_cache.key_page_down()
+                           IF files_cache.ttl_num_files = 0 THEN CONTINUE
+                           files_cache.key_page_down()
                         END IF 
                         CONTINUE
-                    'CASE keys.PAGE_UP_PRESSED OR keys.PAGE_UP_PRESSED2
-                    CASE keys.PAGE_UP_PRESSED2
-                        debug.say("PAGE_UP_PRESSED")
+                    CASE keys.PAGE_UP_PRESSED
                         IF menus.mode = menus.DIR THEN 
-                            dirs_cache.key_page_up()  
+                           'dirs_cache.key_page_up()    TODO
                         ELSE
-                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
-                            files_cache.key_page_up() 
+                           IF files_cache.ttl_num_files = 0 THEN CONTINUE
+                           files_cache.key_page_up() 
                         END IF 
                         CONTINUE
                 END SELECT
