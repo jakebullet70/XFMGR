@@ -119,7 +119,7 @@ MODULE main
     END SUB
 
     SUB update_stats_main() 
-        helpers.print_strXY(63,1,iso:"Dec 29 - 02:30PM",theme.TXT_NORMAL,FALSE)
+        helpers.print_strXY(63, 1, iso:"Dec 29 - 02:30PM", theme.TXT_NORMAL, FALSE)
     END SUB
 
     '=========================================================================
@@ -235,22 +235,26 @@ MODULE main
                             files_cache.key_up() 
                         END IF 
                         CONTINUE
-                    CASE keys.PAGE_DN_PRESSED
-                        ' IF menus.mode = menus.DIR THEN 
-                        '     'dirs_cache.key_up()  
-                        ' ELSE
-                        '     IF files_cache.num_files = 0 THEN CONTINUE
-                        '     files_cache.key_up() 
-                        ' END IF 
-                        ' CONTINUE
-                    CASE keys.PAGE_UP_PRESSED
-                        ' IF menus.mode = menus.DIR THEN 
-                        '     'dirs_cache.key_up()  
-                        ' ELSE
-                        '    IF files_cache.num_files = 0 THEN CONTINUE
-                        '     files_cache.key_up() 
-                        ' END IF 
-                        '  CONTINUE
+                    'CASE keys.PAGE_DN_PRESSED OR keys.PAGE_DN_PRESSED2
+                    CASE keys.PAGE_DN_PRESSED2
+                        debug.say("PAGE_DN_PRESSED")
+                        IF menus.mode = menus.DIR THEN 
+                            dirs_cache.key_page_down()  
+                        ELSE
+                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
+                            files_cache.key_page_down()
+                        END IF 
+                        CONTINUE
+                    'CASE keys.PAGE_UP_PRESSED OR keys.PAGE_UP_PRESSED2
+                    CASE keys.PAGE_UP_PRESSED2
+                        debug.say("PAGE_UP_PRESSED")
+                        IF menus.mode = menus.DIR THEN 
+                            dirs_cache.key_page_up()  
+                        ELSE
+                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
+                            files_cache.key_page_up() 
+                        END IF 
+                        CONTINUE
                 END SELECT
             END IF
             

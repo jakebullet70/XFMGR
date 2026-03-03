@@ -8,8 +8,10 @@ MODULE keys
     '--- keycode keys --------------------------
     CONST UP_ARROW_PRESSED AS UBYTE = 145
     CONST DN_ARROW_PRESSED AS UBYTE = 17
-    CONST PAGE_DN_PRESSED AS UBYTE = 51
+    CONST PAGE_DN_PRESSED AS UBYTE = 55
     CONST PAGE_UP_PRESSED AS UBYTE = 57
+    CONST PAGE_DN_PRESSED2 AS UBYTE = $d6
+    CONST PAGE_UP_PRESSED2 AS UBYTE = $d5
     '--- editing -------------------------------
     CONST LEFT_ARROW AS UBYTE = $4f
     CONST RIGHT_ARROW AS UBYTE = $59
