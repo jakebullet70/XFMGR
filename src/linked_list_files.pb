@@ -52,30 +52,30 @@ MODULE files_cache
     END SUB
     
     SUB key_page_down() ' @ignore-error
-        debug.say("p-down-HAS-BUG")
+        'debug.say("p-down-HAS-BUG")  TODO, need chk with multi page entries
         '--- BUG!  Scroll and do page up-dn
-        ' IF ttl_num_files > 0 THEN
-        '     ' nextEntry page of lines
-        '     unselect_line(selected_line_on_page)
-        '     IF selected_line_on_page = max_lines_per_page - 1 THEN
-        '         REPEAT max_lines_per_page scroll_list_forward() END REPEAT
-        '     END IF
-        '     selected_line_on_page = num_visible_files_on_page - 1
-        '     select_line(selected_line_on_page)
-        '     print_stats()
-        ' END IF
+        IF ttl_num_files > 0 THEN
+            ' nextEntry page of lines
+            line_color(selected_line_on_page, theme.TXT_NORMAL)
+            IF selected_line_on_page = max_lines_per_page - 1 THEN
+                REPEAT max_lines_per_page scroll_list_forward() END REPEAT
+            END IF
+            selected_line_on_page = num_visible_files_on_page - 1
+            line_color(selected_line_on_page, theme.ROW_HILIGHT)
+            print_stats()
+        END IF
     END SUB
 
     SUB key_page_up() ' @ignore-error
-        debug.say("p-up-HAS-BUG")
+        'debug.say("p-up-HAS-BUG")  TODO, need chk with multi page entries
         '--- BUG!  Scroll and do page up-dn
-        ' line_color(selected_line_on_page, theme.TXT_NORMAL)
-        ' IF selected_line_on_page = 0 THEN
-        '     REPEAT max_lines_per_page scroll_list_backward() END REPEAT
-        ' END IF
-        ' selected_line_on_page = 0
-        ' select_line(0)
-        ' print_stats() 
+        line_color(selected_line_on_page, theme.TXT_NORMAL)
+        IF selected_line_on_page = 0 THEN
+            REPEAT max_lines_per_page scroll_list_backward() END REPEAT
+        END IF
+        selected_line_on_page = 0
+        line_color(0, theme.ROW_HILIGHT)
+        print_stats() 
     END SUB
 
 
@@ -356,7 +356,7 @@ MODULE files_cache
     END SUB
 
 
-    ' SUB remove_entry_refresh_page(pointed_to AS UBYTE)
+    ' SUB xdelx_xentryx_xrefreshx_xpagex(pointed_to AS UBYTE)
     '     IF current.rec_num = 1 THEN
     '     ELSE
     '     END IF
