@@ -165,6 +165,7 @@ MODULE main
         files_cache.print_stats()
     END SUB
 
+
     '=========================================================================
     '=========================================================================
     '=========================================================================
@@ -221,7 +222,7 @@ MODULE main
                             IF dirs_cache.num_dirs <= 1 THEN CONTINUE
                             dirs_cache.key_down()  
                         ELSE
-                            IF files_cache.num_files = 0 THEN CONTINUE
+                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
                             files_cache.key_down() 
                         END IF 
                         CONTINUE
@@ -230,7 +231,7 @@ MODULE main
                             IF dirs_cache.num_dirs <= 1 THEN CONTINUE
                             dirs_cache.key_up()  
                         ELSE
-                            IF files_cache.num_files = 0 THEN CONTINUE
+                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
                             files_cache.key_up() 
                         END IF 
                         CONTINUE

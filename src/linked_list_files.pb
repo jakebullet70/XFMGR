@@ -27,7 +27,7 @@ MODULE files_cache
     DIM tail AS PTR Entry = 0           ' Tail of the doubly linked list
     'DIM page_top AS PTR Entry = 0       ' Tail of the doubly linked list
 
-    DIM num_files, num_tagged AS UBYTE = 0        ' Number of entries
+    DIM ttl_num_files, num_tagged AS UBYTE = 0        ' Number of entries
 
     ALIAS FILE_NAME_SIZE = files_folders.FILE_MAX_LEN
     CONST NOT_TAGGED AS BOOL = FALSE
@@ -39,28 +39,28 @@ MODULE files_cache
     
     '--- vars FOR movement
     DIM top_index AS UBYTE = 0
-    DIM selected_line_on_page, num_visible_files AS UBYTE
-    DIM max_lines AS UBYTE = txt.height() - 12
+    DIM selected_line_on_page, num_visible_files_on_page AS UBYTE
+    DIM max_lines_per_page AS UBYTE = txt.height() - 12
 
     DIM current AS PTR Entry
     DIM item_tmp_ptr AS PTR Entry
 
     SUB init_clear()
+        clear_panel()
         helpers.print_strXY(LEFT_COL,TOP_ROW,cp437:"Reading...",theme.TXT_NORMAL,FALSE)
-        num_files = num_tagged = top_index = selected_line_on_page = num_visible_files = 0         ' Number of entries
+        ttl_num_files = num_tagged = top_index = selected_line_on_page = num_visible_files_on_page = 0         ' Number of entries
     END SUB
-
     
     SUB key_page_down() ' @ignore-error
         debug.say("p-down-HAS-BUG")
         '--- BUG!  Scroll and do page up-dn
-        ' IF num_files > 0 THEN
+        ' IF ttl_num_files > 0 THEN
         '     ' nextEntry page of lines
         '     unselect_line(selected_line_on_page)
-        '     IF selected_line_on_page = max_lines - 1 THEN
-        '         REPEAT max_lines scroll_list_forward() END REPEAT
+        '     IF selected_line_on_page = max_lines_per_page - 1 THEN
+        '         REPEAT max_lines_per_page scroll_list_forward() END REPEAT
         '     END IF
-        '     selected_line_on_page = num_visible_files - 1
+        '     selected_line_on_page = num_visible_files_on_page - 1
         '     select_line(selected_line_on_page)
         '     print_stats()
         ' END IF
@@ -71,7 +71,7 @@ MODULE files_cache
         '--- BUG!  Scroll and do page up-dn
         ' line_color(selected_line_on_page, theme.TXT_NORMAL)
         ' IF selected_line_on_page = 0 THEN
-        '     REPEAT max_lines scroll_list_backward() END REPEAT
+        '     REPEAT max_lines_per_page scroll_list_backward() END REPEAT
         ' END IF
         ' selected_line_on_page = 0
         ' select_line(0)
@@ -84,7 +84,7 @@ MODULE files_cache
         IF selected_line_on_page > 0 THEN
             current = current.prevEntry
             selected_line_on_page--
-        ELSEIF num_files > max_lines THEN
+        ELSEIF ttl_num_files > max_lines_per_page THEN
             scroll_list_backward()
         END IF
 
@@ -99,7 +99,7 @@ MODULE files_cache
         IF top_index > 0 THEN
             top_index--
             ' scroll the displayed list down 1
-            scroll_txt_down(LEFT_COL, TOP_ROW, FILE_NAME_SIZE, max_lines, iso:" "c)
+            scroll_txt_down(LEFT_COL, TOP_ROW, FILE_NAME_SIZE, max_lines_per_page, iso:" "c)
             ' print new name at the top of the list
             txt.plot(LEFT_COL, TOP_ROW)
             current = current.prevEntry
@@ -109,12 +109,12 @@ MODULE files_cache
     
 
     SUB key_down()
-        IF num_files > 0 THEN
+        IF ttl_num_files > 0 THEN
             line_color(selected_line_on_page, theme.TXT_NORMAL)
-            IF selected_line_on_page < num_visible_files - 1 THEN
+            IF selected_line_on_page < num_visible_files_on_page - 1 THEN
                 selected_line_on_page++ 
                 current = current.nextEntry
-            ELSEIF num_files > max_lines THEN
+            ELSEIF ttl_num_files > max_lines_per_page THEN
                 scroll_list_forward()
             END IF
                 
@@ -127,12 +127,12 @@ MODULE files_cache
 
 
     SUB scroll_list_forward()
-        IF top_index + max_lines < num_files THEN
+        IF top_index + max_lines_per_page < ttl_num_files THEN
             top_index++
             ' scroll the displayed list up 1
-            scroll_txt_up(LEFT_COL,TOP_ROW,FILE_NAME_SIZE,max_lines,iso:" "c)
+            scroll_txt_up(LEFT_COL,TOP_ROW,FILE_NAME_SIZE,max_lines_per_page,32)
             ' print new name at the bottom of the list
-            txt.plot(LEFT_COL,TOP_ROW + max_lines - 1)
+            txt.plot(LEFT_COL,TOP_ROW + max_lines_per_page - 1)
             current = current.nextEntry
             print_filename(selected_line_on_page)
         END IF
@@ -175,17 +175,17 @@ MODULE files_cache
     END SUB
 
     SUB clear_panel() 
-        helpers.clear_section(LEFT_COL,TOP_ROW,files_folders.FILE_MAX_LEN_CLEAR,max_lines,theme.TXT_NORMAL)
+        helpers.clear_section(LEFT_COL,TOP_ROW,files_folders.FILE_MAX_LEN_CLEAR,max_lines_per_page,theme.TXT_NORMAL)
     END SUB
 
     SUB draw_files_2_scrn(select_this_line AS UBYTE)
         ALIAS i = main.i
         
         txt.color2(theme.TXT_NORMAL BITAND 15, theme.TXT_NORMAL SHR 4)
-        num_visible_files = min(max_lines, num_files)
+        num_visible_files_on_page = min(max_lines_per_page, ttl_num_files)
 
         clear_panel()
-        IF num_files = 0 THEN
+        IF ttl_num_files = 0 THEN
             helpers.print_strXY2(LEFT_COL,TOP_ROW, iso:"No Files")
             RETURN
         END IF
@@ -193,7 +193,7 @@ MODULE files_cache
         'current = head
         current = find_by_recnum(top_index+1)
         item_tmp_ptr = current
-        FOR i = 0 TO num_visible_files - 1
+        FOR i = 0 TO num_visible_files_on_page - 1
             print_filename(i)   
             current = current.nextEntry
         NEXT
@@ -233,12 +233,12 @@ MODULE files_cache
     ' END SUB
 
     SUB set_focus()  '--- called when changing from FILES - DIR panels
-        IF num_files = 0 THEN RETURN
+        IF ttl_num_files = 0 THEN RETURN
         line_color(selected_line_on_page, theme.ROW_HILIGHT)
     END SUB
 
     SUB lost_focus()  '--- called when changing from FILES - DIR panels
-        IF num_files = 0 THEN RETURN
+        IF ttl_num_files = 0 THEN RETURN
         line_color(selected_line_on_page, theme.TXT_NORMAL)
     END SUB
 
@@ -257,14 +257,14 @@ MODULE files_cache
         DIM name_copy AS PTR UBYTE = arena_files.alloc(strings.length(name) + 1)
         VOID strings.copy(name, name_copy)
 
-        num_files++
+        ttl_num_files++
 
         new_record.name = name_copy
         new_record.is_tagged = FALSE
         new_record.blocks = blocks
         new_record.nextEntry = 0
         new_record.prevEntry = 0
-        new_record.rec_num = num_files 
+        new_record.rec_num = ttl_num_files 
 
         '--- Add to the end of the doubly linked list
         IF head = 0 THEN '--- First entry
@@ -295,7 +295,7 @@ MODULE files_cache
         ALIAS ndx = main.x
         ALIAS last_selected = main.j
         ALIAS lrec = main.y
-        num_tagged = IIF tag THEN num_files ELSE 0
+        num_tagged = IIF tag THEN ttl_num_files ELSE 0
         'DIM last_selected, lrec AS UBYTE
         
         line_color(selected_line_on_page,theme.TXT_NORMAL)
@@ -304,7 +304,7 @@ MODULE files_cache
 
         '--- tag everything
         current = head
-        FOR ndx = 0 TO files_cache.num_files - 1
+        FOR ndx = 0 TO files_cache.ttl_num_files - 1
             current.is_tagged = tag
             current = current.nextEntry
         NEXT
@@ -330,12 +330,12 @@ MODULE files_cache
         ALIAS real_num = main.j
         i = 3
         helpers.print_strXY(51,i,cp437:"[File:    Of:    Tagged:    ]",theme.BOXES,FALSE)
-        IF num_files = 0 THEN
+        IF ttl_num_files = 0 THEN
             helpers.print_strXY(57,i,conv.str_ub(0),theme.TXT_NORMAL,FALSE)
         ELSE 
             helpers.print_strXY(57,i,conv.str_ub(selected_line_on_page + 1 + top_index),theme.TXT_NORMAL,FALSE) 
         END IF
-        helpers.print_strXY(64,i,conv.str_ub(num_files),theme.TXT_NORMAL,FALSE)
+        helpers.print_strXY(64,i,conv.str_ub(ttl_num_files),theme.TXT_NORMAL,FALSE)
         helpers.print_strXY(75,i,conv.str_ub(num_tagged),theme.TXT_NORMAL,FALSE)
         
         ALIAS tmp = main.g_tmp_str_buffer2
@@ -356,6 +356,23 @@ MODULE files_cache
     END SUB
 
 
+    ' SUB remove_entry_refresh_page(pointed_to AS UBYTE)
+    '     IF current.rec_num = 1 THEN
+    '     ELSE
+    '     END IF
+
+    '     DIM recid AS UBYTE 
+    '     current = current.nextEntry : recid = current.rec_num : current = current.prevEntry
+
+    '     VOID remove2(current) '--- remove current ptr in linked list
+    '     scroll_txt_up(LEFT_COL,TOP_ROW+pointed_to,FILE_NAME_SIZE,max_lines_per_page-pointed_to,32)
+
+    '     txt.plot(LEFT_COL,TOP_ROW + max_lines_per_page - 1)
+    '     print_filename(selected_line_on_page)
+    '     'print_stats()
+    ' END SUB
+
+
     FUNCTION find_by_recnum(rec_num AS UBYTE) AS PTR Entry
         DIM item AS PTR Entry = head
         WHILE item <> 0
@@ -366,17 +383,6 @@ MODULE files_cache
         WEND
         RETURN 0  ' Not found - should not happen
     END FUNCTION
-
-
-    SUB delete_tagged()
-        current = head
-        REPEAT num_files
-            IF current.is_tagged THEN
-                diskio.delete(files_cache.current.name)
-            END IF
-            current = current.nextEntry
-        END REPEAT
-    END SUB
 
 
     ' FUNCTION find_by_filename(name AS STRING) AS PTR Entry
@@ -398,29 +404,31 @@ MODULE files_cache
     '     DIM to_remove AS PTR Entry = find_by_filename(name)
     '     IF to_remove = 0 THEN
     '         RETURN FALSE  ' Not found
-    '     END IF
-    
+    '     END IF   
     '    RETURN remove2(to_remove)
     ' END FUNCTION
 
     
-    ' FUNCTION remove2(to_remove AS PTR Entry) AS BOOL
-    '     ' Remove from doubly linked list
-    '     IF to_remove.prevEntry <> 0 THEN
-    '         to_remove.prevEntry.nextEntry = to_remove.nextEntry
-    '     ELSE
-    '         head = to_remove.nextEntry  ' Was the head
-    '     END IF
+    FUNCTION remove2(to_remove AS PTR Entry) AS BOOL
+        '--- Remove from doubly linked list
+
+        IF to_remove.is_tagged THEN num_tagged--
+        ttl_num_files--
+
+        IF to_remove.prevEntry <> 0 THEN
+            to_remove.prevEntry.nextEntry = to_remove.nextEntry
+        ELSE
+            head = to_remove.nextEntry  ' Was the head
+        END IF
     
-    '     IF to_remove.nextEntry <> 0 THEN
-    '         to_remove.nextEntry.prevEntry = to_remove.prevEntry
-    '     ELSE
-    '         tail = to_remove.prevEntry  ' Was the tail
-    '     END IF
-    
-    '     num_files--
-    '     RETURN TRUE
-    ' END FUNCTION
+        IF to_remove.nextEntry <> 0 THEN
+            to_remove.nextEntry.prevEntry = to_remove.prevEntry
+        ELSE
+            tail = to_remove.prevEntry  ' Was the tail
+        END IF
+
+        RETURN TRUE
+    END FUNCTION
 
 
 END MODULE
@@ -428,7 +436,8 @@ END MODULE
 MODULE arena_files
     ' Simple arena allocator
     'DIM buffer AS UWORD = $a000
-    DIM buffer AS UWORD = memory("a_files", 6400, 0)
+    CONST ttl_size AS UWORD = 6400
+    DIM buffer AS UWORD = memory("a_files", ttl_size, 0)
     DIM nextEntry AS UWORD = buffer
 
     FUNCTION alloc(size AS UBYTE) AS UWORD
@@ -439,6 +448,7 @@ MODULE arena_files
     SUB free_all()
         ' cannot free individual allocations only the whole arena at once
         ' UNTESTED!!! - assuming this resets the pointer to the top
+        sys.memset(buffer,ttl_size,0)
         nextEntry = buffer
     END SUB
 END MODULE
@@ -459,7 +469,7 @@ END MODULE
     '         current = current.nextEntry
     '     WEND
     '     txt.print("Total entries: ")
-    '     txt.print_uw(num_files)
+    '     txt.print_uw(ttl_num_files)
     '     txt.print("\n")
     ' END SUB
 
@@ -477,7 +487,7 @@ END MODULE
     '         current = current.prevEntry
     '     WEND
     '     txt.print("Total entries: ")
-    '     txt.print_uw(num_files)
+    '     txt.print_uw(ttl_num_files)
     '     txt.print("\n")
     ' END SUB
 
@@ -518,14 +528,14 @@ END MODULE
     '         tail = to_remove.prevEntry  ' Was the tail
     '     END IF
     '
-    '     num_files--
+    '     ttl_num_files--
     '     RETURN TRUE
     ' END FUNCTION
 
 
     ' SUB movement_line(movement AS UBYTE)
     '     
-    '     IF num_files = 0 THEN RETURN '--- no files
+    '     IF ttl_num_files = 0 THEN RETURN '--- no files
     '     '--- TODO --->  HAVE TO ADD PAGE UP/DN 
     '     SELECT CASE movement
     '         CASE MOVE_UP
@@ -534,7 +544,7 @@ END MODULE
     '             inner_index--
     '             line_color(inner_index,theme.ROW_HILIGHT)
     '         CASE MOVE_DN
-    '             IF pages_index * inner_index = num_files THEN 
+    '             IF pages_index * inner_index = ttl_num_files THEN 
     '                 debug.say("MOVE_DN-LAST ENTRY")
     '                 RETURN  '--- bottom
     '             END IF
