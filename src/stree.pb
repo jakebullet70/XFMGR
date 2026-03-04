@@ -209,7 +209,6 @@ MODULE main
             'keycode = cx16.kbdbuf_get()
             IF keycode = 0 AND keycode_ext = 0 THEN GOTO get_key_again
         
-            
             IF NOT menus.CTRL_PRESSED AND NOT menus.ALT_PRESSED THEN
                 '--- key strokes - movement up / down / pgup / pgdn
                 'debug.say2("keycode:", keycode)
@@ -222,8 +221,7 @@ MODULE main
                             IF dirs_cache.num_dirs <= 1 THEN CONTINUE
                             dirs_cache.key_down()  
                         ELSE
-                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
-                            files_cache.key_down() 
+                            IF files_cache.ttl_num_files <> 0 THEN files_cache.key_down() 
                         END IF 
                         CONTINUE
                     CASE keys.UP_ARROW_PRESSED
@@ -231,24 +229,21 @@ MODULE main
                             IF dirs_cache.num_dirs <= 1 THEN CONTINUE
                             dirs_cache.key_up()  
                         ELSE
-                            IF files_cache.ttl_num_files = 0 THEN CONTINUE
-                            files_cache.key_up() 
+                            IF files_cache.ttl_num_files <> 0 THEN files_cache.key_up() 
                         END IF 
                         CONTINUE
                     CASE keys.PAGE_DN_PRESSED
                         IF menus.mode = menus.DIR THEN 
                            'dirs_cache.key_page_down()  TODO
                         ELSE
-                           IF files_cache.ttl_num_files = 0 THEN CONTINUE
-                           files_cache.key_page_down()
+                           IF files_cache.ttl_num_files <> 0 THEN files_cache.key_page_down()
                         END IF 
                         CONTINUE
                     CASE keys.PAGE_UP_PRESSED
                         IF menus.mode = menus.DIR THEN 
                            'dirs_cache.key_page_up()    TODO
                         ELSE
-                           IF files_cache.ttl_num_files = 0 THEN CONTINUE
-                           files_cache.key_page_up() 
+                           IF files_cache.ttl_num_files <> 0 THEN files_cache.key_page_up() 
                         END IF 
                         CONTINUE
                 END SELECT
