@@ -218,16 +218,14 @@ MODULE main
                         select_focus()
                     CASE keys.DN_ARROW_PRESSED
                         IF menus.mode = menus.DIR THEN 
-                            IF dirs_cache.num_dirs <= 1 THEN CONTINUE
-                            dirs_cache.key_down()  
+                            IF dirs_cache.num_dirs > 1 THEN dirs_cache.key_down()  
                         ELSE
                             IF files_cache.ttl_num_files <> 0 THEN files_cache.key_down() 
                         END IF 
                         CONTINUE
                     CASE keys.UP_ARROW_PRESSED
                         IF menus.mode = menus.DIR THEN 
-                            IF dirs_cache.num_dirs <= 1 THEN CONTINUE
-                            dirs_cache.key_up()  
+                            IF dirs_cache.num_dirs > 1 THEN dirs_cache.key_up()  
                         ELSE
                             IF files_cache.ttl_num_files <> 0 THEN files_cache.key_up() 
                         END IF 
