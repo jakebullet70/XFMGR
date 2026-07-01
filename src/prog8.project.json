@@ -4,7 +4,6 @@
   "target": "cx16",
   "launchEmu": true,
   "compilerPath": "..\\prog8c.jar",
-  "emulatorFolder": "C:\\8bitProgramming\\x16emu",
   "outputDir": "..\\",
   "compilationMode": "auto",
   "srcdirs": ["..\\utilities"],
