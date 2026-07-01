@@ -6,12 +6,13 @@
 '---   
 '==============================================================================
 
-
+IMPORT conv
 IMPORT line_editor
 IMPORT history_popup
 IMPORT stree
 IMPORT key_const
 IMPORT strings
+IMPORT strings_ext
 IMPORT menus
 IMPORT textio
 IMPORT diskio
@@ -58,14 +59,14 @@ MODULE prompts
     
 
     FUNCTION run_file() AS BOOL
-        prompt_txt(cp437:"EXECUTE File:",cp437:"",
-                   cp437:"                                                     History    Ok",0,14,2)
+        prompt_txt(cp437:"EXECUTE File:", cp437:"",
+                   cp437:"                                                     History    Ok", 0, 14, 2)
         'menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
-        draw_icons(53,63,txt.height()-2)
+        draw_icons(53, 63, txt.height()-2)
         
-        VOID strings.copy(files_cache.current.name,input_str_ret_val)                  '--- copy current fname to working str        
+        VOID strings.copy(files_cache.current.name, input_str_ret_val)                  '--- copy current fname to working str        
         'helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(1,14,PROMPT_LINE_2,[keys.ESC],0,[keys.CR],0,prompt_history.NOTHING)                      '--- get txt loop
+        line_editor.get_txt(1, 14, PROMPT_LINE_2, [keys.ESC], 0, [keys.CR], 0, prompt_history.NOTHING)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                                     '--- cancel, bye!
         RETURN FALSE
@@ -74,11 +75,11 @@ MODULE prompts
 
     
     FUNCTION ask_exit() AS BOOL
-        prompt_txt(cp437:"GO BYE BYE",cp437:"",cp437:"Quit and return to the x16?         [N]o  Yes",1,28,3)
-        menus.highlight_menu_keys([38,43],1,txt.height()-2,theme.MENU_BRIGHT)
-        VOID strings.copy("",input_str_ret_val)                  '--- working str        
-        line_editor.get_txt(1,29,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,
-                                [cp437:"y"c,cp437:"Y"c],1,prompt_history.NOTHING)
+        prompt_txt(cp437:"GO BYE BYE", cp437:"", cp437:"Quit and return to the x16?         [N]o  Yes", 1, 28, 3)
+        menus.highlight_menu_keys([38, 43], 1, txt.height()-2, theme.MENU_BRIGHT)
+        VOID strings.copy("", input_str_ret_val)                  '--- working str        
+        line_editor.get_txt(1, 29, PROMPT_LINE_3, [keys.ESC, cp437:"n"c, cp437:"N"c, keys.CR], 3,
+                                [cp437:"y"c, cp437:"Y"c], 1, prompt_history.NOTHING)
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE
         RETURN TRUE
     END FUNCTION
@@ -89,41 +90,74 @@ MODULE prompts
         prompt_txt(cp437:"RENAME File:",
                    cp437:"         To:",
                    cp437:"Enter filename mask                                  History    Ok",
-                   files_folders.FILE_MAX_LEN,14,2)
+                   files_folders.FILE_MAX_LEN, 14, 2)
                         ' 12345678901234567890123456789012345678901234567890123456789012345678901234567890
         'menus.highlight_menu_keys([69,70,71],2,txt.height()-2,theme.MENU_BRIGHT)
-        draw_icons(53,63,txt.height()-2)
+        draw_icons(53, 63, txt.height()-2)
         
-        VOID strings.copy(files_cache.current.name,input_str_ret_val)                   '--- copy current fname to working str        
-        helpers.print_strXY(14,txt.height()-4,input_str_ret_val,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        line_editor.get_txt(44,14,3,[keys.ESC],0,[keys.CR],0,prompt_history.FILE_RENAME)                      '--- get txt loop
+        VOID strings.copy(files_cache.current.name, input_str_ret_val)                   '--- copy current fname to working str        
+        helpers.print_strXY(14, txt.height()-4, input_str_ret_val, theme.MENU_BRIGHT, FALSE)  '--- show fname
+        line_editor.get_txt(44, 14, 3, [keys.ESC], 0, [keys.CR], 0, prompt_history.FILE_RENAME)                      '--- get txt loop
 
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE                               '--- cancel, bye!
         IF NOT tagged_files THEN   '  TODO
-            diskio.rename(files_cache.current.name,input_str_ret_val)
+            diskio.rename(files_cache.current.name, input_str_ret_val)
         ELSE
         END IF
         RETURN TRUE '--- true tells caller to refresh screen
     END FUNCTION
 
     
-    FUNCTION delete_file(tagged_files AS BOOL) AS BOOL
-        '--- if tagged_files=true then delete multi files
-        prompt_txt(cp437:"DELETE File:",cp437:"",cp437:"Delete this file?                   [N]o  Yes",1,28,3)
-        menus.highlight_menu_keys([38,43],1,txt.height()-2,theme.MENU_BRIGHT)
-        
-        helpers.print_strXY(13,txt.height()-4,files_cache.current.name,theme.MENU_BRIGHT,FALSE)  '--- show fname
-        VOID strings.copy("",input_str_ret_val)                                                  '---  working str = none       
-        line_editor.get_txt(1,19,PROMPT_LINE_3,[keys.ESC,cp437:"n"c,cp437:"N"c,keys.CR],3,
-                            [cp437:"y"c,cp437:"Y"c],1,prompt_history.NOTHING)
+    
+    FUNCTION delete_files() AS BOOL '--- delete tagged files
+
+        strings_ext.replace(iso:"DELETE all tagged files: (!)", iso:"!", conv.str_ub(files_cache.num_tagged), main.g_tmp_str_buffer1)            
+        prompt_txt(main.g_tmp_str_buffer1,
+                cp437:"", cp437:"Confirm delete for each file?            [N]o  Yes", 1, 28, 3)
+        menus.highlight_menu_keys([43, 48], 1, txt.height()-2, theme.MENU_BRIGHT)
+
+        VOID strings.copy("", input_str_ret_val)                                                  '---  working str = none       
+        line_editor.get_txt(1, 30, PROMPT_LINE_3, [keys.ESC], 0,
+                [cp437:"n"c, cp437:"N"c, cp437:"y"c, cp437:"Y"c, keys.CR], 4, prompt_history.NOTHING)
         IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE 
-        IF NOT tagged_files THEN
-            diskio.delete(files_cache.current.name)
-            'VOID files_cache.remove2(files_cache.current)
-        ELSE
-            files_cache.delete_tagged()
-        END IF
+        'debug.say(input_str_ret_val)
+        strings.trim(input_str_ret_val)
+        IF input_str_ret_val = "" THEN VOID strings.copy(iso:"n", input_str_ret_val) '--- default 'n' on ENTER
+        strings.lower_iso(input_str_ret_val)
+
+        files_cache.current = files_cache.head        
+        REPEAT files_cache.ttl_num_files
+            IF files_cache.current.is_tagged THEN
+                IF input_str_ret_val = "n" THEN
+                    'diskio.delete(files_cache.current.name)     '--- just delete
+                   ' files_cache.remove_entry_refresh_page(files_cache.selected_line_on_page)
+                ELSE
+                    VOID prompts.delete_file()                  '--- prompt
+                END IF
+            END IF
+            files_cache.current = files_cache.current.nextEntry
+        END REPEAT
+
         RETURN TRUE '--- true tells caller to refresh screen
+
+    END FUNCTION
+    
+    
+    FUNCTION delete_file() AS BOOL
+        '--- if tagged_files=true then delete multi files
+        prompt_txt(cp437:"DELETE file:",
+                cp437:"", cp437:"Delete this file?                   [N]o  Yes", 1, 28, 3)
+        menus.highlight_menu_keys([38, 43], 1, txt.height()-2, theme.MENU_BRIGHT)
+        
+        helpers.print_strXY(13, txt.height()-4, files_cache.current.name, theme.MENU_BRIGHT, FALSE)  '--- show fname
+        VOID strings.copy("", input_str_ret_val)                                                  '---  working str = none       
+        line_editor.get_txt(1, 19, PROMPT_LINE_3, [keys.ESC, cp437:"n"c, cp437:"N"c, keys.CR], 3,
+                            [cp437:"y"c, cp437:"Y"c], 1, prompt_history.NOTHING)
+        IF input_str_ret_val = CANCEL_INPUT THEN RETURN FALSE 
+        'diskio.delete(files_cache.current.name)
+        
+        'files_cache.remove_entry_refresh_page(files_cache.selected_line_on_page)
+        RETURN FALSE '--- true tells caller to refresh screen
     END FUNCTION 
 
     

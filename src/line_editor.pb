@@ -18,7 +18,7 @@ MODULE line_editor
     DIM CANCEL_INPUT AS STRING = "@"
     
 
-    SUB get_txt(p_length AS UBYTE, col AS UBYTE, adj_row AS UBYTE,
+    SUB get_txt(p_length AS UBYTE, col AS UBYTE, adj_row AS UBYTE, ' @ignore-error
             cancel_keys[] AS UBYTE, cancel_keys_len AS UBYTE,
             accept_keys[] AS UBYTE, accept_keys_len AS UBYTE,
             history_prompt_val AS UBYTE)

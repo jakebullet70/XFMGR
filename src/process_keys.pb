@@ -58,8 +58,12 @@ MODULE process_keys
                         flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
                         BREAK
                     END IF
-                    IF keys.D_PRESSED IN last_keys THEN            '--- delete
-                        flags.refresh_scrn = prompts.not_done_yet(NOT_TAGGED)   
+                    IF keys.D_PRESSED IN last_keys THEN            '--- delete tagged
+                        IF files_cache.num_tagged <> 0 THEN 
+                            flags.refresh_scrn = prompts.delete_files()
+                        ELSE
+                            txt.bell() '--- no tagged files
+                        END IF  
                         BREAK
                     END IF
                     IF keys.L_PRESSED IN last_keys THEN            '--- log
@@ -209,7 +213,7 @@ MODULE process_keys
                 ELSE                                         '------ FILE only menus ------
 
                     IF keys.D_PRESSED IN last_keys THEN            '--- delete
-                        flags.refresh_scrn = prompts.delete_file(FALSE)
+                        flags.refresh_scrn = prompts.delete_file()
                         BREAK
                     END IF
                     IF keys.R_PRESSED IN last_keys THEN            '--- rename

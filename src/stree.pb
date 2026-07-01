@@ -119,7 +119,7 @@ MODULE main
     END SUB
 
     SUB update_stats_main() 
-        helpers.print_strXY(63,1,iso:"Dec 29 - 02:30PM",theme.TXT_NORMAL,FALSE)
+        helpers.print_strXY(63, 1, iso:"Dec 29 - 02:30PM", theme.TXT_NORMAL, FALSE)
     END SUB
 
     '=========================================================================
@@ -165,6 +165,7 @@ MODULE main
         files_cache.print_stats()
     END SUB
 
+
     '=========================================================================
     '=========================================================================
     '=========================================================================
@@ -203,53 +204,46 @@ MODULE main
             '----------------
             get_key_again:
             '----------------
-            'keycode_ext = keycode = 0               '--- reset key vars, keycode_ext var contains modifer key
+            keycode_ext = keycode = 0               '--- reset key vars, keycode_ext var contains modifer key
             VOID, keycode = cbm.GETIN()              '--- custom KB handler points to ==> &kb_handler
             'keycode = cx16.kbdbuf_get()
             IF keycode = 0 AND keycode_ext = 0 THEN GOTO get_key_again
         
-            
             IF NOT menus.CTRL_PRESSED AND NOT menus.ALT_PRESSED THEN
                 '--- key strokes - movement up / down / pgup / pgdn
-                'debug.say2("keycode:",keycode)
+                'debug.say2("keycode:", keycode)
                 'sys.wait(200)
                 SELECT CASE keycode
                     CASE keys.CR, keys.TAB '--- swap FILE / DIR focus
                         select_focus()
                     CASE keys.DN_ARROW_PRESSED
                         IF menus.mode = menus.DIR THEN 
-                            IF dirs_cache.num_dirs <= 1 THEN CONTINUE
-                            dirs_cache.key_down()  
+                            IF dirs_cache.num_dirs > 1 THEN dirs_cache.key_down()  
                         ELSE
-                            IF files_cache.num_files = 0 THEN CONTINUE
-                            files_cache.key_down() 
+                            IF files_cache.ttl_num_files <> 0 THEN files_cache.key_down() 
                         END IF 
                         CONTINUE
                     CASE keys.UP_ARROW_PRESSED
                         IF menus.mode = menus.DIR THEN 
-                            IF dirs_cache.num_dirs <= 1 THEN CONTINUE
-                            dirs_cache.key_up()  
+                            IF dirs_cache.num_dirs > 1 THEN dirs_cache.key_up()  
                         ELSE
-                            IF files_cache.num_files = 0 THEN CONTINUE
-                            files_cache.key_up() 
+                            IF files_cache.ttl_num_files <> 0 THEN files_cache.key_up() 
                         END IF 
                         CONTINUE
                     CASE keys.PAGE_DN_PRESSED
-                        ' IF menus.mode = menus.DIR THEN 
-                        '     'dirs_cache.key_up()  
-                        ' ELSE
-                        '     IF files_cache.num_files = 0 THEN CONTINUE
-                        '     files_cache.key_up() 
-                        ' END IF 
-                        ' CONTINUE
+                        IF menus.mode = menus.DIR THEN 
+                           'dirs_cache.key_page_down()  TODO
+                        ELSE
+                           IF files_cache.ttl_num_files <> 0 THEN files_cache.key_page_down()
+                        END IF 
+                        CONTINUE
                     CASE keys.PAGE_UP_PRESSED
-                        ' IF menus.mode = menus.DIR THEN 
-                        '     'dirs_cache.key_up()  
-                        ' ELSE
-                        '    IF files_cache.num_files = 0 THEN CONTINUE
-                        '     files_cache.key_up() 
-                        ' END IF 
-                        '  CONTINUE
+                        IF menus.mode = menus.DIR THEN 
+                           'dirs_cache.key_page_up()    TODO
+                        ELSE
+                           IF files_cache.ttl_num_files <> 0 THEN files_cache.key_page_up() 
+                        END IF 
+                        CONTINUE
                 END SELECT
             END IF
             
