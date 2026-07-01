@@ -6,6 +6,7 @@
   "compilerPath": "..\\prog8c.jar",
   "outputDir": "..\\",
   "compilationMode": "auto",
+  "srcdirs": ["..\\utilities"],
   "progb": {
     "keywordCasing": "upper",
     "formatCommaSpacing": true
