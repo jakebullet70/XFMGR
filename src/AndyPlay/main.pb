@@ -15,13 +15,12 @@
 
 ' What if we did something similar to FAT? FAT just had a file named the directory that was a flag to indicate this "file" was a directory. The file then contained the list of files and directories within it. Since each directory is flagged as "logged", when a directory becomes logged we store it in memory and point to it.
 
-
-
 OPTION no_sysinit
 ZEROPAGE basicsafe
 
 IMPORT textio
 IMPORT conv
+IMPORT bitmapping_singlebank
 
 MODULE main
 
@@ -37,8 +36,7 @@ MODULE main
             ' To edit a directory entry, have to work in the correct bank
             DirectoryManager.PushBank()
 
-            entry1.Name = "test"
-            entry1.Flags = index
+            entry1.Flags = index+1
 
             index++
             
@@ -61,20 +59,18 @@ MODULE main
         ' Again, to read the directory entry, have to work in the correct bank
         DirectoryManager.PushBank()
         
-        entry1 = DirectoryManager.GetDirEntry(2)
+        entry1 = DirectoryManager.GetDirEntry(3)
         
         txt.print("address ") : txt.print_uwhex(entry1, TRUE) : txt.print("\n")
         txt.print("flags: ") : txt.print_ub(entry1.Flags) : txt.print("\n")
-        txt.print("name: ") : txt.print(entry1.Name) : txt.print("\n")
+        txt.print("index: ") : txt.print_ub(entry1.NameIndex) : txt.print("\n")
 
         txt.print("reset directory entry\n")
         DirectoryManager.ClearDirEntry(entry1)
 
         txt.print("address ") : txt.print_uwhex(entry1, TRUE) : txt.print("\n")
         txt.print("flags: ") : txt.print_ub(entry1.Flags) : txt.print("\n")
-        ' This will be garbage because the string is a pointer and was reset to 0 which points
-        ' to zero page!
-        txt.print("name: ") : txt.print(entry1.Name) : txt.print("\n")
+        txt.print("index: ") : txt.print_ub(entry1.NameIndex) : txt.print("\n")
 
         DirectoryManager.PopBank()
 
@@ -113,10 +109,10 @@ MODULE DirectoryManager
         ' Stores the visual flags of a directory (1-byte)
         Flags AS UBYTE
 
-        ' This is effectively the offset into the bank where the string is stored. (2-byte)
-        Name AS STRING
+        ' This is the index in the strings bitmap where the name lives (1-byte)
+        NameIndex AS UBYTE
 
-        ' Child directory pointers (32-bytes)
+        ' Child directory pointers (33-bytes)
         ChildDirectories AS PTR UBYTE
 
     END TYPE
@@ -127,6 +123,12 @@ MODULE DirectoryManager
     SUB Initialize()
     
         PushBank()
+        BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, BITMAP_SIZE)
+        BitmapAllocator.Clear()
+        PopBank()
+
+        ' String data is going to use a different bank, but it's managed the same
+        PushStringsBank()
         BitmapAllocator.SetLocation(ADDR_DIRENTRIES_BITMAP, BITMAP_SIZE)
         BitmapAllocator.Clear()
         PopBank()
@@ -153,6 +155,25 @@ MODULE DirectoryManager
         ' Clear the memory of the entry
         sys.memset(entryAddress, TYPE_SIZE_DIRENTRY AS UWORD, 0)
 
+        ' Set the nameindex
+        entryAddress[1] = index
+
+        PopBank()
+
+        ' Handle the strings bank too.
+        ' Since strings are going to be allocated in the exact same way, this is easy
+        ' for the bitmap allocator to work in two different banks. No need to SetLocation
+        ' on the bitmap because the address' are the same, being that they map to banked memory
+        ' will be laid out exactly the same as DirEntry is. Strings will be up to 35 bytes in 
+        ' size, the same as a DirEntry
+        PushStringsBank()
+        
+        ' Allocate an item
+        BitmapAllocator.Reserve(index)
+
+        ' Clear the memory of the entry
+        sys.memset(entryAddress, TYPE_SIZE_DIRENTRY AS UWORD, 0)
+
         PopBank()
 
         RETURN entryAddress
@@ -175,7 +196,9 @@ MODULE DirectoryManager
     '''
     ''' **Note**: _Doesn't_ push or pop the memory bank.
     SUB ClearDirEntry(entry AS PTR DirEntry)
+        DIM nameIndex AS UBYTE = entry.NameIndex
         sys.memset(entry, TYPE_SIZE_DIRENTRY AS UWORD, 0)
+        entry.NameIndex = nameIndex
     END SUB
 
     SUB PushBank()
@@ -190,207 +213,19 @@ MODULE DirectoryManager
         cx16.rambank(BANK_DIR_ENTRIES)
     END SUB
 
+    SUB PushStringsBank()
+        cx16.push_rambank(BANK_DIR_STRINGS)
+    END SUB
+
+    SUB SetStringsBank()
+        cx16.rambank(BANK_DIR_STRINGS)
+    END SUB
+
 END MODULE
 
-''' Maps a one or more bytes of memory as a bitmap to track which entries are reserved. Each bit represents whether a corresponding entry is reserved or not.
-''' To use, follow these instructions:
-''' 1. Call `SetLocation` to set the starting memory address and size of the bitmap (in bytes).
-''' 1. Call `Clear` to initialize the bitmap, marking all entries as free (0).
-''' 2. Call `Allocate` to reserve and return the next free index.
-''' 3. Call `Release` with the index to free a previously reserved entry.
-MODULE BitmapAllocator
+MODULE DirectoryStrings
 
-    ' TODO:
-    ' - How do we detect when full?
 
-    CONST BITMAP_EMPTY AS UBYTE = %0000_0000
-    CONST BITMAP_FULL AS UBYTE  = %1111_1111
-    CONST BITMAP_1 AS UBYTE     = %0000_0001
-    CONST BITMAP_2 AS UBYTE     = %0000_0010
-    CONST BITMAP_3 AS UBYTE     = %0000_0100
-    CONST BITMAP_4 AS UBYTE     = %0000_1000
-    CONST BITMAP_5 AS UBYTE     = %0001_0000
-    CONST BITMAP_6 AS UBYTE     = %0010_0000
-    CONST BITMAP_7 AS UBYTE     = %0100_0000
-    CONST BITMAP_8 AS UBYTE     = %1000_0000
-
-    DIM m_currentSize AS UBYTE
-    DIM m_currentLocation AS PTR UBYTE
-
-    SUB SetLocation(loc AS PTR UBYTE, size AS UBYTE)
-
-        m_currentLocation = loc
-        m_currentSize = size
-
-    END SUB
-
-    ' Calculates the memory address of an object in the bitmap.
-    FUNCTION GetMemoryAddressOfIndex(index AS UBYTE, objectSize AS UBYTE) AS UWORD
-        RETURN index AS UWORD * objectSize AS UWORD
-    END FUNCTION
-
-    ''' Clears the bitmap, marking all entries as free (0).
-    SUB Clear()
-
-        ALIAS originalLocation = SharedVars.uword1
-        originalLocation = m_currentLocation
-        DEFER m_currentLocation = originalLocation
-
-        REPEAT m_currentSize
-            poke(m_currentLocation, 0)
-            m_currentLocation++
-        END REPEAT
-
-    END SUB
-
-    ''' Prints the bitmap for debugging purposes, showing the memory address and value of each byte in the bitmap.
-    SUB PrintBitmap()
-
-        ALIAS originalLocation = SharedVars.uword1
-        ALIAS locationValue = SharedVars.ubyte1
-        originalLocation = m_currentLocation
-        DEFER m_currentLocation = originalLocation
-
-        REPEAT m_currentSize
-
-            locationValue = peek(m_currentLocation)
-            txt.print_uwhex(m_currentLocation, TRUE) : txt.print(": ") : txt.print_ubbin(locationValue, TRUE) : txt.print("\n")
-            m_currentLocation++
-
-        END REPEAT
-
-    END SUB
-
-    ''' Reserves AND returns the record index (0-based) of the NEXT free position IN the bitmap.
-    FUNCTION Allocate() AS UBYTE
-
-        ALIAS originalLocation = SharedVars.uword1
-        ALIAS locationValue = SharedVars.ubyte1
-        originalLocation = m_currentLocation
-        DEFER m_currentLocation = originalLocation
-
-        REPEAT m_currentSize
-
-            locationValue = peek(m_currentLocation)
-
-            IF locationValue == BITMAP_FULL THEN
-                m_currentLocation++
-
-            ELSEIF locationValue == BITMAP_EMPTY OR locationValue BITAND BITMAP_1 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_1)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 0
-
-            ELSEIF locationValue BITAND BITMAP_2 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_2)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 1
-
-            ELSEIF locationValue BITAND BITMAP_3 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_3)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 2
-
-            ELSEIF locationValue BITAND BITMAP_4 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_4)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 3
-
-            ELSEIF locationValue BITAND BITMAP_5 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_5)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 4
-
-            ELSEIF locationValue BITAND BITMAP_6 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_6)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 5
-
-            ELSEIF locationValue BITAND BITMAP_7 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_7)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 6
-                
-            ELSEIF locationValue BITAND BITMAP_8 == 0 THEN
-                poke(m_currentLocation, peek(m_currentLocation) BITOR BITMAP_8)
-                RETURN (m_currentLocation - originalLocation) AS UBYTE * 8 + 7
-
-            END IF
-
-        END REPEAT
-
-        RETURN 0
-
-    END FUNCTION
-
-    ''' Frees the position in the bitmap corresponding to the given index, marking it as available (0).
-    SUB Release(index AS UBYTE)
-    
-        ALIAS originalLocation = SharedVars.uword1
-        ALIAS locationValue = SharedVars.ubyte1
-        ALIAS remainder = SharedVars.ubyte2
-
-        originalLocation = m_currentLocation
-        DEFER m_currentLocation = originalLocation
-
-        m_currentLocation += index / 8
-        remainder = index MOD 8
-        locationValue = peek(m_currentLocation)
-
-        SELECT CASE remainder
-            CASE 0 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_1))
-            CASE 1 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_2))
-            CASE 2 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_3))
-            CASE 3 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_4))
-            CASE 4 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_5))
-            CASE 5 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_6))
-            CASE 6 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_7))
-            CASE 7 : poke(m_currentLocation, locationValue BITAND (BITMAP_FULL - BITMAP_8))
-        END SELECT
-
-    END SUB
-
-    /'
-    SUB TestAllocator()
-    
-        txt.print("\n\ntesting bitmap allocator\n")
-        txt.print("========================\n")
-        DirectoryManager.SetBank()
-
-        txt.print("\nconfigure bitmap for 3 segments\nand print current memory there\n")
-        BitmapAllocator.SetLocation(DirectoryManager.ADDR_BANKED_MEM, 3)
-        BitmapAllocator.PrintBitmap()
-
-        txt.print("\nclearing bitmap\n")
-        BitmapAllocator.Clear()
-        BitmapAllocator.PrintBitmap()
-
-        REPEAT 3
-            
-            txt.print("\nallocating 5 spots\n")
-
-            REPEAT 5
-                VOID BitmapAllocator.Allocate()
-            END REPEAT
-
-            BitmapAllocator.PrintBitmap()
-
-        END REPEAT
-
-        txt.print("\nrelease bitmap index 4 and 10\n")
-        BitmapAllocator.Release(4)
-        BitmapAllocator.Release(10)
-        BitmapAllocator.PrintBitmap()
-
-        txt.print("\ntesting allocate another\n")
-        VOID BitmapAllocator.Allocate()
-        BitmapAllocator.PrintBitmap()
-
-        txt.print("\ntesting allocate another\n")
-        VOID BitmapAllocator.Allocate()
-        BitmapAllocator.PrintBitmap()
-
-        txt.print("\ntesting allocate another\n")
-        VOID BitmapAllocator.Allocate()
-        BitmapAllocator.PrintBitmap()
-
-        DirectoryManager.UnsetBank()
-
-    END SUB
-    '/
 
 END MODULE
 
@@ -414,14 +249,5 @@ MODULE Flagging
         IF flags = 0 THEN txt.print("\nno flags set")
 
     END SUB
-
-END MODULE
-
-MODULE SharedVars
-
-    DIM ubyte1 AS UBYTE
-    DIM ubyte2 AS UBYTE
-    DIM uword1 AS UWORD
-    DIM uword2 AS UWORD
 
 END MODULE
